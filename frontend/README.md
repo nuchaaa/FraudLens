@@ -1,0 +1,1 @@
+React + TypeScript + Vite analyst console planned for Phase 14. No UI or frontend build exists in this checkpoint. Follow the six screens in docs/PROJECT_SPECIFICATION.md. Add accessible analyst confirmation dialogs and loading/error/empty states with real API integration.

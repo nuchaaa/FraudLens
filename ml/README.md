@@ -1,0 +1,1 @@
+Offline training is separate from the serving backend. Reuse backend/app/features production feature code when implemented. No model artifacts or experiment metrics currently exist. Do not install placeholder fake models.

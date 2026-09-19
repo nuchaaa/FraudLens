@@ -1,0 +1,1 @@
+Controlled artifact directory. Never load untrusted pickle/joblib files. Future artifacts must have a feature schema, SHA-256 digest, training provenance and DB version metadata. Generated model files are ignored by Git.

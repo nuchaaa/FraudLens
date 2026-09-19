@@ -1,0 +1,23 @@
+from alembic import context
+
+from backend.adapters.database.base import Base, create_database_engine
+from backend.config import Settings
+
+settings = Settings()
+if settings.database_url is None:
+    raise RuntimeError("Set FRAUDLENS_DATABASE_URL before running migrations")
+url = settings.database_url.get_secret_value()
+
+if context.is_offline_mode():
+    context.configure(url=url, target_metadata=Base.metadata, literal_binds=True)
+    with context.begin_transaction():
+        context.run_migrations()
+else:
+    engine = create_database_engine(url)
+    try:
+        with engine.connect() as connection:
+            context.configure(connection=connection, target_metadata=Base.metadata)
+            with context.begin_transaction():
+                context.run_migrations()
+    finally:
+        engine.dispose()
