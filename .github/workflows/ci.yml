@@ -25,12 +25,12 @@ jobs:
         with:
           version: "0.12.17"
           enable-cache: true
-      - run: uv sync --locked
-      - run: uv run ruff check . && uv run ruff format --check .
-      - run: uv run mypy
-      - run: uv run alembic upgrade head
-      - run: uv run pytest --cov=backend --cov-report=term-missing
-      - run: uv export --locked --format requirements-txt --no-emit-project --no-hashes > /tmp/fraudlens-requirements.txt
-      - run: uv run pip-audit --disable-pip --no-deps -r /tmp/fraudlens-requirements.txt
+      - run: uv sync --locked --group ml
+      - run: uv run --group ml ruff check . && uv run --group ml ruff format --check .
+      - run: uv run --group ml mypy
+      - run: uv run --group ml alembic upgrade head
+      - run: uv run --group ml pytest --cov=backend --cov=ml.src --cov-report=term-missing
+      - run: uv export --locked --group ml --format requirements-txt --no-emit-project --no-hashes > /tmp/fraudlens-requirements.txt
+      - run: uv run --group ml pip-audit --disable-pip --no-deps -r /tmp/fraudlens-requirements.txt
       - run: uv build
       - run: docker build -t fraudlens:ci .

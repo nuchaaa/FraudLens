@@ -1,4 +1,4 @@
-# Research protocol — no experimental results yet
+# Research protocol — external validation still outstanding
 
 Question: How can adaptive behavioral fraud detection learn legitimate changes
 without allowing anomalous or fraudulent transactions to poison the customer's
@@ -56,4 +56,11 @@ review burden. Include bootstrap confidence intervals where justified.
 Reproducibility: save seeds, generator version, dataset hash, feature version,
 model artifact hash, split boundaries, label availability assumptions, policy
 configuration and package lockfile. No current test assertions are predictive
-performance claims. There are no model metrics or research results in this session.
+performance claims. Phase 7 adds measured synthetic engineering results in
+ml/experiments/phase7-synthetic-v1; these do not validate the adaptive-profile hypothesis.
+
+## Current experiment boundary
+
+ADR-012 records the static synthetic experiment and predeclared selection rules.
+No A/B/C/D adaptive comparison or external-data study has run. Dataset suitability
+and real point-in-time evidence remain prerequisites for a production baseline.

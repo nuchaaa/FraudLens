@@ -1,11 +1,21 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 6 — Deterministic rule engine complete.**
-Next phase: **Phase 7 — Dataset preparation and ML experiments.**
+Current checkpoint: **Phase 7 — Synthetic offline experiment checkpoint complete; external validation open.**
+Next work: **Phase 7 external-data suitability and production baseline; Phase 8 inference later.**
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
 ## Completed capabilities
+
+- [x] Phase 7 engineering checkpoint: original deterministic synthetic event generator,
+  event/arrival/label clocks, static authored bootstrap and chronological/customer splits.
+- [x] Production feature reuse; no target-derived admission; late-arrival replay exclusion.
+- [x] Logistic Regression, Random Forest, XGBoost comparisons for seeds 17/29/43.
+- [x] Validation-only selection/thresholds; final test and held-out customers evaluated once
+  per recorded run for the selected model. No production promotion.
+- [x] Reproducibility artifacts/hashes, measured reports and seven ML pipeline tests.
+- [x] Optional ML group, CI definition updated, ADR-012 and dataset suitability review.
+- [ ] External dataset/license/availability verification and production baseline selection.
 
 - [x] Phase 6: rules-v1, five deterministic specifications with stable reason codes.
 - [x] Explicit MATCHED / NOT_MATCHED / NOT_EVALUATED outcomes, evidence and missing flags.
@@ -41,13 +51,13 @@ do not establish legitimacy, score risk or admit transactions.
 
 ## Verification — 2026-09-20
 
-- [x] **282 passed, 0 skipped, 2 upstream warnings; 97% combined branch/statement coverage.**
+- [x] **289 passed, 0 skipped, 2 upstream warnings; 96% combined backend/ML coverage.**
 - [x] Actual PostgreSQL 17.10, including prior-phase regressions.
 - [x] Migration upgrade/downgrade/metadata tests and upgrade with populated legacy profile data.
 - [x] Concurrent reader pins its version before another writer commits; old versions exclude
   backdated later admissions and retain their original timezone/window policy.
-- [x] Ruff lint/format and strict mypy pass (71 backend files).
-- [x] pip-audit: no known vulnerabilities; dependencies/lockfile unchanged.
+- [x] Ruff lint/format and strict mypy pass (77 backend/ML source files).
+- [x] pip-audit: no known vulnerabilities; updated optional ML dependencies audited.
 - [x] Source/wheel builds and Compose configuration pass.
 - [x] Native database upgraded; head is 0004_profile_revisions, with 15 business tables.
 - [x] Actual local Uvicorn/PostgreSQL smoke passed: cold start, populated pinned profile,
@@ -57,7 +67,7 @@ do not establish legitimacy, score risk or admit transactions.
 - [ ] Remote CI has not been pushed/run.
 
 No known failing tests. The unchanged warnings concern Starlette's httpx TestClient
-and AnyIO BlockingPortal deprecations. No predictive metrics have been measured or claimed.
+and AnyIO BlockingPortal deprecations. Synthetic-only model metrics are recorded; no real-world performance is claimed.
 
 ## Environment and commands
 
@@ -72,13 +82,14 @@ export TEST_DATABASE_URL='postgresql+psycopg:///fraudlens_test?host=/private/tmp
 export FRAUDLENS_DATABASE_URL="$TEST_DATABASE_URL"
 .venv/bin/alembic upgrade head
 .venv/bin/alembic check
-.venv/bin/pytest --cov=backend
+.venv/bin/pytest --cov=backend --cov=ml.src
 .venv/bin/ruff check .
 .venv/bin/ruff format --check .
 .venv/bin/mypy
 UV_CACHE_DIR=../../work/uv-cache ../../work/bootstrap/bin/uv build --offline
 ```
 
+Install `uv sync --locked --group ml` for the full test suite.
 See development.md for restart/stop and expiring credential setup. Business endpoints
 fail closed without FRAUDLENS_API_PRINCIPALS. No actual API token is committed or left
 configured. Run .venv/bin/uvicorn backend.main:app --reload --host 127.0.0.1 after setup.
@@ -87,6 +98,11 @@ Tests require a disposable *_test database and use a generated schema; the migra
 smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Important files
+
+- ml/src/datasets/{synthetic,prepare}.py; ml/src/training/experiment.py.
+- tests/ml/test_experiment.py; ml/experiments/phase7-synthetic-v1/{README.md,seed*.json}.
+- docs/adr/ADR-012-offline-experiment-boundaries.md; docs/research/dataset-assessment.md.
+- pyproject.toml/uv.lock: optional ml group; strict mypy now includes ML source.
 
 - backend/app/rules/engine.py: policy, specifications, outcomes and pure context evaluation.
 - backend/adapters/rules/__main__.py: offline rule replay CLI.
@@ -113,6 +129,16 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Decisions and remaining limitations
 
+- Synthetic models are trained and measured, but production_eligible=false. XGBoost won
+  validation AP for all three seeds. Test AP ranged 0.5757–0.7313; this reflects authored
+  distributions only. No external generalization or safe-adaptation result is claimed.
+- Full local artifacts: ../../work/phase7/final-seed17, final-seed29 and final-seed43.
+  Committed JSON reports contain hashes; raw data/model files stay outside Git.
+- Original generator uses one event/customer/day, KZT, static synthetic bootstrap, two-day
+  label delay and 0/2/120-minute arrivals. Held-out customers have authored prior history.
+- Tests use the optional ml group (`uv sync --locked --group ml`). macOS XGBoost required
+  libomp 22.1.8, now installed via Homebrew. API dependencies and DB schema are unchanged.
+
 - rules-v1 requires exact behavior-v1 order/version. Five codes: AMOUNT_ANOMALY,
   NEW_RECIPIENT, HIGH_VELOCITY, UNUSUAL_TIME and DEVICE_CHANGED.
 - Default inclusive thresholds: 10x admitted median and five prior transfers in five
@@ -130,8 +156,7 @@ smoke also upgrades its default schema. Never substitute SQLite.
 - A new capture can see late arrivals. Replay saved original contexts for past decisions;
   current event-time queries cannot reconstruct historical knowledge. Capture time is not
   commit time. Declared offline provenance requires independent dataset validation.
-- Training batches and inference preparation call the same pure extractor. No trained model
-  or predictive metrics exist. Capture/replay integration passed with PostgreSQL; replay
+- Training batches and inference preparation call the same pure extractor. Offline synthetic models and measured reports exist, all ineligible for production. Capture/replay integration passed with PostgreSQL; replay
   succeeded with invalid DB/config settings, proving no live data dependency.
 
 - Explicit as_of requires version; future cutoff -> 422, unknown revision -> 404, cutoff
@@ -158,7 +183,7 @@ smoke also upgrades its default schema. Never substitute SQLite.
 - Cold start, low-weight admission, compromised confirmations and corrections/retractions
   remain unresolved research debt. Reads preserve quarantine/fraud exclusion.
 - Transactions remain immutable RECEIVED records. Evaluation needs separate derived state
-  or an append-only lifecycle; no risk API, trained ML, SHAP, human login or frontend exists.
+  or an append-only lifecycle; no risk API, serving ML, SHAP, human login or frontend exists.
 - Outbox dispatch/claims/consumer deduplication, idempotency retention, centralized revocation,
   rate limits, database grants and deployment hardening remain unfinished.
 - Service credentials are configuration snapshots; rotate while retaining principal UUID
@@ -166,13 +191,13 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Exact next tasks
 
-1. Read status, specification, development.md, ADR-010/011 and docs/research/protocol.md.
-2. Phase 7: assess candidate datasets for license, labels, event chronology, customer IDs,
-   currency and point-in-time feature availability. Never invent missing provenance.
-3. Prepare reproducible leakage-safe data/splits using the shared production extractor
-   where source facts support it; document feature limitations and trusted-history policy.
-4. Compare Logistic Regression, Random Forest and XGBoost with appropriate imbalance
-   handling and validation-only selection. Report measured metrics only; preserve test isolation.
-5. Do not present synthetic experiments as evidence of real-world performance. Keep
-   training offline and model integration separate (Phase 8); admission remains closed.
-6. Run checks; update PROJECT_STATUS.md, NEXT_SESSION_PROMPT.md and SESSION_LOG.md.
+1. Read status/specification/runbook, ADR-012, research protocol and dataset assessment.
+2. Resolve Phase 7 external-data eligibility: exact license/source version, schema, labels,
+   identity/currency and historical availability. No candidate is yet approved/imported.
+3. If external data cannot support behavior-v1, define a separate honest benchmark contract;
+   do not invent device/currency/arrival/feedback facts. Preserve synthetic-only boundaries.
+4. Freeze experimental protocol before new test evaluation; keep model/threshold selection
+   validation-only. Do not choose a production model from the current synthetic metrics.
+5. Phase 8 inference may follow a defensible baseline, or an explicitly experimental demo
+   boundary. Do not wire current artifacts silently into business endpoints.
+6. Run checks and update all three checkpoint files. Adaptive A/B/C/D research remains future.

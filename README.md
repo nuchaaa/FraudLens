@@ -6,10 +6,10 @@ FraudLens is a research-oriented modular monolith investigating how banking frau
 detection can learn legitimate behavior changes without letting exceptional or
 fraudulent transactions corrupt a customer's normal baseline.
 
-**Status: Phase 6 deterministic rule engine; not a deployable fraud product.**
+**Status: Phase 7 synthetic ML experiment checkpoint; not a deployable fraud product.**
 Submission/retrieval, scoped service credentials, durable request replay and atomic
 audit/outbox storage are implemented on PostgreSQL. There is no risk evaluation,
-trained model, human login or analyst console yet.
+serving model, human login or analyst console yet.
 Profile reads now expose robust short/long statistics, cold-start states and immutable
 revision selection. Profile admission remains closed pending trusted-history workflows.
 The pure feature engine provides 29 ordered features with explicit missing-history indicators,
@@ -76,14 +76,15 @@ scenarios and a live analyst demonstration are scheduled for Phase 16.
 Current: Python 3.13, uv, FastAPI/Pydantic, SQLAlchemy 2, Alembic, PostgreSQL
 Compose configuration, pytest, Ruff, mypy and pip-audit.
 
-Planned: React/TypeScript/Vite; pandas, NumPy, scikit-learn, XGBoost and SHAP.
-ML dependencies are deliberately deferred until the offline experiment phase.
+Offline ML group: NumPy, scikit-learn and XGBoost.
+Planned: React/TypeScript/Vite and SHAP.
 
 ## ML methodology and metrics
 
-No model has been trained and **no predictive metrics are claimed**. Compare
-Logistic Regression, Random Forest and XGBoost with chronological train/validation/
-test splits. Fit transforms and class-balancing methods on training data only.
+Three-seed **synthetic-only** comparisons now train Logistic Regression, Random Forest
+and XGBoost with chronological train/validation/test splits and held-out customers.
+[Measured results](ml/experiments/phase7-synthetic-v1/README.md) are engineering evidence,
+not real-world fraud performance. No production model is selected. Fit transforms and class-balancing methods on training data only.
 Evaluate precision, recall, F1, ROC-AUC, PR-AUC and false-positive rate. Choose
 thresholds and models on validation data; report the untouched test set once.
 Feature generation must replay only history available before each transaction.
@@ -137,8 +138,8 @@ database; never point migration/test commands at a real banking database.
 ```sh
 uv run ruff check .
 uv run ruff format --check .
-uv run mypy
-uv run pytest --cov=backend --cov-report=term-missing
+uv run --group ml mypy
+uv run --group ml pytest --cov=backend --cov-report=term-missing
 uv export --locked --format requirements-txt --no-emit-project --no-hashes > /tmp/fraudlens-requirements.txt
 uv run pip-audit --disable-pip --no-deps -r /tmp/fraudlens-requirements.txt
 uv build

@@ -131,3 +131,24 @@
 - Documented ADR-011, README/architecture/runbook and all three checkpoint files.
 - Docker runtime/remote CI remain unverified; no predictive metrics claimed.
 - Next: Phase 7 dataset suitability, leakage-safe preparation and offline model comparison.
+
+## 2026-09-20 — Phase 7 synthetic offline experiment checkpoint
+
+- Assessed external candidates; no dataset license/availability contract approved. Added
+  original stochastic synthetic source with explicit event/arrival/label clocks and static
+  authored bootstrap. No historical knowledge or trusted-admission provenance invented.
+- Shared production feature replay excludes unavailable/future facts; chronological splits
+  filter immature labels and withhold a quarter of customers from fitting/selection.
+- Trained Logistic Regression, Random Forest and XGBoost on three seeds. Validation AP
+  selected XGBoost each time; recorded final-test AP 0.7313/0.5757/0.6427. Synthetic-only
+  results are ineligible for production; no real-world or adaptive-gate claims.
+- Saved raw source, prepared values, split IDs, models, predictions and report hashes under
+  ../../work/phase7/final-seed{17,29,43}; committed only summary reports, not model binaries.
+- Added optional ML dependencies and lock entries; Homebrew libomp 22.1.8 was required on
+  macOS. CI includes ML tests, strict mypy covers backend/ML. No schema/API changes.
+- Verification: 289 passed, no skips, 96% combined backend/ML coverage; two upstream warnings.
+  Ruff/format/mypy (77 files), locked offline sync, build, Compose and Alembic check pass.
+  Updated dependency audit found no known vulnerabilities. Remote CI/Docker unverified.
+- Added ADR-012, dataset assessment, measured results and updated checkpoint/runbook files.
+- Next: external dataset suitability and defensible production baseline remain Phase 7 work;
+  Phase 8 serving integration must not silently promote synthetic experiment artifacts.

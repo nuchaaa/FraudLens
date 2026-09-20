@@ -1,6 +1,7 @@
 # Development and PostgreSQL tests
 
-From the repository root, install dependencies with `uv sync --locked`.
+From the repository root, install full development/test dependencies with `uv sync --locked --group ml`.
+Backend-only use can omit the ML group. macOS ML tests require `brew install libomp`.
 The original workspace also has `../../work/bootstrap/bin/uv`; set
 `UV_CACHE_DIR=../../work/uv-cache` when using that copy. Existing `.venv/bin`
 executables work without a globally installed uv command.
@@ -63,7 +64,7 @@ testing and has not yet been runtime-verified in this workspace.
 ```
 
 `/health/live` is public process liveness. Business routes require PostgreSQL and
-configured credentials. No model is trained or loaded; accepted transactions remain
+configured credentials. No serving model is loaded; accepted transactions remain
 RECEIVED and do not update profiles.
 
 ## Authenticated synthetic API
@@ -225,3 +226,29 @@ This local read-only command needs no credentials or database. It prints all fiv
 outcomes, evidence, missing indicators and the exact policy fingerprint. Thresholds are
 experimental; matches are reasons, not probabilities, verdicts or automatic actions.
 A rule with unavailable input is NOT_EVALUATED. See ADR-011 for the complete contract.
+
+## Phase 7 synthetic experiment
+
+Run from the source checkout (ML code is deliberately excluded from the backend wheel):
+
+```sh
+uv sync --locked --group ml
+# macOS only, if OpenMP is missing: brew install libomp
+.venv/bin/python -m ml.src.training.experiment --output work/experiments/seed17 --seed 17
+.venv/bin/python -m ml.src.training.experiment --output work/experiments/seed29 --seed 29
+.venv/bin/python -m ml.src.training.experiment --output work/experiments/seed43 --seed 43
+.venv/bin/pytest --cov=backend --cov=ml.src
+.venv/bin/mypy
+```
+
+Output directories must not already exist. Source facts, prepared features, split IDs,
+model, final predictions and hashes are saved with report.json. Load joblib files only
+from trusted local runs. The reports explicitly prohibit production promotion.
+
+Original-workspace recorded runs live at ../../work/phase7/final-seed17 (and 29/43).
+Summary reports are in ml/experiments/phase7-synthetic-v1. The generator is fixed and
+uses only authored facts; external dataset validation and a production model choice
+remain unfinished. See ADR-012 and docs/research/dataset-assessment.md.
+
+When using uv to run tests/types, pass `--group ml` so uv does not remove the optional
+ML dependencies. CI now installs/tests this group, but remote CI is still unverified.
