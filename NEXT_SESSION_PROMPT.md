@@ -1,30 +1,28 @@
-Continue FraudLens from the completed Phase 5 feature-engine checkpoint.
-Read PROJECT_STATUS.md first, then docs/PROJECT_SPECIFICATION.md, development.md
-and docs/adr/ADR-010-feature-context-and-availability.md. Do not redo completed work.
+Continue FraudLens from completed Phase 6 — deterministic rule engine.
+Read PROJECT_STATUS.md first, then docs/PROJECT_SPECIFICATION.md, development.md,
+docs/adr/ADR-010-feature-context-and-availability.md, ADR-011-deterministic-rules.md
+(in docs/adr) and docs/research/protocol.md. Do not redo completed work.
 
 Repository: /Users/nurasilkirgizbek/Documents/Codex/2026-09-19/if-my-chat-gpt-open-my-2/outputs/fraudlens
-Architecture: modular monolith; backend/app is framework-free domain/application,
-backend/api is HTTP, backend/adapters is infrastructure.
 Goal: explainable adaptive behavioral fraud detection with safe customer profiles.
+Architecture: modular monolith; framework-free backend/app; HTTP backend/api;
+infrastructure backend/adapters. Phases 0–6 complete. Authenticated intake/profile reads,
+PostgreSQL UoW/idempotency, immutable revisions and 29 behavior-v1 features remain intact.
+Phase 6 adds five rules-v1 specifications, stable reasons, evidence and explicit
+MATCHED/NOT_MATCHED/NOT_EVALUATED outcomes, policy fingerprints and offline rule CLI.
+No model, probabilities, risk API, durable evaluation workflow, SHAP, frontend, human
+login, trusted admission API or outbox dispatcher. Transactions remain immutable RECEIVED.
+Schema unchanged: 0004_profile_revisions, 15 business tables; dependencies unchanged.
 
-Completed: Phases 0–5, including authenticated transaction/profile APIs, scoped durable
-idempotency, PostgreSQL persistence/UoW and immutable profile revisions. Phase 5 adds
-29 ordered finite behavior-v1 features, explicit missing-history/MAD-floor indicators,
-scoped read-only feature capture, strict versioned artifacts and authenticated capture/
-offline replay CLI. Training batches and inference preparation share the pure extractor.
-No scoring, trained ML, SHAP, human login, frontend, admission API or outbox dispatcher.
-Migration head remains 0004_profile_revisions; 15 business tables; no dependency changes.
+Validation: 282 tests passed, zero skipped, 97% coverage on PostgreSQL 17.10.
+Ruff/format, strict mypy (71 backend files), builds and Compose configuration passed.
+Existing migration/schema tests passed in the full suite. Two upstream deprecations
+remain; Docker runtime and remote CI unverified. No known failing tests or predictive metrics.
+Previous dependency audit found no known vulnerabilities; no dependencies changed.
 
-Validation: 260 tests passed, zero skipped, 97% coverage on PostgreSQL 17.10.
-Ruff/format, strict mypy (68 backend files), pip-audit, builds, Compose configuration and
-Alembic checks passed. PostgreSQL capture and offline CLI replay passed integration tests.
-Two upstream deprecation warnings remain. Docker execution and remote CI are unverified.
-Prior Uvicorn/PostgreSQL profile smoke passed in Phase 4; no new HTTP routes in Phase 5.
-
-PostgreSQL remains running without TCP: owner-only /private/tmp socket, port 55439,
-database fraudlens_test; cluster ../../work/fraudlens-postgres/data from repository.
-See development.md for restart/stop and expiring credential setup. Sandbox socket access
-may require approved execution outside the sandbox; never substitute SQLite.
+PostgreSQL: owner-only /private/tmp socket, no TCP, port 55439, database fraudlens_test.
+Cluster ../../work/fraudlens-postgres/data; see development.md for restart/stop.
+Sandbox socket access may require approved execution outside sandbox; never use SQLite.
 Business access fails closed without FRAUDLENS_API_PRINCIPALS.
 
 Commands from repository root:
@@ -37,36 +35,30 @@ export FRAUDLENS_DATABASE_URL="$TEST_DATABASE_URL"
 .venv/bin/ruff format --check .
 .venv/bin/mypy
 UV_CACHE_DIR=../../work/uv-cache ../../work/bootstrap/bin/uv build --offline
-.venv/bin/python -m backend.adapters.features --help
+.venv/bin/python -m backend.adapters.rules --help
 
-Important files: backend/app/features/{context,engine,service,contracts}.py;
-backend/adapters/features/{artifacts,__main__}.py; backend/adapters/database/transactions.py;
-backend/app/shared/ports.py; tests/unit/test_feature_engine.py;
-tests/integration/test_feature_capture.py; docs/adr/ADR-009-profile-reads-and-history.md.
+Important: backend/app/rules/engine.py; backend/adapters/rules/__main__.py;
+tests/unit/test_rule_engine.py; backend/app/features/{context,engine,service}.py;
+backend/adapters/features/artifacts.py; docs/adr/ADR-010 and ADR-011.
+Rule defaults: amount/median >=10; five prior transfers strictly within five minutes.
+Thresholds uncalibrated; no aggregation/probability. Missing input suppresses a rule with
+NOT_EVALUATED. Empty reasons do not prove legitimacy. Policies accompany their SHA256.
+Feature version/order is strict; changed rules/messages require a new rule version.
+No blacklist source exists, so blacklist checks are deferred.
 
-Feature contract: profile version must be explicit, or explicitly assert absent profile.
-Never use a revision containing the candidate. All windows exclude both boundaries.
-Raw history is same customer/currency, strictly prior, bounded to 180 days/10,000 rows;
-overflow fails instead of truncating. Baseline minimum=5; deviation denominator=max(MAD,
-0.01), with missing/floor flags. Thresholds are uncalibrated. See ADR-010 for all formulas.
-Recipient observed age is bounded activity age, not account age. Device ties can be missing.
+Saved contexts pin original facts. Today's captures may contain late arrivals; event time
+does not reconstruct historical knowledge. Require pre-decision profile versions and
+source chronology. Raw history is same customer/currency, strictly prior, 180 days,
+10,000-row cap; no silent truncation. Artifacts have integrity checks, not authenticity.
+Future evaluation must atomically persist context/vector/assessment. Admission provenance
+remains unverified. Never treat intake/enrollment or rule matches as learning permission.
 
-Saved contexts pin facts; recapturing today may include late arrivals and does not
-reconstruct historical availability. Retain contexts before original decisions. Capture
-clock is not commit time. Declared offline source does not verify chronology. Artifacts
-have SHA256 integrity, not authenticity; contain transaction facts; limit 16 MiB, no
-overwrite. Future evaluation must persist context/vector/assessment atomically.
-Profile provenance remains repository_admissions; admission_workflow_verified=false.
-
-Next: Phase 6 — Rule Engine. Inspect existing Specification/RuleResult/RuleVersion and
-risk reason contracts. Implement deterministic versioned rules/reason codes on captured
-features, with explicit cold-start/missing behavior and experimental thresholds. Test
-boundaries, stable explanations, version compatibility and replay. Do not fabricate
-probabilities/model metadata or introduce unprotected business writes. Preserve phase
-boundaries: ML and atomic evaluation integration are later work.
-
-Do not admit raw intake or treat customer enrollment as legitimacy. Trusted bootstrap,
-authorized feedback/gate orchestration, low-weight admission, compromised confirmations
-and corrections remain unresolved. Transactions stay immutable RECEIVED records;
-plan separate evaluation state. Update PROJECT_STATUS.md, NEXT_SESSION_PROMPT.md and
-SESSION_LOG.md before ending. Never fabricate research metrics.
+Next: Phase 7 — dataset preparation and ML experiments. First inspect research protocol
+and dataset suitability: license, labels, time, customer/currency identity, point-in-time
+availability and missing fields. Use shared feature code only where source facts support
+it. Compare Logistic Regression, Random Forest and XGBoost using leakage-safe splits,
+appropriate imbalance handling and validation-only selection. Do not invent dataset
+provenance or metrics; synthetic results cannot establish real-world performance.
+Training is offline; model integration is Phase 8. Trusted bootstrap, feedback/gate
+orchestration, low-weight admission, compromised confirmations and corrections remain open.
+Update PROJECT_STATUS.md, NEXT_SESSION_PROMPT.md and SESSION_LOG.md before ending.

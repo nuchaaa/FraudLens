@@ -1,11 +1,18 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 5 — Shared versioned feature engine complete.**
-Next phase: **Phase 6 — Rule engine and reason codes.**
+Current checkpoint: **Phase 6 — Deterministic rule engine complete.**
+Next phase: **Phase 7 — Dataset preparation and ML experiments.**
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
 ## Completed capabilities
+
+- [x] Phase 6: rules-v1, five deterministic specifications with stable reason codes.
+- [x] Explicit MATCHED / NOT_MATCHED / NOT_EVALUATED outcomes, evidence and missing flags.
+- [x] Configurable experimental policy retained with canonical SHA256 fingerprint.
+- [x] Pure captured-context evaluation and database-free local rule replay CLI.
+- [x] 22 additional tests for boundaries, missing data, compatibility and exact replay.
+- [x] ADR-011 defines semantics; no new database tables, dependencies or HTTP routes.
 
 - [x] Phase 5: shared pure `behavior-v1` extractor with 29 ordered finite features.
 - [x] Explicit missing/insufficient history, finite MAD floor, strict baseline/activity separation.
@@ -34,12 +41,12 @@ do not establish legitimacy, score risk or admit transactions.
 
 ## Verification — 2026-09-20
 
-- [x] **260 passed, 0 skipped, 2 upstream warnings; 97% combined branch/statement coverage.**
+- [x] **282 passed, 0 skipped, 2 upstream warnings; 97% combined branch/statement coverage.**
 - [x] Actual PostgreSQL 17.10, including prior-phase regressions.
 - [x] Migration upgrade/downgrade/metadata tests and upgrade with populated legacy profile data.
 - [x] Concurrent reader pins its version before another writer commits; old versions exclude
   backdated later admissions and retain their original timezone/window policy.
-- [x] Ruff lint/format and strict mypy pass (68 backend files).
+- [x] Ruff lint/format and strict mypy pass (71 backend files).
 - [x] pip-audit: no known vulnerabilities; dependencies/lockfile unchanged.
 - [x] Source/wheel builds and Compose configuration pass.
 - [x] Native database upgraded; head is 0004_profile_revisions, with 15 business tables.
@@ -81,6 +88,10 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Important files
 
+- backend/app/rules/engine.py: policy, specifications, outcomes and pure context evaluation.
+- backend/adapters/rules/__main__.py: offline rule replay CLI.
+- tests/unit/test_rule_engine.py; docs/adr/ADR-011-deterministic-rules.md.
+
 - backend/app/features/{context,engine,service,contracts}.py: shared versioned feature path.
 - backend/adapters/features/{artifacts,__main__}.py: authenticated capture and offline replay.
 - backend/adapters/database/transactions.py: scoped strict-cutoff history query.
@@ -101,6 +112,14 @@ smoke also upgrades its default schema. Never substitute SQLite.
   unchanged Phase 3 workflow/security; docs/adr/ADR-008-transaction-api-and-service-credentials.md.
 
 ## Decisions and remaining limitations
+
+- rules-v1 requires exact behavior-v1 order/version. Five codes: AMOUNT_ANOMALY,
+  NEW_RECIPIENT, HIGH_VELOCITY, UNUSUAL_TIME and DEVICE_CHANGED.
+- Default inclusive thresholds: 10x admitted median and five prior transfers in five
+  minutes. Both are uncalibrated. Full policy plus fingerprint accompany each report.
+- Missing history means NOT_EVALUATED; empty reasons are not a safe/fraud-free verdict.
+  No rule score, probability, automatic action or durable assessment is produced.
+- Blacklist checks are deferred until an explicit authoritative versioned input exists.
 
 - Feature version behavior-v1 fixes 29 names/order, policy and imputation. Baseline minimum
   is five; absolute amount deviation divides by max(MAD, 0.01) with explicit floor flags.
@@ -147,13 +166,13 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Exact next tasks
 
-1. Read this status, specification, development.md and ADR-010; preserve completed Phases 0–5.
-2. Phase 6: inspect existing rules Specification/RuleResult/RuleVersion contracts and risk
-   reasons/strategies. Implement deterministic versioned rules with stable reason codes.
-3. Define missing-history behavior and explicit experimental thresholds. Rules must consume
-   the captured feature contract without querying newer facts or automatically admitting data.
-4. Test exact boundaries, cold starts, deterministic explanations, version compatibility and
-   context replay. Do not label heuristic outputs calibrated fraud probabilities.
-5. Keep rule evaluation separate from later ML inference and atomic assessment persistence;
-   plan immutable transaction evaluation state explicitly. Never invent model metadata.
-6. Run checks and update PROJECT_STATUS.md, NEXT_SESSION_PROMPT.md and SESSION_LOG.md.
+1. Read status, specification, development.md, ADR-010/011 and docs/research/protocol.md.
+2. Phase 7: assess candidate datasets for license, labels, event chronology, customer IDs,
+   currency and point-in-time feature availability. Never invent missing provenance.
+3. Prepare reproducible leakage-safe data/splits using the shared production extractor
+   where source facts support it; document feature limitations and trusted-history policy.
+4. Compare Logistic Regression, Random Forest and XGBoost with appropriate imbalance
+   handling and validation-only selection. Report measured metrics only; preserve test isolation.
+5. Do not present synthetic experiments as evidence of real-world performance. Keep
+   training offline and model integration separate (Phase 8); admission remains closed.
+6. Run checks; update PROJECT_STATUS.md, NEXT_SESSION_PROMPT.md and SESSION_LOG.md.

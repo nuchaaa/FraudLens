@@ -210,3 +210,18 @@ This computes inputs only, not fraud predictions. New captures may see late arri
 retain original artifacts to reproduce prior inputs. Files contain transaction facts;
 keep them outside version control and restrict access appropriately. See ADR-010 for
 limits and provenance. Synthetic demo timestamps must not be in the future.
+
+## Phase 6 rule replay
+
+After capturing a context using the Phase 5 command, evaluate the saved facts:
+
+```sh
+.venv/bin/python -m backend.adapters.rules /private/tmp/fraudlens-feature-context.json
+.venv/bin/python -m backend.adapters.rules /private/tmp/fraudlens-feature-context.json \
+  --amount-median-ratio 12 --prior-transfers-5-min 6
+```
+
+This local read-only command needs no credentials or database. It prints all five rule
+outcomes, evidence, missing indicators and the exact policy fingerprint. Thresholds are
+experimental; matches are reasons, not probabilities, verdicts or automatic actions.
+A rule with unavailable input is NOT_EVALUATED. See ADR-011 for the complete contract.

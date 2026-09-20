@@ -115,3 +115,19 @@
   Capture time does not reconstruct commit history; saved original facts enable replay.
 - PostgreSQL remains running without TCP. Docker execution and remote CI remain unverified.
 - Next: Phase 6 deterministic versioned rule engine and reason codes on captured features.
+
+## 2026-09-20 — Phase 6 deterministic rules
+
+- Added pure rules-v1 specifications on behavior-v1 with five stable reason codes,
+  explicit three-state outcomes and observed/threshold/missing evidence.
+- Recorded experimental policy parameters and canonical fingerprints. Added offline
+  artifact rule replay; no new HTTP writes, scoring, admission, schema or dependencies.
+- Added 22 tests covering boundaries, missing input, exact reason order, policy/version
+  checks and replay without database/configuration. Full PostgreSQL suite: 282 passed,
+  none skipped, 97% coverage; two existing upstream deprecations.
+- Ruff/format, strict mypy (71 files), distributions, Compose configuration and CLI help
+  passed. Existing migration checks passed in suite. Prior dependency audit remains current
+  for the unchanged lockfile; it was not rerun this session.
+- Documented ADR-011, README/architecture/runbook and all three checkpoint files.
+- Docker runtime/remote CI remain unverified; no predictive metrics claimed.
+- Next: Phase 7 dataset suitability, leakage-safe preparation and offline model comparison.

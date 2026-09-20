@@ -24,7 +24,7 @@ work back the intake use cases. React, ML and evaluation integrations remain pla
 | profile | Customer, observations, robust windows, revision-pinned reads, snapshots, update gate | Domain + scoped read API; trusted admission deferred |
 | features | 29 ordered versioned features, immutable contexts and scoped capture | Pure extractor + artifact replay |
 | fraud | Prediction/model metadata and model strategy port | Contract only |
-| rules | Specification contract and rule version | Contract only |
+| rules | Versioned specifications, evidence, reason codes and missing-input outcomes | Pure engine + local replay |
 | risk | Assessment/reason values and aggregation strategies | Domain implemented |
 | decision | Configurable risk-to-action thresholds | Domain implemented |
 | explainability | Human reasons and technical SHAP contributions | Planned |
@@ -152,3 +152,10 @@ and one pure extractor serve both capture and offline batches. Infrastructure su
 a scoped, cutoff-safe PostgreSQL history query and strict local artifact serialization.
 Saved contexts pin input facts; event-time queries do not reconstruct past availability.
 No feature operation changes profiles or evaluates fraud risk.
+
+## Deterministic rules
+
+[ADR-011](../adr/ADR-011-deterministic-rules.md) defines rules-v1 on behavior-v1.
+The shared threshold specification implements the existing port; complete reports
+retain policy fingerprints and three-state outcomes. No ORM/HTTP dependencies, risk
+score or profile mutation are introduced. Assessment integration remains future work.

@@ -6,7 +6,7 @@ FraudLens is a research-oriented modular monolith investigating how banking frau
 detection can learn legitimate behavior changes without letting exceptional or
 fraudulent transactions corrupt a customer's normal baseline.
 
-**Status: Phase 5 shared versioned feature engine; not a deployable fraud product.**
+**Status: Phase 6 deterministic rule engine; not a deployable fraud product.**
 Submission/retrieval, scoped service credentials, durable request replay and atomic
 audit/outbox storage are implemented on PostgreSQL. There is no risk evaluation,
 trained model, human login or analyst console yet.
@@ -16,6 +16,8 @@ The pure feature engine provides 29 ordered features with explicit missing-histo
 scoped PostgreSQL capture and offline artifact replay. See [development.md](development.md)
 for capture/replay commands and [ADR-010](docs/adr/ADR-010-feature-context-and-availability.md)
 for temporal and provenance limits.
+Five versioned rules now produce stable reasons and explicit unavailable-input outcomes
+from captured features; local rule replay is documented in the development runbook.
 See [PROJECT_STATUS.md](PROJECT_STATUS.md) for verified progress.
 
 ## Problem and behavioral fraud detection
