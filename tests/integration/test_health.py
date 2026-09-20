@@ -8,7 +8,11 @@ def test_http_liveness_and_docs() -> None:
     with TestClient(create_app(Settings(environment="test", _env_file=None))) as client:
         response = client.get("/health/live")
         assert response.status_code == 200
-        assert response.json() == {"status": "ok", "version": "0.1.0", "stage": "domain-foundation"}
+        assert response.json() == {
+            "status": "ok",
+            "version": "0.1.0",
+            "stage": "persistence-foundation",
+        }
         assert client.get("/docs").status_code == 200
         assert client.post("/transactions", json={}).status_code == 404
 

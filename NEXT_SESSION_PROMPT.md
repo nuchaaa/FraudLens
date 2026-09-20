@@ -1,44 +1,52 @@
-Continue FraudLens. Read PROJECT_STATUS.md first and docs/PROJECT_SPECIFICATION.md.
-Do not redo completed work. Repository: outputs/fraudlens in the original workspace.
+Continue FraudLens from the completed Phase 2 persistence checkpoint.
+Read PROJECT_STATUS.md first, then docs/PROJECT_SPECIFICATION.md and development.md.
+Do not redo completed work.
 
-Goal: explainable behavioral fraud detection with safe adaptive customer profiles.
-Architecture: modular monolith; backend/app is pure Python domain, backend/api is
-HTTP, backend/adapters is infrastructure. Current checkpoint: Phase 0 foundation
-and Phase 1 domain implemented; Docker/PostgreSQL runtime verification outstanding.
-Next phase: Phase 2 — Persistence.
+Repository: /Users/nurasilkirgizbek/Documents/Codex/2026-09-19/if-my-chat-gpt-open-my-2/outputs/fraudlens
+Goal: explainable adaptive behavioral fraud detection with safe customer profiles.
+Architecture: modular monolith; backend/app is framework-free domain; backend/api
+is HTTP; backend/adapters contains infrastructure.
 
-Completed: uv/Python 3.13 foundation, FastAPI liveness, Docker/Alembic/CI definitions,
-domain entities, robust profiles, initial safe update gate, strict cases, risk
-strategies, model/event/repository ports, tests, six ADRs and research protocol.
-No business tables, transaction API, authentication, ML model, SHAP or frontend yet.
+Completed: Phase 0/1 plus 14 PostgreSQL business tables, typed repositories,
+explicit-commit atomic UoW, immutable history triggers, profile/case concurrency,
+snapshot provenance, durable outbox storage and scoped idempotency primitives.
+Migration head: 0003_history_guards. No transaction API, authentication, ML model,
+SHAP or frontend exists yet. Outbox dispatch is not implemented.
 
-Checks: 93 tests passed, 1 PostgreSQL test skipped, 90% coverage; Ruff and strict
-mypy passed; pip-audit found no known vulnerabilities; distributions, Compose
-configuration, offline migration SQL and live HTTP smoke passed. No failing tests.
-Two upstream Starlette/AnyIO deprecation warnings remain. Docker engine unavailable.
+Validation: 131 tests passed, none skipped, 96% coverage on PostgreSQL 17.10.
+Ruff and strict mypy passed; pip-audit found no known vulnerabilities; package
+builds and Compose configuration passed. Two upstream deprecation warnings remain.
+Docker execution and remote CI are unverified. No known failing tests.
 
-Important: backend/app/profile/entities.py and gate.py; backend/app/cases/entities.py;
-backend/app/shared/ports.py and events.py; backend/adapters/database/base.py;
-infra/migrations; tests; docs/architecture/README.md; docs/research/protocol.md.
-
-First make disposable PostgreSQL available and verify the existing migration test.
-Then implement Phase 2 tables/migrations, repositories and atomic context-managed
-UoW. Test rollback, uniqueness, immutable history and profile concurrency using
-PostgreSQL, not SQLite. Plan durable scoped idempotency for Phase 3.
+PostgreSQL is left running without TCP on owner-only socket /private/tmp, port
+55439. Database: fraudlens_test. Cluster: ../../work/fraudlens-postgres/data from
+the repository. See development.md for restart/stop. Sandboxed socket access may
+require approved execution outside the sandbox; do not substitute SQLite.
 
 Commands from repository root:
-uv sync --locked
-uv run pytest --cov=backend
-uv run ruff check .
-uv run ruff format --check .
-uv run mypy
-uv run alembic upgrade head
-uv build
+export TEST_DATABASE_URL='postgresql+psycopg:///fraudlens_test?host=/private/tmp&port=55439'
+export FRAUDLENS_DATABASE_URL="$TEST_DATABASE_URL"
+.venv/bin/alembic upgrade head
+.venv/bin/alembic check
+.venv/bin/pytest --cov=backend
+.venv/bin/ruff check .
+.venv/bin/ruff format --check .
+.venv/bin/mypy
+UV_CACHE_DIR=../../work/uv-cache ../../work/bootstrap/bin/uv build --offline
 
-Set FRAUDLENS_DATABASE_URL for Alembic and TEST_DATABASE_URL for disposable DB tests.
-Original workspace fallback: ../../work/bootstrap/bin/uv with
-UV_CACHE_DIR=../../work/uv-cache; existing .venv/bin tools also work.
+Important files: backend/adapters/database/{models,uow,profiles,cases,idempotency,
+assessments,history,transactions,codec}.py; backend/app/shared/{ports,errors}.py;
+backend/app/transaction/idempotency.py; infra/migrations/versions; tests/integration;
+docs/adr/ADR-007-persistence-consistency.md.
 
-Gate thresholds are uncalibrated. Cold start, compromised confirmations and
-low-weight admission remain unresolved. Never fabricate metrics. Before stopping,
-update PROJECT_STATUS.md, NEXT_SESSION_PROMPT.md and SESSION_LOG.md.
+Next: Phase 3 transaction submission/retrieval use cases and FastAPI routes.
+Acquire the authenticated principal's idempotency lock before business writes;
+canonicalize requests; replay matching stored responses; reject changed bodies
+and duplicate transaction IDs explicitly. Commit transaction, audit, outbox event
+and stored response atomically. Add authorization and FastAPI/PostgreSQL tests.
+Do not fabricate risk predictions or expose unprotected business writes.
+
+Profile repositories check transaction facts, not analyst legitimacy. Gate
+orchestration, trusted enrollment, low-weight admission and corrections remain.
+Transactions are immutable; plan status evolution explicitly. Update all three
+checkpoint files before ending each session. Never fabricate research metrics.

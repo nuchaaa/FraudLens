@@ -21,3 +21,6 @@ SQLite cannot verify PostgreSQL concurrency behavior. Other stores add consisten
 ## Consequences
 
 PostgreSQL tests require a real disposable server. Phase 0 migration is only a foundation marker. Business tables, constraints and repository adapters are Phase 2.
+
+
+Phase 2 update: business tables, constraints, repositories and migration round trips are now verified on PostgreSQL 17.10. Docker execution remains unverified.

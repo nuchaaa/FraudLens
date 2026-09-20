@@ -6,9 +6,10 @@ FraudLens is a research-oriented modular monolith investigating how banking frau
 detection can learn legitimate behavior changes without letting exceptional or
 fraudulent transactions corrupt a customer's normal baseline.
 
-**Status: tested foundation and domain checkpoint, not a deployable fraud product.**
-The current HTTP application exposes liveness only. There is no transaction API,
-trained model, authentication, analyst console, or persisted business data yet.
+**Status: tested domain and PostgreSQL persistence checkpoint; not a deployable fraud product.**
+The current HTTP application exposes liveness only. Typed repositories, immutable
+history and an atomic unit of work are implemented. There is no transaction API,
+trained model, authentication or analyst console yet.
 See [PROJECT_STATUS.md](PROJECT_STATUS.md) for verified progress.
 
 ## Problem and behavioral fraud detection
@@ -39,10 +40,10 @@ flowchart LR
     HTTP --> UC[Application use cases — planned]
     UC --> D[Pure Python domain modules]
     UC --> P[Repository / ML / event ports]
-    P --> DB[SQLAlchemy + PostgreSQL — foundation]
+    P --> DB[SQLAlchemy + PostgreSQL repositories]
     P --> ML[Offline trained model adapters — planned]
     P --> EV[In-process event adapter]
-    DB --> OB[Transactional outbox — planned]
+    DB --> OB[Durable outbox — dispatcher planned]
 ```
 
 Domain code under `backend/app` imports no web framework, ORM or ML library.
@@ -106,8 +107,8 @@ docker compose up --build -d
 docker compose exec backend alembic upgrade head
 ```
 
-The initial migration is an explicit empty foundation marker; business tables
-are Phase 2 work. Compose currently contains backend and PostgreSQL only; a
+Migrations now create 14 business tables and database history protections.
+The initial foundation marker is preserved in migration history. Compose currently contains backend and PostgreSQL only; a
 frontend service will be added when the console exists. Use a dedicated local
 database; never point migration/test commands at a real banking database.
 
@@ -123,8 +124,9 @@ uv run pip-audit --disable-pip --no-deps -r /tmp/fraudlens-requirements.txt
 uv build
 ```
 
-The PostgreSQL smoke test skips explicitly unless `TEST_DATABASE_URL` points to
-a disposable PostgreSQL database. CI supplies it and runs Alembic, tests,
+PostgreSQL tests skip explicitly unless `TEST_DATABASE_URL` points to a disposable
+PostgreSQL database named `*_test`. Tests use a randomly named schema and remove
+only that schema after execution. See [local PostgreSQL setup](development.md). CI supplies it and runs Alembic, tests,
 dependency audit, package build and container build. A CI configuration is not a
 claim that a remote workflow has run. Future ML/E2E test folders are documented
 placeholders, not fake passing tests.
@@ -134,25 +136,28 @@ placeholders, not fake passing tests.
 Synthetic UUIDs only; no real cardholder or identity data. No credentials in code;
 database configuration uses environment variables and redacts secrets in settings.
 Docker runs the backend without root and binds host ports to localhost. Production
-mode hides API documentation. Argon2 authentication, RBAC, immutable database
-audit enforcement, request limits and secure deployment review remain mandatory
-before business endpoints are exposed. Python frozen records are not a substitute
-for append-only database permissions.
+mode hides API documentation. PostgreSQL triggers reject edits/deletes to historical
+records, and repository writes participate in one explicit database transaction.
+Argon2 authentication, RBAC, restricted runtime database grants, request limits and
+secure deployment review remain mandatory before business endpoints are exposed.
+A privileged database administrator can disable triggers; these guards are not
+cryptographic tamper evidence.
 
 ## Limitations and research direction
 
 This checkpoint proves domain invariants, not fraud-detection accuracy or end-to-end
-security. Profile windows are held in memory. Current typical hours are observed
-hours, not a frequency-qualified estimate. No categories, device history, recipient
-ages, feature extraction, model artifact or persistent outbox exists. Case history
-is strict and immutable in memory; feedback persistence and concurrent updates
-remain unimplemented. See the research protocol for baseline comparisons and
+security. Profile observations are persisted; robust statistics are computed in
+memory from the active window. Current typical hours are observed hours, not a
+frequency-qualified estimate. No categories, device history, recipient ages, feature
+extraction or model artifact exists. Outbox storage and delivery metadata exist,
+but background dispatch and consumer deduplication remain unimplemented.
+Authentication and application workflows must enforce trusted feedback provenance. See the research protocol for baseline comparisons and
 threats to validity.
 
 ## Roadmap
 
-1. Foundation and pure domain (current checkpoint).
-2. PostgreSQL tables, repositories, atomic unit of work and migration tests.
+1. Foundation and pure domain — implemented.
+2. PostgreSQL tables, repositories, atomic unit of work and migration tests — implemented.
 3. Authenticated transaction API with durable, scoped idempotency.
 4. Profile history, production features and deterministic rules.
 5. Offline model comparison, inference, hybrid risk and SHAP.

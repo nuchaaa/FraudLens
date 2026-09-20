@@ -17,3 +17,4 @@ node_modules/
 ml/models/*
 !ml/models/README.md
 work/
+.idea/

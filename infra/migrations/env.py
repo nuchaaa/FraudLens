@@ -1,5 +1,6 @@
 from alembic import context
 
+from backend.adapters.database import models  # noqa: F401
 from backend.adapters.database.base import Base, create_database_engine
 from backend.config import Settings
 

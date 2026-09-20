@@ -21,3 +21,26 @@
   PostgreSQL remain unverified. No remote CI, trained model or metric claims.
 - Next: verify disposable PostgreSQL, then Phase 2 tables, repositories, atomic UoW
   and PostgreSQL transaction/concurrency integration tests.
+
+
+## 2026-09-19/20 — Phase 2 persistence and completed continuation checkpoint
+
+- Resumed the interrupted persistence work without recreating Phase 0/1. Found native
+  PostgreSQL 17.10 and initialized a dedicated synthetic test cluster. Sandbox shared
+  memory/socket restrictions required approved execution outside the sandbox.
+- Added 14 typed business tables, two Alembic revisions, complete repository ports/
+  adapters, explicit-commit UoW, immutable history and serialized case/profile changes.
+- Added scoped idempotency locks/records, exact snapshot encoding and durable outbox
+  storage with publication metadata. No dispatcher or HTTP business API claimed.
+- Tests verified record round trips, commit/default rollback/failed-commit rollback,
+  concurrent profile/idempotency writes, immutable SQL history, association constraints
+  and migration upgrade/downgrade with metadata matching.
+- Final verification: 131 passed, zero skipped, 96% coverage; Ruff/mypy clean;
+  dependency audit reports no known vulnerabilities; package builds and Compose
+  configuration pass. Two upstream dependency deprecations remain.
+- Updated README/architecture/ADRs, added ADR-007 and development runbook, refreshed
+  all continuation files. Preserved and ignored user PyCharm .idea settings.
+- Test cluster left running with no TCP listener and owner-only Unix socket. Docker
+  runtime and remote CI still unverified. No trained model or predictive metrics.
+- Next: Phase 3 authenticated synthetic transaction submission/retrieval and HTTP
+  idempotency, with atomic audit/outbox effects and FastAPI/PostgreSQL tests.

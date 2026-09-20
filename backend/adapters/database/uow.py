@@ -1,0 +1,80 @@
+from types import TracebackType
+from typing import Self
+
+from sqlalchemy.engine import Engine
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from backend.adapters.database.assessments import (
+    PostgresAssessmentRepository,
+    PostgresModelRepository,
+    PostgresRuleRepository,
+)
+from backend.adapters.database.cases import PostgresFraudCaseRepository
+from backend.adapters.database.history import (
+    PostgresAuditRepository,
+    PostgresFeedbackRepository,
+    PostgresOutboxRepository,
+)
+from backend.adapters.database.idempotency import PostgresIdempotencyRepository
+from backend.adapters.database.profiles import (
+    PostgresCustomerProfileRepository,
+    PostgresSnapshotRepository,
+)
+from backend.adapters.database.transactions import (
+    PostgresCustomerRepository,
+    PostgresTransactionRepository,
+)
+from backend.app.shared.errors import PersistenceConflict
+from backend.app.shared.ports import UnitOfWork
+
+
+class PostgresUnitOfWork:
+    """One-shot, explicit-commit UoW. Every other exit rolls back, including failed commits."""
+
+    def __init__(self, engine: Engine) -> None:
+        self._session = Session(engine, autoflush=False, expire_on_commit=False, autobegin=False)
+        self._entered = False
+        self.customers = PostgresCustomerRepository(self._session)
+        self.transactions = PostgresTransactionRepository(self._session)
+        self.profiles = PostgresCustomerProfileRepository(self._session)
+        self.snapshots = PostgresSnapshotRepository(self._session)
+        self.models = PostgresModelRepository(self._session)
+        self.rules = PostgresRuleRepository(self._session)
+        self.assessments = PostgresAssessmentRepository(self._session)
+        self.cases = PostgresFraudCaseRepository(self._session)
+        self.feedback = PostgresFeedbackRepository(self._session)
+        self.audit = PostgresAuditRepository(self._session)
+        self.outbox = PostgresOutboxRepository(self._session)
+        self.idempotency = PostgresIdempotencyRepository(self._session)
+
+    def __enter__(self) -> Self:
+        if self._entered:
+            raise RuntimeError("unit of work cannot be reused")
+        self._entered = True
+        self._session.begin()
+        return self
+
+    def commit(self) -> None:
+        self._session.commit()
+
+    def rollback(self) -> None:
+        self._session.rollback()
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        try:
+            self._session.rollback()
+        finally:
+            self._session.close()
+        if isinstance(exc, IntegrityError):
+            raise PersistenceConflict("database constraint rejected this unit of work") from exc
+
+
+def create_unit_of_work(engine: Engine) -> UnitOfWork:
+    """Composition boundary and static conformance check for all repository ports."""
+    return PostgresUnitOfWork(engine)

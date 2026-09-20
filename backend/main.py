@@ -22,7 +22,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         title="FraudLens",
         version="0.1.0",
         lifespan=lifespan,
-        description="Domain foundation. Transaction evaluation is not implemented yet.",
+        description="Persistence foundation. Transaction evaluation is not implemented yet.",
         docs_url=None if config.environment == "production" else "/docs",
         redoc_url=None,
         openapi_url=None if config.environment == "production" else "/openapi.json",
