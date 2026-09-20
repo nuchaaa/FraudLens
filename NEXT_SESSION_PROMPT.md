@@ -1,31 +1,31 @@
-Continue FraudLens from the completed Phase 4 profile-read checkpoint.
+Continue FraudLens from the completed Phase 5 feature-engine checkpoint.
 Read PROJECT_STATUS.md first, then docs/PROJECT_SPECIFICATION.md, development.md
-and docs/adr/ADR-009-profile-reads-and-history.md. Do not redo completed work.
+and docs/adr/ADR-010-feature-context-and-availability.md. Do not redo completed work.
 
 Repository: /Users/nurasilkirgizbek/Documents/Codex/2026-09-19/if-my-chat-gpt-open-my-2/outputs/fraudlens
-Goal: explainable adaptive behavioral fraud detection with safe customer profiles.
 Architecture: modular monolith; backend/app is framework-free domain/application,
 backend/api is HTTP, backend/adapters is infrastructure.
+Goal: explainable adaptive behavioral fraud detection with safe customer profiles.
 
-Completed: Phases 0–4. Authenticated transaction submission/retrieval, admin customer
-enrollment, scoped durable idempotency, atomic audit/outbox/response writes and PostgreSQL
-persistence remain intact. Phase 4 adds scoped GET /api/v1/customers/{customer_id}/profiles/{currency},
-explicit cold/insufficient history, robust short/long summaries, hour counts/typical hours,
-known recipients, observation frequency and immutable profile revision replay.
-Migration head: 0004_profile_revisions; 15 business tables. No risk scoring, trained ML,
-SHAP, frontend, human login, trusted admission API or outbox dispatcher exists.
+Completed: Phases 0–5, including authenticated transaction/profile APIs, scoped durable
+idempotency, PostgreSQL persistence/UoW and immutable profile revisions. Phase 5 adds
+29 ordered finite behavior-v1 features, explicit missing-history/MAD-floor indicators,
+scoped read-only feature capture, strict versioned artifacts and authenticated capture/
+offline replay CLI. Training batches and inference preparation share the pure extractor.
+No scoring, trained ML, SHAP, human login, frontend, admission API or outbox dispatcher.
+Migration head remains 0004_profile_revisions; 15 business tables; no dependency changes.
 
-Validation: 227 tests passed, none skipped, 97% coverage on PostgreSQL 17.10.
-Ruff, strict mypy (62 backend files), pip-audit, package builds, Compose configuration,
-Alembic checks and actual Uvicorn/PostgreSQL profile HTTP smoke passed.
-Two upstream deprecations remain; Docker execution and remote CI are unverified.
-No known failing tests. Dependencies are unchanged.
+Validation: 260 tests passed, zero skipped, 97% coverage on PostgreSQL 17.10.
+Ruff/format, strict mypy (68 backend files), pip-audit, builds, Compose configuration and
+Alembic checks passed. PostgreSQL capture and offline CLI replay passed integration tests.
+Two upstream deprecation warnings remain. Docker execution and remote CI are unverified.
+Prior Uvicorn/PostgreSQL profile smoke passed in Phase 4; no new HTTP routes in Phase 5.
 
-PostgreSQL remains running without TCP: owner-only socket /private/tmp, port 55439,
+PostgreSQL remains running without TCP: owner-only /private/tmp socket, port 55439,
 database fraudlens_test; cluster ../../work/fraudlens-postgres/data from repository.
-See development.md for restart/stop and expiring service credential setup.
-Sandboxed socket access may require approved execution outside the sandbox; never use SQLite.
-Business endpoints fail closed without FRAUDLENS_API_PRINCIPALS.
+See development.md for restart/stop and expiring credential setup. Sandbox socket access
+may require approved execution outside the sandbox; never substitute SQLite.
+Business access fails closed without FRAUDLENS_API_PRINCIPALS.
 
 Commands from repository root:
 export TEST_DATABASE_URL='postgresql+psycopg:///fraudlens_test?host=/private/tmp&port=55439'
@@ -37,34 +37,36 @@ export FRAUDLENS_DATABASE_URL="$TEST_DATABASE_URL"
 .venv/bin/ruff format --check .
 .venv/bin/mypy
 UV_CACHE_DIR=../../work/uv-cache ../../work/bootstrap/bin/uv build --offline
+.venv/bin/python -m backend.adapters.features --help
 
-Important files: backend/app/profile/{read_model,service,entities,gate}.py;
-backend/api/profiles.py; backend/adapters/database/{profiles,models}.py;
-backend/app/shared/ports.py; backend/app/features/contracts.py;
-infra/migrations/versions/0004_profile_revisions.py;
-tests/integration/{test_profile_api,test_migrations}.py; tests/unit/test_profile_reads.py.
+Important files: backend/app/features/{context,engine,service,contracts}.py;
+backend/adapters/features/{artifacts,__main__}.py; backend/adapters/database/transactions.py;
+backend/app/shared/ports.py; tests/unit/test_feature_engine.py;
+tests/integration/test_feature_capture.py; docs/adr/ADR-009-profile-reads-and-history.md.
 
-Profile contract: explicit as_of requires a pinned version; exclude both the candidate
-instant and lower window boundary. Future cutoffs -> 422, unavailable revisions -> 404,
-cutoffs before a revision head -> 409. Later admissions cannot alter committed revisions.
-Upgrade backfills current heads only; never invent older metadata. Revision guards use
-PostgreSQL transaction identity/xmin and the top-level UoW; no nested savepoint writes.
-Historical replay needs the version captured before the original decision; selecting a
-version today is not proof it was available historically. No knowledge_at reconstruction
-or fabricated commit times. history_source=repository_admissions and
-admission_workflow_verified=false disclose unresolved provenance.
+Feature contract: profile version must be explicit, or explicitly assert absent profile.
+Never use a revision containing the candidate. All windows exclude both boundaries.
+Raw history is same customer/currency, strictly prior, bounded to 180 days/10,000 rows;
+overflow fails instead of truncating. Baseline minimum=5; deviation denominator=max(MAD,
+0.01), with missing/floor flags. Thresholds are uncalibrated. See ADR-010 for all formulas.
+Recipient observed age is bounded activity age, not account age. Device ties can be missing.
 
-Next: Phase 5 — Feature Engine. Inspect the existing FeatureVector contract and profile
-views first. Define ordered/versioned features, explicit missing-history indicators and
-finite zero-MAD behavior, then implement shared pure production feature extraction for
-future training and inference. Separate trusted baseline features from raw activity;
-add only required cutoff-safe repository queries for velocity/device/recipient history,
-with explicit availability semantics. Test deterministic ordering, cold starts, currency
-isolation, candidate exclusion, future/late-data leakage and training/inference parity.
+Saved contexts pin facts; recapturing today may include late arrivals and does not
+reconstruct historical availability. Retain contexts before original decisions. Capture
+clock is not commit time. Declared offline source does not verify chronology. Artifacts
+have SHA256 integrity, not authenticity; contain transaction facts; limit 16 MiB, no
+overwrite. Future evaluation must persist context/vector/assessment atomically.
+Profile provenance remains repository_admissions; admission_workflow_verified=false.
 
-Do not automatically admit raw intake or treat admin enrollment as legitimacy. Trusted
-bootstrap, authorized feedback/gate orchestration, low-weight admission, compromised
-confirmations and corrections remain unresolved; thresholds are uncalibrated.
-Transactions remain immutable RECEIVED records; plan evaluation state separately.
-Update PROJECT_STATUS.md, NEXT_SESSION_PROMPT.md and SESSION_LOG.md before ending.
-Never fabricate research metrics.
+Next: Phase 6 — Rule Engine. Inspect existing Specification/RuleResult/RuleVersion and
+risk reason contracts. Implement deterministic versioned rules/reason codes on captured
+features, with explicit cold-start/missing behavior and experimental thresholds. Test
+boundaries, stable explanations, version compatibility and replay. Do not fabricate
+probabilities/model metadata or introduce unprotected business writes. Preserve phase
+boundaries: ML and atomic evaluation integration are later work.
+
+Do not admit raw intake or treat customer enrollment as legitimacy. Trusted bootstrap,
+authorized feedback/gate orchestration, low-weight admission, compromised confirmations
+and corrections remain unresolved. Transactions stay immutable RECEIVED records;
+plan separate evaluation state. Update PROJECT_STATUS.md, NEXT_SESSION_PROMPT.md and
+SESSION_LOG.md before ending. Never fabricate research metrics.

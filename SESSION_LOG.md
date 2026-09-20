@@ -95,3 +95,23 @@
 - Updated all checkpoint files, runbook, architecture and README. No predictive metrics.
 - Next: Phase 5 shared versioned feature engine, explicit missing-history/zero-MAD behavior,
   cutoff-safe activity queries and proof against candidate/future/late-data leakage.
+
+## 2026-09-20 — Phase 5 shared feature engine
+
+- Implemented one pure behavior-v1 extractor with 29 ordered finite values, explicit
+  missing-history indicators, fixed Decimal precision and finite MAD floor semantics.
+- Kept admitted baseline and raw activity separate. Added scoped single-query PostgreSQL
+  history with strict candidate/currency/time exclusion and explicit row-limit failure.
+- Added immutable capture contexts, explicit profile revision selection and authorization;
+  strict versioned artifact adapter and authenticated capture/database-free replay CLI.
+- Tested expected values, cold/empty/short histories, device ties, candidate/future bounds,
+  currency, old revisions, late arrivals, artifact limits and exact batch/replay parity.
+- Final verification: 260 passed, none skipped, 97% coverage; Ruff/format and strict mypy
+  (68 backend files) pass. Audit found no known vulnerabilities. Builds, Compose config,
+  Alembic upgrade/check and CLI entrypoint pass. Two existing upstream warnings remain.
+- Dependencies and schema unchanged (0004_profile_revisions, 15 business tables).
+  Existing API tests pass; no new HTTP endpoint or predictive outputs introduced.
+- Documented ADR-010, runbook, architecture, shared ML import path and all checkpoint files.
+  Capture time does not reconstruct commit history; saved original facts enable replay.
+- PostgreSQL remains running without TCP. Docker execution and remote CI remain unverified.
+- Next: Phase 6 deterministic versioned rule engine and reason codes on captured features.

@@ -1,11 +1,18 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 4 — Scoped customer behavior reads and profile revisions complete.**
-Next phase: **Phase 5 — Shared, versioned feature engine.**
+Current checkpoint: **Phase 5 — Shared versioned feature engine complete.**
+Next phase: **Phase 6 — Rule engine and reason codes.**
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
 ## Completed capabilities
+
+- [x] Phase 5: shared pure `behavior-v1` extractor with 29 ordered finite features.
+- [x] Explicit missing/insufficient history, finite MAD floor, strict baseline/activity separation.
+- [x] Scoped read-only capture, pinned revisions and cutoff-safe PostgreSQL activity history.
+- [x] Strict input artifacts, authenticated local capture and database-free exact replay.
+- [x] Candidate/future/currency exclusion, device ties, late-arrival and batch parity tests.
+- [x] ADR-010 documents feature formulas and limits on historical availability claims.
 
 - [x] Phases 0–3: Python 3.13/uv, framework-free domain, PostgreSQL repositories/UoW,
   immutable history, concurrency, snapshots, outbox, authenticated transaction intake
@@ -27,12 +34,12 @@ do not establish legitimacy, score risk or admit transactions.
 
 ## Verification — 2026-09-20
 
-- [x] **227 passed, 0 skipped, 2 upstream warnings; 97% combined branch/statement coverage.**
+- [x] **260 passed, 0 skipped, 2 upstream warnings; 97% combined branch/statement coverage.**
 - [x] Actual PostgreSQL 17.10, including prior-phase regressions.
 - [x] Migration upgrade/downgrade/metadata tests and upgrade with populated legacy profile data.
 - [x] Concurrent reader pins its version before another writer commits; old versions exclude
   backdated later admissions and retain their original timezone/window policy.
-- [x] Ruff lint/format and strict mypy pass (62 backend files).
+- [x] Ruff lint/format and strict mypy pass (68 backend files).
 - [x] pip-audit: no known vulnerabilities; dependencies/lockfile unchanged.
 - [x] Source/wheel builds and Compose configuration pass.
 - [x] Native database upgraded; head is 0004_profile_revisions, with 15 business tables.
@@ -43,8 +50,7 @@ do not establish legitimacy, score risk or admit transactions.
 - [ ] Remote CI has not been pushed/run.
 
 No known failing tests. The unchanged warnings concern Starlette's httpx TestClient
-and AnyIO BlockingPortal deprecations. An initial response type annotation error
-was fixed before verification. No predictive metrics have been measured or claimed.
+and AnyIO BlockingPortal deprecations. No predictive metrics have been measured or claimed.
 
 ## Environment and commands
 
@@ -75,6 +81,12 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Important files
 
+- backend/app/features/{context,engine,service,contracts}.py: shared versioned feature path.
+- backend/adapters/features/{artifacts,__main__}.py: authenticated capture and offline replay.
+- backend/adapters/database/transactions.py: scoped strict-cutoff history query.
+- tests/unit/test_feature_engine.py; tests/integration/test_feature_capture.py.
+- docs/adr/ADR-010-feature-context-and-availability.md: exact 29-feature contract.
+
 - backend/app/profile/read_model.py: descriptive policy, status and summaries.
 - backend/app/profile/service.py: scope, revision selection and strict cutoff orchestration.
 - backend/api/profiles.py: validated profile HTTP contract.
@@ -89,6 +101,19 @@ smoke also upgrades its default schema. Never substitute SQLite.
   unchanged Phase 3 workflow/security; docs/adr/ADR-008-transaction-api-and-service-credentials.md.
 
 ## Decisions and remaining limitations
+
+- Feature version behavior-v1 fixes 29 names/order, policy and imputation. Baseline minimum
+  is five; absolute amount deviation divides by max(MAD, 0.01) with explicit floor flags.
+- Raw activity spans strictly (candidate - 180 days, candidate), same customer/currency,
+  excluding candidate ID. More than 10,000 rows fails explicitly instead of truncating.
+- Local artifacts preserve exact input facts and Decimal strings. SHA256 is integrity,
+  not authenticity; 16 MiB limit and create-only writes. No durable assessment persistence yet.
+- A new capture can see late arrivals. Replay saved original contexts for past decisions;
+  current event-time queries cannot reconstruct historical knowledge. Capture time is not
+  commit time. Declared offline provenance requires independent dataset validation.
+- Training batches and inference preparation call the same pure extractor. No trained model
+  or predictive metrics exist. Capture/replay integration passed with PostgreSQL; replay
+  succeeded with invalid DB/config settings, proving no live data dependency.
 
 - Explicit as_of requires version; future cutoff -> 422, unknown revision -> 404, cutoff
   before selected revision's head -> 409. Default reads use current time/latest revision.
@@ -109,7 +134,8 @@ smoke also upgrades its default schema. Never substitute SQLite.
 - Five-observation minimum and typical-hour count/share thresholds (2 / 10%) are
   uncalibrated descriptive policies. SUFFICIENT_HISTORY is not a risk/trust verdict.
 - Observation frequency is admitted count / configured window days, not raw intake velocity.
-  Device/category history, recipient ages and intake velocity remain feature work.
+  Phase 5 supplies bounded raw device/recipient activity and velocity; recipient account age
+  and external history completeness are unavailable.
 - Cold start, low-weight admission, compromised confirmations and corrections/retractions
   remain unresolved research debt. Reads preserve quarantine/fraud exclusion.
 - Transactions remain immutable RECEIVED records. Evaluation needs separate derived state
@@ -121,16 +147,13 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Exact next tasks
 
-1. Read this status, original specification, development.md and ADR-009. Preserve Phases 0–4.
-2. Begin Phase 5 by inspecting FeatureVector, profile views/revisions and transaction ports.
-   Define ordered feature names, version, missing-history indicators and finite zero-MAD
-   behavior before implementing a shared pure feature extractor.
-3. Keep trusted baseline features separate from raw transaction-activity features. Add only
-   the repository queries needed for strictly-before-cutoff velocity/device/recipient history,
-   with explicit availability/provenance semantics for offline replay.
-4. Use the same production feature code for future training and inference. A candidate must
-   never enter its own features; preserve currency isolation and pinned prior profile versions.
-5. Test normal/cold/empty/zero-MAD histories, exact boundaries, future/late data leakage,
-   deterministic ordering and training/inference parity; use PostgreSQL for new query behavior.
-6. Do not fabricate predictions, labels or metrics, and do not bypass unresolved trusted admission.
-7. Run checks; update PROJECT_STATUS.md, NEXT_SESSION_PROMPT.md and SESSION_LOG.md.
+1. Read this status, specification, development.md and ADR-010; preserve completed Phases 0–5.
+2. Phase 6: inspect existing rules Specification/RuleResult/RuleVersion contracts and risk
+   reasons/strategies. Implement deterministic versioned rules with stable reason codes.
+3. Define missing-history behavior and explicit experimental thresholds. Rules must consume
+   the captured feature contract without querying newer facts or automatically admitting data.
+4. Test exact boundaries, cold starts, deterministic explanations, version compatibility and
+   context replay. Do not label heuristic outputs calibrated fraud probabilities.
+5. Keep rule evaluation separate from later ML inference and atomic assessment persistence;
+   plan immutable transaction evaluation state explicitly. Never invent model metadata.
+6. Run checks and update PROJECT_STATUS.md, NEXT_SESSION_PROMPT.md and SESSION_LOG.md.

@@ -22,7 +22,7 @@ work back the intake use cases. React, ML and evaluation integrations remain pla
 |---|---|---|
 | transaction | Immutable transaction, intake/retrieval, canonical idempotency | Domain + authenticated API implemented |
 | profile | Customer, observations, robust windows, revision-pinned reads, snapshots, update gate | Domain + scoped read API; trusted admission deferred |
-| features | Ordered versioned numerical input | Contract only |
+| features | 29 ordered versioned features, immutable contexts and scoped capture | Pure extractor + artifact replay |
 | fraud | Prediction/model metadata and model strategy port | Contract only |
 | rules | Specification contract and rule version | Contract only |
 | risk | Assessment/reason values and aggregation strategies | Domain implemented |
@@ -80,8 +80,8 @@ exceptions; it is only an adapter, not an outbox worker.
   of an older head cannot accidentally include a concurrent writer's observations.
 - Legacy domain typical_hours means observed local hours. Phase 4 read summaries
   expose counts and explicit frequency-qualified descriptive hours, per-window
-  observation frequency and known recipients. Categories, devices, recipient ages
-  and raw intake velocity remain feature work; trusted warm-up remains unresolved.
+  observation frequency and known recipients. Phase 5 adds separate bounded raw device/recipient activity and velocity features;
+  trusted warm-up remains unresolved.
 
 ## Versioned profile reads
 
@@ -126,8 +126,8 @@ idempotency records. PostgreSQL uses NUMERIC(18,2), TIMESTAMPTZ and UUID columns
 
 Snapshots preserve exact Decimal values as strings in versioned JSON. Deferred
 foreign keys bind each snapshot to its assessment; composite foreign keys enforce
-transaction/customer/currency and model/feature consistency. Snapshot construction
-and feature history cutoffs still belong to future application use cases.
+transaction/customer/currency and model/feature consistency. Phase 5 implements strict feature history cutoffs and local context replay; atomic
+assessment/context persistence remains future evaluation work.
 
 `idempotency.acquire(principal_id, key, request_sha256)` must run before business
 writes. A transaction-scoped PostgreSQL advisory lock serializes identical scoped
@@ -144,3 +144,11 @@ and a published event cannot be reverted. Model status is mutable but its traini
 provenance is not. Transactions are currently immutable, including their stored
 status; derive evaluation state from assessments until an audited lifecycle is
 explicitly implemented. Runtime database roles must not own schema/trigger objects.
+
+## Shared feature preparation
+
+See [ADR-010](../adr/ADR-010-feature-context-and-availability.md). Framework-free contexts
+and one pure extractor serve both capture and offline batches. Infrastructure supplies
+a scoped, cutoff-safe PostgreSQL history query and strict local artifact serialization.
+Saved contexts pin input facts; event-time queries do not reconstruct past availability.
+No feature operation changes profiles or evaluates fraud risk.

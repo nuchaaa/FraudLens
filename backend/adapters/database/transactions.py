@@ -1,9 +1,14 @@
 from dataclasses import asdict
+from datetime import datetime
 from uuid import UUID
+
+from sqlalchemy import select
 
 from backend.adapters.database.models import CustomerRow, TransactionRow
 from backend.adapters.database.repository_base import Repository
+from backend.app.features.context import ActivityHistoryLimit, FeatureInputError
 from backend.app.profile.entities import Customer
+from backend.app.shared.validation import currency_code, utc
 from backend.app.transaction.entities import Channel, Transaction, TransactionStatus
 
 
@@ -32,6 +37,37 @@ def transaction_from_row(row: TransactionRow) -> Transaction:
 
 
 class PostgresTransactionRepository(Repository):
+    def history_before(
+        self,
+        customer_id: UUID,
+        currency: str,
+        *,
+        since: datetime,
+        before: datetime,
+        exclude_transaction_id: UUID,
+        limit: int,
+    ) -> tuple[Transaction, ...]:
+        currency_code(currency)
+        since, before = utc(since), utc(before)
+        if since >= before or limit < 1:
+            raise FeatureInputError("invalid activity interval or row limit")
+        # One PostgreSQL statement snapshot; event time is NOT an availability timestamp.
+        rows = self.session.scalars(
+            select(TransactionRow)
+            .where(
+                TransactionRow.customer_id == customer_id,
+                TransactionRow.currency == currency,
+                TransactionRow.timestamp > since,
+                TransactionRow.timestamp < before,
+                TransactionRow.transaction_id != exclude_transaction_id,
+            )
+            .order_by(TransactionRow.timestamp, TransactionRow.transaction_id)
+            .limit(limit + 1)
+        ).all()
+        if len(rows) > limit:
+            raise ActivityHistoryLimit("activity history exceeds the requested row limit")
+        return tuple(transaction_from_row(row) for row in rows)
+
     def add(self, transaction: Transaction) -> None:
         self.session.add(TransactionRow(**asdict(transaction)))
         self.session.flush()

@@ -61,6 +61,16 @@ class IdempotencyRepository(Protocol):
 class TransactionRepository(Protocol):
     def get(self, transaction_id: UUID) -> Transaction | None: ...
     def add(self, transaction: Transaction) -> None: ...
+    def history_before(
+        self,
+        customer_id: UUID,
+        currency: str,
+        *,
+        since: datetime,
+        before: datetime,
+        exclude_transaction_id: UUID,
+        limit: int,
+    ) -> tuple[Transaction, ...]: ...
 
 
 class CustomerProfileRepository(Protocol):

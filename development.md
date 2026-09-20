@@ -189,3 +189,24 @@ response includes explicit cold/insufficient history, local hour counts, typical
 known recipients, observation frequency and policy version. All are descriptive;
 `SUFFICIENT_HISTORY` is not a trust or risk verdict. See
 [ADR-009](docs/adr/ADR-009-profile-reads-and-history.md) for exact policy and limitations.
+
+## Phase 5 feature capture and offline replay
+
+Configure the database and expiring `FRAUDLENS_API_PRINCIPALS` as above. Capture prompts
+for the bearer token (or reads `FRAUDLENS_FEATURE_TOKEN`); never put a raw token in command
+arguments. Use an existing synthetic transaction UUID in the authorized customer scope.
+
+```sh
+.venv/bin/python -m backend.adapters.features capture \
+  --transaction-id 00000000-0000-4000-8000-000000000002 \
+  --without-profile --output /private/tmp/fraudlens-feature-context.json
+.venv/bin/python -m backend.adapters.features replay /private/tmp/fraudlens-feature-context.json
+```
+
+If a profile exists, replace `--without-profile` with `--profile-version 1` using the
+actual pre-decision revision. Capture refuses to overwrite an existing file. Replay
+needs neither credentials nor database access and prints the same 29 ordered features.
+This computes inputs only, not fraud predictions. New captures may see late arrivals;
+retain original artifacts to reproduce prior inputs. Files contain transaction facts;
+keep them outside version control and restrict access appropriately. See ADR-010 for
+limits and provenance. Synthetic demo timestamps must not be in the future.
