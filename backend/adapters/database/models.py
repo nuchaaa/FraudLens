@@ -69,6 +69,27 @@ class ProfileRow(Base):
     )
 
 
+class ProfileRevisionRow(Base):
+    __tablename__ = "profile_revisions"
+    customer_id: Mapped[UUID] = mapped_column(primary_key=True)
+    currency: Mapped[str] = mapped_column(String(3), primary_key=True)
+    version: Mapped[int] = mapped_column(primary_key=True)
+    as_of: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    timezone: Mapped[str] = mapped_column(String(100))
+    long_window_days: Mapped[int]
+    short_window_days: Mapped[int]
+    writer_xid: Mapped[str] = mapped_column(server_default=text("pg_current_xact_id()::text"))
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["customer_id", "currency"], ["profiles.customer_id", "profiles.currency"]
+        ),
+        CheckConstraint("version > 0", name="version"),
+        CheckConstraint(
+            "short_window_days > 0 AND long_window_days >= short_window_days", name="windows"
+        ),
+    )
+
+
 class ObservationRow(Base):
     __tablename__ = "profile_observations"
     transaction_id: Mapped[UUID] = mapped_column(primary_key=True)

@@ -99,7 +99,7 @@ class CustomerBehaviorProfile:
 
     @property
     def typical_hours(self) -> frozenset[int]:
-        """Initial observed-hour set; frequency-based estimation is a Phase 4 task."""
+        """Legacy observed-hour set; read_model supplies frequency-qualified descriptive hours."""
         return frozenset(
             o.timestamp.astimezone(ZoneInfo(self.timezone)).hour
             for o in self.window(self.long_window_days)

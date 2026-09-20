@@ -3,6 +3,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import OperationalError, TimeoutError
 
+from backend.app.profile.read_model import ProfileHistoryUnavailable, ProfileQueryError
 from backend.app.shared.errors import (
     DuplicateCustomer,
     DuplicateTransaction,
@@ -14,7 +15,11 @@ from backend.app.shared.security import Forbidden, NotFound
 
 def install_error_handlers(app: FastAPI) -> None:
     async def business_error(request: Request, exc: Exception) -> JSONResponse:
-        if isinstance(exc, Forbidden):
+        if isinstance(exc, ProfileQueryError):
+            status, detail = 422, str(exc)
+        elif isinstance(exc, ProfileHistoryUnavailable):
+            status, detail = 409, str(exc)
+        elif isinstance(exc, Forbidden):
             status, detail = 403, str(exc)
         elif isinstance(exc, NotFound):
             status, detail = 404, str(exc)
@@ -37,6 +42,8 @@ def install_error_handlers(app: FastAPI) -> None:
         return JSONResponse({"detail": errors}, status_code=422)
 
     for error in (
+        ProfileQueryError,
+        ProfileHistoryUnavailable,
         Forbidden,
         NotFound,
         PersistenceConflict,

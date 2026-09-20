@@ -65,6 +65,13 @@ class TransactionRepository(Protocol):
 
 class CustomerProfileRepository(Protocol):
     def get(self, customer_id: UUID, currency: str) -> CustomerBehaviorProfile | None: ...
+    def get_revision(
+        self,
+        customer_id: UUID,
+        currency: str,
+        *,
+        version: int | None = None,
+    ) -> CustomerBehaviorProfile | None: ...
     def save(self, profile: CustomerBehaviorProfile, *, expected_version: int) -> None: ...
 
 

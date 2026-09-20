@@ -68,3 +68,30 @@
   Docker runtime and remote CI remain unverified. No predictive metrics claimed.
 - Next: Phase 4 profile application workflows, beginning with missing trusted-history,
   cold-start, per-currency as-of and leakage policies; preserve existing robust domain work.
+
+## 2026-09-20 — Phase 4 versioned customer behavior reads
+
+- Reused existing robust profile/window/gate domain; added framework-free scoped retrieval,
+  explicit cold/insufficient states, Decimal summaries, hour histograms/typical hours,
+  admitted observation frequency and known recipients.
+- Added authenticated profile GET route with strict cutoffs, required version pinning for
+  explicit historical reads and honest unavailable-history errors. No new admission endpoint.
+- Added profile_revisions and migration 0004. PostgreSQL captures head metadata atomically,
+  seals committed admission sets using full transaction identity/physical xmin, and protects
+  revisions from mutation. Upgrade preserves existing observations and captures current
+  heads only, rather than inventing old metadata. Default test DB is upgraded.
+- Wrote ADR-009 defining event-time vs knowledge-version semantics and reviewed-source
+  bootstrap requirements. Current provenance remains repository admission, not verified
+  analyst legitimacy. Public intake/customer enrollment never trains profiles.
+- Tested currency/window boundaries, backdated later admissions, policy version preservation,
+  DST, missing/cold profiles, quarantine baseline preservation, revision rollback/immutability,
+  concurrent readers/writers and migration of populated legacy heads.
+- Final verification: 227 passed, no skips, 97% coverage; Ruff/format/strict mypy pass.
+  pip-audit reports no known vulnerabilities; package/Compose/Alembic checks pass.
+  Two existing upstream deprecations remain. Initial response self-annotation issue fixed.
+- Actual Uvicorn/PostgreSQL profile smoke passed cold start, populated pinned median/MAD/p95,
+  authentication and cutoff validation. Temporary server/schema removed; native PostgreSQL
+  remains running without TCP. Docker execution and remote CI remain unverified.
+- Updated all checkpoint files, runbook, architecture and README. No predictive metrics.
+- Next: Phase 5 shared versioned feature engine, explicit missing-history/zero-MAD behavior,
+  cutoff-safe activity queries and proof against candidate/future/late-data leakage.

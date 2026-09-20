@@ -4,7 +4,13 @@ from uuid import UUID
 from sqlalchemy import select
 
 from backend.adapters.database.codec import decode_profile, encode_profile
-from backend.adapters.database.models import ObservationRow, ProfileRow, SnapshotRow, TransactionRow
+from backend.adapters.database.models import (
+    ObservationRow,
+    ProfileRevisionRow,
+    ProfileRow,
+    SnapshotRow,
+    TransactionRow,
+)
 from backend.adapters.database.repository_base import Repository
 from backend.app.profile.entities import (
     CustomerBehaviorProfile,
@@ -15,17 +21,36 @@ from backend.app.shared.errors import ConcurrentUpdate, HistoryConflict
 
 
 class PostgresCustomerProfileRepository(Repository):
+    def get_revision(
+        self,
+        customer_id: UUID,
+        currency: str,
+        *,
+        version: int | None = None,
+    ) -> CustomerBehaviorProfile | None:
+        query = select(ProfileRevisionRow).where(
+            ProfileRevisionRow.customer_id == customer_id,
+            ProfileRevisionRow.currency == currency,
+        )
+        if version is not None:
+            query = query.where(ProfileRevisionRow.version == version)
+        row = self.session.scalar(query.order_by(ProfileRevisionRow.version.desc()).limit(1))
+        return self._hydrate(row) if row is not None else None
+
     def get(self, customer_id: UUID, currency: str) -> CustomerBehaviorProfile | None:
         row = self.session.get(ProfileRow, (customer_id, currency), populate_existing=True)
         if row is None:
             return None
+        return self._hydrate(row)
+
+    def _hydrate(self, row: ProfileRow | ProfileRevisionRow) -> CustomerBehaviorProfile:
         # One statement for the immutable observations; reads use the captured head's time.
         transactions = self.session.scalars(
             select(TransactionRow)
             .join(ObservationRow, TransactionRow.transaction_id == ObservationRow.transaction_id)
             .where(
-                ObservationRow.customer_id == customer_id,
-                ObservationRow.currency == currency,
+                ObservationRow.customer_id == row.customer_id,
+                ObservationRow.currency == row.currency,
                 ObservationRow.admitted_version <= row.version,
                 TransactionRow.timestamp > row.as_of - timedelta(days=row.long_window_days),
                 TransactionRow.timestamp <= row.as_of,
@@ -33,8 +58,8 @@ class PostgresCustomerProfileRepository(Repository):
             .order_by(ObservationRow.ordinal)
         ).all()
         return CustomerBehaviorProfile(
-            customer_id,
-            currency,
+            row.customer_id,
+            row.currency,
             row.as_of,
             tuple(
                 ProfileObservation(t.transaction_id, t.amount, t.timestamp, t.recipient_id)

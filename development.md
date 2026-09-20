@@ -149,3 +149,43 @@ Use only synthetic data and localhost for this demo. Remote deployment needs TLS
 edge time/rate limits, restricted database roles and a security review. Outbox rows
 are durable but no dispatcher runs. See [ADR-008](docs/adr/ADR-008-transaction-api-and-service-credentials.md)
 for authorization, atomicity and the planned immutable transaction lifecycle.
+
+## Customer behavior reads
+
+Apply `alembic upgrade head` before using the Phase 4 route. The migration captures
+existing profile heads without inventing older revisions. It does not enroll history.
+
+Using an authorized service/analyst token or admin credential, call:
+
+```text
+GET /api/v1/customers/{customer_id}/profiles/KZT
+```
+
+An enrolled customer without a KZT profile receives 200 with `UNINITIALIZED`, null
+version/amount statistics and zero counts. Customer scope is checked before storage;
+unknown or inaccessible customers return the same 404. USD and KZT never share amounts.
+The API contains no profile write endpoint. Populated histories currently come from
+controlled repository fixtures; public transaction intake never establishes trust.
+
+To repeat a read, pass its returned version and exact cutoff as query parameters:
+
+```text
+GET /api/v1/customers/{customer_id}/profiles/KZT?version=1&as_of=2026-09-20T07:00:00Z
+```
+
+The example requires that version to actually exist and its revision head to be no
+later than the cutoff. `as_of` without a version, naive dates and future cutoffs return
+422; unknown versions return 404; a cutoff before the selected revision returns 409.
+Use query-parameter encoding (especially for timezone offsets containing `+`).
+
+Statistics include only admitted observations strictly before the cutoff; observations
+at the window's lower boundary are excluded too. A pinned revision excludes observations
+admitted in later versions even when their transaction timestamps are old. For historical
+research, use a version actually captured before the original decision; selecting a
+version today is not proof that its history was available then.
+
+Short/long amount statistics are Decimal strings. Empty statistics are null. The
+response includes explicit cold/insufficient history, local hour counts, typical hours,
+known recipients, observation frequency and policy version. All are descriptive;
+`SUFFICIENT_HISTORY` is not a trust or risk verdict. See
+[ADR-009](docs/adr/ADR-009-profile-reads-and-history.md) for exact policy and limitations.

@@ -13,7 +13,7 @@ flowchart TB
 ```
 
 HTTP exposes liveness, authenticated synthetic customer enrollment and scoped
-transaction submission/retrieval. PostgreSQL repositories and an atomic unit of
+transaction submission/retrieval and profile reads. PostgreSQL repositories and an atomic unit of
 work back the intake use cases. React, ML and evaluation integrations remain planned.
 
 ## Responsibility map
@@ -21,7 +21,7 @@ work back the intake use cases. React, ML and evaluation integrations remain pla
 | Module | Ownership | Current state |
 |---|---|---|
 | transaction | Immutable transaction, intake/retrieval, canonical idempotency | Domain + authenticated API implemented |
-| profile | Customer, observations, robust windows, snapshots, update gate | Initial domain implemented |
+| profile | Customer, observations, robust windows, revision-pinned reads, snapshots, update gate | Domain + scoped read API; trusted admission deferred |
 | features | Ordered versioned numerical input | Contract only |
 | fraud | Prediction/model metadata and model strategy port | Contract only |
 | rules | Specification contract and rule version | Contract only |
@@ -78,8 +78,25 @@ exceptions; it is only an adapter, not an outbox worker.
   duplicate admission. Expired observations remain in append-only storage while
   retrieval returns the active window. Admissions are version-filtered so a read
   of an older head cannot accidentally include a concurrent writer's observations.
-- Current typical hours mean observed local hours; frequency estimates, categories,
-  devices, recipient age, event-time velocity and warm-up procedures remain Phase 4.
+- Legacy domain typical_hours means observed local hours. Phase 4 read summaries
+  expose counts and explicit frequency-qualified descriptive hours, per-window
+  observation frequency and known recipients. Categories, devices, recipient ages
+  and raw intake velocity remain feature work; trusted warm-up remains unresolved.
+
+## Versioned profile reads
+
+See [ADR-009](../adr/ADR-009-profile-reads-and-history.md). The profile application
+service reads through the repository port, enforces customer scope and distinguishes
+uninitialized, empty and insufficient history. Historical cutoffs require a pinned
+revision; future event facts and later-version admissions are excluded. No read mutates
+the profile, captures an assessment snapshot, or treats raw intake as trusted history.
+
+PostgreSQL archives metadata on every head change. A deferred constraint binds new
+observations to a revision created by that database transaction, sealing committed
+revision sets. Concurrent reads pin a metadata revision before loading observations.
+The upgrade captures existing heads only; it cannot reconstruct lost metadata versions.
+For research, callers must supply versions captured before the original decision;
+event time alone cannot reconstruct historical knowledge or feedback availability.
 
 ## Policy assumptions
 

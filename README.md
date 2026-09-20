@@ -6,10 +6,12 @@ FraudLens is a research-oriented modular monolith investigating how banking frau
 detection can learn legitimate behavior changes without letting exceptional or
 fraudulent transactions corrupt a customer's normal baseline.
 
-**Status: Phase 3 authenticated synthetic transaction API; not a deployable fraud product.**
+**Status: Phase 4 scoped customer behavior reads; not a deployable fraud product.**
 Submission/retrieval, scoped service credentials, durable request replay and atomic
 audit/outbox storage are implemented on PostgreSQL. There is no risk evaluation,
 trained model, human login or analyst console yet.
+Profile reads now expose robust short/long statistics, cold-start states and immutable
+revision selection. Profile admission remains closed pending trusted-history workflows.
 See [PROJECT_STATUS.md](PROJECT_STATUS.md) for verified progress.
 
 ## Problem and behavioral fraud detection
@@ -37,7 +39,7 @@ Compromised analyst confirmations are not solved by this initial gate.
 ```mermaid
 flowchart LR
     UI[React console — planned] --> HTTP[FastAPI adapters]
-    HTTP --> UC[Transaction application use cases]
+    HTTP --> UC[Transaction and profile application use cases]
     UC --> D[Pure Python domain modules]
     UC --> P[Repository / ML / event ports]
     P --> DB[SQLAlchemy + PostgreSQL repositories]
@@ -88,6 +90,8 @@ See [research protocol](docs/research/protocol.md).
 - `POST /api/v1/customers`: admin-only synthetic customer enrollment; no profile admission.
 - `POST /api/v1/transactions`: scoped service/admin intake with required Idempotency-Key.
 - `GET /api/v1/transactions/{transaction_id}`: scoped service/analyst or admin retrieval.
+- `GET /api/v1/customers/{customer_id}/profiles/{currency}`: scoped behavior summary;
+  explicit historical cutoffs require a pinned profile version.
 
 All business routes require an expiring bearer service credential. Intake returns
 201 and RECEIVED status; matching retries return the exact stored response, changed
@@ -116,7 +120,8 @@ docker compose up --build -d
 docker compose exec backend alembic upgrade head
 ```
 
-Migrations now create 14 business tables and database history protections.
+Migrations now create 15 business tables and database history protections, including
+an immutable profile revision journal.
 The initial foundation marker is preserved in migration history. Compose currently contains backend and PostgreSQL only; a
 frontend service will be added when the console exists. Use a dedicated local
 database; never point migration/test commands at a real banking database.
@@ -159,8 +164,9 @@ cryptographic tamper evidence.
 This checkpoint verifies authenticated intake and domain invariants; it does not
 establish fraud-detection accuracy or deployment security. Profile observations are
 persisted; robust statistics are computed in
-memory from the active window. Current typical hours are observed hours, not a
-frequency-qualified estimate. No categories, device history, recipient ages, feature
+memory from the active window. Phase 4 summaries qualify typical hours using explicit,
+uncalibrated count/share thresholds and expose the underlying counts. No categories,
+device history, recipient ages, feature
 extraction or model artifact exists. Outbox storage and delivery metadata exist,
 but background dispatch and consumer deduplication remain unimplemented.
 Authentication and application workflows must enforce trusted feedback provenance. See the research protocol for baseline comparisons and
@@ -171,10 +177,11 @@ threats to validity.
 1. Foundation and pure domain — implemented.
 2. PostgreSQL tables, repositories, atomic unit of work and migration tests — implemented.
 3. Authenticated transaction API with durable, scoped idempotency — implemented.
-4. Profile history, production features and deterministic rules.
-5. Offline model comparison, inference, hybrid risk and SHAP.
-6. Cases, feedback, profile update use cases, outbox delivery.
-7. Analyst console, security review, deterministic demos and research experiments.
+4. Versioned profile reads and behavior summaries — implemented; trusted admission remains deferred.
+5. Production features and deterministic rules.
+6. Offline model comparison, inference, hybrid risk and SHAP.
+7. Cases, feedback, profile update use cases, outbox delivery.
+8. Analyst console, security review, deterministic demos and research experiments.
 
 ## Continuation
 
