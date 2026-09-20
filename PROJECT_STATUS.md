@@ -1,112 +1,121 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 2 — Persistence implemented and verified on PostgreSQL.**
-Next phase: **Phase 3 — Transaction API and durable request idempotency.**
-The product is not complete. HTTP currently exposes liveness only.
+Current checkpoint: **Phase 3 — Authenticated synthetic transaction API implemented and verified.**
+Next phase: **Phase 4 — Customer behavior application workflows.**
+The product is not complete. Intake does not evaluate fraud risk or admit profile data.
 
-## Completed phases
+## Completed phases and capabilities
 
-- [x] Phase 0: Python 3.13/uv lockfile, FastAPI foundation, configuration, quality tools,
-  Docker/Compose definitions, CI definition, README and initial architecture/research docs.
-- [x] Phase 1: pure Python domain, robust profiles, safe admission gate, strict cases,
-  risk strategies, versioned contracts, audit/feedback/events and invariant tests.
-- [x] Phase 2: 14 PostgreSQL business tables, typed SQLAlchemy repositories and migrations.
-- [x] Explicit-commit context-managed UoW; rollback on missing commit and failures.
-- [x] Decimal/UUID/timezone-aware round trips and versioned immutable profile snapshots.
-- [x] Expected profile versions plus row locks; append-only observation storage.
-- [x] Database-validated case transitions and append-only audit/assessment/feedback/history.
-- [x] Durable outbox insertion and attempts/publication metadata with immutable envelopes.
-- [x] Scoped completed-request records, digest conflicts and transaction-scoped idempotency locks.
-- [x] Genuine PostgreSQL integration tests, migration upgrade/downgrade and metadata checks.
-- [x] Local development runbook, updated architecture and ADR-007.
+- [x] Phase 0: Python 3.13/uv foundation, FastAPI, configuration, Docker/Compose and CI definitions.
+- [x] Phase 1: pure domain, robust profiles, initial safe gate, cases, risk strategies and ports.
+- [x] Phase 2: 14 PostgreSQL tables, typed repositories, explicit-commit atomic UoW,
+  immutable history, profile/case concurrency, snapshots, outbox and idempotency storage.
+- [x] Phase 3: framework-free transaction submission/retrieval and synthetic customer enrollment.
+- [x] POST /api/v1/transactions and GET /api/v1/transactions/{transaction_id}.
+- [x] Admin-only POST /api/v1/customers creates customer/audit records, never trusted observations.
+- [x] Expiring high-entropy bearer service credentials stored as SHA-256 digests;
+  admin/service/analyst roles and explicit customer scope, with fail-closed configuration.
+- [x] Canonical request hashing, authenticated principal/key locking before writes,
+  exact stored 201 replay, changed-body conflicts and explicit duplicate-ID conflicts.
+- [x] Atomic transaction, authenticated audit, TransactionReceived outbox and response commit.
+- [x] Decimal-string money, aware timestamps, strict fields, bounded 16 KiB bodies,
+  sanitized errors and no-store responses.
+- [x] PostgreSQL-backed API tests, token rotation/revocation, rollback and concurrent request tests.
+- [x] ADR-008, API setup/examples and updated architecture/runbook.
 
 ## Verification — 2026-09-20
 
-- [x] **131 passed, 0 skipped, 2 upstream warnings; 96% combined branch/statement coverage.**
-- [x] Includes concurrency, commit/rollback, failed deferred constraints, record round trips,
-  direct SQL history mutation rejection, snapshot association and model-feature consistency.
-- [x] Ruff lint and formatting pass; strict mypy passes for 52 backend files.
-- [x] pip-audit: no known vulnerabilities in unchanged locked dependencies.
-- [x] Source/wheel builds pass; Compose configuration validates.
-- [x] PostgreSQL 17.10 native server verified. Migration head: `0003_history_guards`.
-- [x] HTTP liveness tests pass; stage now reports `persistence-foundation`.
-- [ ] Docker image build/start remains unverified: Docker engine unavailable.
-- [ ] Remote GitHub Actions run: no remote push/workflow execution performed.
+- [x] **193 tests passed, 0 skipped, 2 upstream warnings; 97% combined branch/statement coverage.**
+- [x] Real PostgreSQL 17.10, including migrations, immutable history and Phase 2 regressions.
+- [x] API tests verify exact replay across app instances, scoped credentials/keys, changed-body
+  conflicts, rollback at audit/outbox/response/commit stages and forced duplicate-ID insert races.
+- [x] Ruff lint/format and strict mypy pass (59 backend files).
+- [x] pip-audit reports no known vulnerabilities in unchanged locked dependencies.
+- [x] Source/wheel builds and Compose configuration pass.
+- [x] Alembic upgrade/check pass; unchanged migration head: 0003_history_guards.
+- [x] Actual Uvicorn + PostgreSQL HTTP smoke passed: enrollment, submission, retrieval,
+  exact replay, 401 authentication and 409 conflict. Temporary smoke schema/server cleaned up.
+- [ ] Docker image build/start: still unverified; Docker engine unavailable.
+- [ ] Remote CI: not pushed or executed.
 
-No known failing tests. Unsuppressed warnings concern Starlette TestClient's httpx
-support and AnyIO BlockingPortal. Initial formatting issues were fixed. Tests are
-real database tests, not SQLite replacements. No model performance is claimed.
+No known failing tests. The two unsuppressed warnings remain upstream Starlette
+httpx TestClient and AnyIO BlockingPortal deprecations. No model performance is claimed.
 
-## Environment and important commands
+## Environment and commands
 
-Repository: `outputs/fraudlens` in the original workspace. PyCharm `.idea/` files are
-preserved and ignored. Dependencies remain unchanged; `.venv` is available.
-Native PostgreSQL binaries: `/opt/homebrew/opt/postgresql@17/bin`.
-Disposable cluster: `../../work/fraudlens-postgres/data` from the repository.
-The cluster is left running without TCP, using owner-only Unix socket permissions.
+Repository: outputs/fraudlens in the original workspace. PyCharm .idea files are
+preserved/ignored. Dependencies are unchanged. PostgreSQL remains running without TCP
+on owner-only socket /private/tmp, port 55439; database fraudlens_test.
+Binaries: /opt/homebrew/opt/postgresql@17/bin.
+Cluster: ../../work/fraudlens-postgres/data from the repository.
 
 ```sh
 export TEST_DATABASE_URL='postgresql+psycopg:///fraudlens_test?host=/private/tmp&port=55439'
 export FRAUDLENS_DATABASE_URL="$TEST_DATABASE_URL"
 .venv/bin/alembic upgrade head
 .venv/bin/alembic check
-.venv/bin/pytest --cov=backend --cov-report=term-missing
+.venv/bin/pytest --cov=backend
 .venv/bin/ruff check .
 .venv/bin/ruff format --check .
 .venv/bin/mypy
+UV_CACHE_DIR=../../work/uv-cache ../../work/bootstrap/bin/uv build --offline
 ```
 
-See `development.md` for restart/stop and another-machine instructions. Sandboxed
-execution may need approval for PostgreSQL shared memory/socket access. Test database
-names must end in `_test`. The suite creates and removes only its generated schema;
-the migration smoke also upgrades the default schema of the supplied test database.
+See development.md for PostgreSQL restart/stop, expiring credential generation and API
+examples. Set FRAUDLENS_API_PRINCIPALS before authenticated use; no actual credential
+was committed or left configured by this session. Run .venv/bin/uvicorn backend.main:app
+--reload --host 127.0.0.1 after configuration. Sandboxed PostgreSQL socket/shared-memory
+access may require approved execution outside the sandbox. Tests require *_test and
+create/remove their own schema; the migration smoke also upgrades the default schema.
 
-## Important implementation files
+## Important files
 
-- `backend/adapters/database/models.py`: typed mappings and relational constraints.
-- `backend/adapters/database/uow.py`: explicit commit/rollback and domain port factory.
-- `backend/adapters/database/profiles.py`, `cases.py`: versioned/append-only aggregates.
-- `backend/adapters/database/assessments.py`, `history.py`, `transactions.py`: repositories.
-- `backend/adapters/database/idempotency.py`, `codec.py`: scoped locks and snapshot encoding.
-- `backend/app/shared/ports.py`, `errors.py`: framework-free repository/UoW contracts.
-- `backend/app/transaction/idempotency.py`: validated completed-request record.
-- `infra/migrations/versions/0002_persistence_business_persistence.py`: business schema.
-- `infra/migrations/versions/0003_history_guards.py`: immutable history/case/version triggers.
-- `tests/integration/`: actual PostgreSQL tests and isolated schema fixture.
-- `docs/adr/ADR-007-persistence-consistency.md`, `development.md`: decisions and runbook.
+- backend/app/transaction/service.py: intake/retrieval/enrollment, canonical digest and atomic flow.
+- backend/app/shared/security.py and errors.py: authorization and framework-free errors.
+- backend/api/transactions.py, dependencies.py, errors.py, limits.py: HTTP boundary.
+- backend/adapters/security.py: validated configured credential registry.
+- backend/main.py and config.py: composition, database lifecycle and secret configuration.
+- backend/adapters/database/uow.py: atomic UoW and explicit uniqueness conflict translation.
+- backend/adapters/database/{models,profiles,cases,idempotency,assessments,history,transactions,codec}.py:
+  previously verified persistence adapters.
+- backend/app/profile/entities.py and gate.py: existing robust statistics and safe admission domain.
+- tests/integration/test_transaction_api.py and tests/unit/test_api_security.py: Phase 3 tests.
+- docs/adr/ADR-008-transaction-api-and-service-credentials.md and ADR-007-persistence-consistency.md.
+- development.md, README.md and docs/architecture/README.md.
 
-## Architecture decisions and limitations
+## Decisions, partial work and limitations
 
-- Repositories flush; only UoW commits. Let repository failures exit the UoW so the
-  whole operation rolls back. No publication before the durable commit.
-- Acquire scoped idempotency locks BEFORE business effects. Matching stored responses
-  must short-circuit execution; different request hashes raise IdempotencyConflict.
-- Expired observations remain persisted; profile reads return the active window and
-  exclude admissions newer than the captured head version.
-- Profile repositories validate transaction facts, not analyst legitimacy. Trusted
-  enrollment, authorized feedback and gate orchestration remain application work.
-- History triggers reject ordinary SQL mutation; privileged DB owners can disable
-  them. Restricted runtime grants and authentication/RBAC remain to be implemented.
-- Transactions are currently immutable including status. Model provenance is immutable;
-  promotion/status workflows and transaction lifecycle must be explicitly designed.
-- Outbox pending reads do not claim work. Background dispatch/leases/retries and
-  consumer deduplication remain future work. No exactly-once claim.
-- No transaction/risk HTTP API, authentication, trained model, SHAP or frontend yet.
-- Rules-only assessment provenance must be designed before serving rules-only risk;
-  current assessments reference real model metadata, not a fabricated model artifact.
-- Uncalibrated profile/decision thresholds, cold-start enrollment, low-weight admission,
-  compromised confirmations and correction/retraction replay remain research debt.
+- Domain/application code stays framework-free. Repositories flush; only UoW commits.
+  Matching replay checks current authorization first and returns without business writes.
+- Service credentials are not human login/password authentication. Registry policy is
+  read at startup: rotation/revocation requires restarting every process; expiry is
+  checked per request. Keep principal UUID stable for rotation, never reuse for another identity.
+- Human authentication/session lifecycle, distributed rate/time limits, restricted
+  runtime database grants and deployment security review remain. Local synthetic demo only;
+  remote deployment requires TLS. The configured DB owner can disable history triggers.
+- Successful idempotency records have no retention/purge policy yet; failures are not cached.
+- Transactions remain immutable including RECEIVED status. Evaluation needs separately
+  derived state or an explicit append-only lifecycle, not silent historical mutation.
+- Outbox storage exists; dispatch, claims/leases/retries and consumer deduplication do not.
+- Profile repositories validate transaction facts, not analyst legitimacy. Customer
+  enrollment adds no trusted observations. Trusted bootstrap/admission and gate orchestration
+  still need application policies. Existing robust stats/windows must not be reimplemented.
+- Gate thresholds remain uncalibrated. Cold start, low-weight admission, compromised
+  confirmations, corrections/retractions and event-time leakage remain research debt.
+- No feature engine, risk evaluation HTTP API, trained ML, SHAP, human login or frontend.
+  Rules-only assessment provenance must be designed without inventing model metadata.
 
 ## Exact next tasks
 
-1. Read this status, the preserved specification and `development.md`; do not rebuild Phase 2.
-2. Start Phase 3: transaction submission/retrieval use cases depending on domain ports.
-3. Add validated HTTP request/response models, canonical request hashing, authenticated
-   principal scope, replay of stored response/status and conflict mapping.
-4. Atomically persist transaction, audit, TransactionReceived outbox event and successful
-   idempotent response. Handle duplicate transaction IDs with different keys explicitly.
-5. Do not expose unprotected business endpoints or fabricate fraud scores before the
-   feature/rule/model phases. Plan a controlled synthetic customer enrollment path.
-6. Add FastAPI + PostgreSQL integration tests for successful submission, replay,
-   changed-body conflict, duplicate IDs, invalid inputs, authorization and concurrency.
-7. Run checks; update PROJECT_STATUS.md, NEXT_SESSION_PROMPT.md and SESSION_LOG.md.
+1. Read this file, docs/PROJECT_SPECIFICATION.md, development.md and ADR-008; preserve Phase 3.
+2. Begin Phase 4 by inspecting existing profile entities/gate/repositories/tests. Identify only
+   missing application behavior; median/MAD/p95, short/long windows and snapshots already exist.
+3. Specify cold-start/trusted-history provenance, per-currency as-of reads and event-time ordering
+   before exposing profile application workflows. Raw intake or admin customer creation is not
+   proof of legitimate behavior. Do not blindly admit received transactions.
+4. Implement scoped profile retrieval and required history/statistics capabilities through ports;
+   use versioned atomic persistence for any authorized profile changes.
+5. Test missing/cold profiles, currency isolation, as-of boundaries, future-history exclusion,
+   concurrency and exceptional-purchase baseline preservation using PostgreSQL where appropriate.
+6. Keep ML/evaluation/outbox dispatch for their planned phases; never fabricate metrics.
+7. Run checks and update PROJECT_STATUS.md, NEXT_SESSION_PROMPT.md and SESSION_LOG.md.

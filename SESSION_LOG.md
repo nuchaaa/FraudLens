@@ -44,3 +44,27 @@
   runtime and remote CI still unverified. No trained model or predictive metrics.
 - Next: Phase 3 authenticated synthetic transaction submission/retrieval and HTTP
   idempotency, with atomic audit/outbox effects and FastAPI/PostgreSQL tests.
+
+## 2026-09-20 — Phase 3 authenticated transaction intake
+
+- Added framework-free submission/retrieval and controlled synthetic customer enrollment;
+  FastAPI routes require expiring hashed bearer service credentials and role/customer scopes.
+- Canonical principal-scoped idempotency locks precede business writes. Successful responses
+  replay exactly from PostgreSQL; changed requests and duplicate IDs return explicit conflicts.
+- Transaction, authenticated audit, TransactionReceived event and completed response commit
+  atomically. Failed audit/outbox/response/commit tests leave no partial records.
+- Added bounded body sizes, strict Decimal/time/identifier validation, sanitized errors,
+  no-store responses, registry rotation/revocation checks and database lifecycle composition.
+- Verified concurrent retries and forced duplicate-ID insertion races against PostgreSQL,
+  exact replay across app instances, scope enforcement and no automatic profile admission.
+- Final suite: 193 passed, zero skipped, 97% coverage; two existing upstream deprecations.
+  Ruff/format/strict mypy pass; pip-audit finds no known vulnerabilities; distributions,
+  Compose configuration and Alembic upgrade/schema checks pass. No schema/dependency changes.
+- Actual local Uvicorn/PostgreSQL smoke passed enrollment, submit, retrieve, exact retry,
+  authentication and conflict checks; temporary server and smoke schema were removed.
+- Updated README, architecture, runbook, ADR-008 and all checkpoint files. Credentials
+  remain fail-closed until explicitly configured; no actual token was committed.
+- PostgreSQL remains running on the owner-only Unix socket with no TCP listener.
+  Docker runtime and remote CI remain unverified. No predictive metrics claimed.
+- Next: Phase 4 profile application workflows, beginning with missing trusted-history,
+  cold-start, per-currency as-of and leakage policies; preserve existing robust domain work.

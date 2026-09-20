@@ -6,10 +6,10 @@ FraudLens is a research-oriented modular monolith investigating how banking frau
 detection can learn legitimate behavior changes without letting exceptional or
 fraudulent transactions corrupt a customer's normal baseline.
 
-**Status: tested domain and PostgreSQL persistence checkpoint; not a deployable fraud product.**
-The current HTTP application exposes liveness only. Typed repositories, immutable
-history and an atomic unit of work are implemented. There is no transaction API,
-trained model, authentication or analyst console yet.
+**Status: Phase 3 authenticated synthetic transaction API; not a deployable fraud product.**
+Submission/retrieval, scoped service credentials, durable request replay and atomic
+audit/outbox storage are implemented on PostgreSQL. There is no risk evaluation,
+trained model, human login or analyst console yet.
 See [PROJECT_STATUS.md](PROJECT_STATUS.md) for verified progress.
 
 ## Problem and behavioral fraud detection
@@ -37,7 +37,7 @@ Compromised analyst confirmations are not solved by this initial gate.
 ```mermaid
 flowchart LR
     UI[React console — planned] --> HTTP[FastAPI adapters]
-    HTTP --> UC[Application use cases — planned]
+    HTTP --> UC[Transaction application use cases]
     UC --> D[Pure Python domain modules]
     UC --> P[Repository / ML / event ports]
     P --> DB[SQLAlchemy + PostgreSQL repositories]
@@ -85,8 +85,16 @@ See [research protocol](docs/research/protocol.md).
 
 - `GET /health/live`: process liveness, version and implementation stage.
 - `GET /docs`: development OpenAPI explorer.
-- Transaction submission, idempotency, authentication and feedback routes are not
-  implemented. Liveness does not establish database/model readiness.
+- `POST /api/v1/customers`: admin-only synthetic customer enrollment; no profile admission.
+- `POST /api/v1/transactions`: scoped service/admin intake with required Idempotency-Key.
+- `GET /api/v1/transactions/{transaction_id}`: scoped service/analyst or admin retrieval.
+
+All business routes require an expiring bearer service credential. Intake returns
+201 and RECEIVED status; matching retries return the exact stored response, changed
+bodies or duplicate transaction IDs return 409. Amounts are decimal strings and
+timestamps require a timezone. No risk prediction is fabricated. See the
+[API setup and examples](development.md#authenticated-synthetic-api).
+Liveness does not establish database/model readiness.
 
 ## How to run
 
@@ -98,7 +106,8 @@ uv run uvicorn backend.main:app --reload --host 127.0.0.1
 ```
 
 Open http://127.0.0.1:8000/docs or http://127.0.0.1:8000/health/live.
-This foundation app runs without a database. PostgreSQL and container foundation:
+Liveness runs without a database; business endpoints fail closed without credentials
+and configured PostgreSQL. PostgreSQL and container foundation:
 
 ```sh
 cp .env.example .env
@@ -138,15 +147,18 @@ database configuration uses environment variables and redacts secrets in setting
 Docker runs the backend without root and binds host ports to localhost. Production
 mode hides API documentation. PostgreSQL triggers reject edits/deletes to historical
 records, and repository writes participate in one explicit database transaction.
-Argon2 authentication, RBAC, restricted runtime database grants, request limits and
-secure deployment review remain mandatory before business endpoints are exposed.
+Business routes now use expiring hashed random service credentials, role/customer
+scope checks, bounded request bodies and sanitized errors. Human authentication,
+restricted runtime database grants, distributed rate limits and secure deployment
+review remain future work. Keep this synthetic demo on localhost; remote use needs TLS.
 A privileged database administrator can disable triggers; these guards are not
 cryptographic tamper evidence.
 
 ## Limitations and research direction
 
-This checkpoint proves domain invariants, not fraud-detection accuracy or end-to-end
-security. Profile observations are persisted; robust statistics are computed in
+This checkpoint verifies authenticated intake and domain invariants; it does not
+establish fraud-detection accuracy or deployment security. Profile observations are
+persisted; robust statistics are computed in
 memory from the active window. Current typical hours are observed hours, not a
 frequency-qualified estimate. No categories, device history, recipient ages, feature
 extraction or model artifact exists. Outbox storage and delivery metadata exist,
@@ -158,7 +170,7 @@ threats to validity.
 
 1. Foundation and pure domain — implemented.
 2. PostgreSQL tables, repositories, atomic unit of work and migration tests — implemented.
-3. Authenticated transaction API with durable, scoped idempotency.
+3. Authenticated transaction API with durable, scoped idempotency — implemented.
 4. Profile history, production features and deterministic rules.
 5. Offline model comparison, inference, hybrid risk and SHAP.
 6. Cases, feedback, profile update use cases, outbox delivery.

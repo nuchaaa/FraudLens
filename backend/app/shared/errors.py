@@ -12,3 +12,11 @@ class IdempotencyConflict(ValueError):
 
 class PersistenceConflict(ValueError):
     """A database constraint rejected the complete unit of work."""
+
+
+class DuplicateTransaction(PersistenceConflict):
+    """The immutable transaction ID already exists."""
+
+
+class DuplicateCustomer(PersistenceConflict):
+    """The customer ID already exists."""

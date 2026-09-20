@@ -1,6 +1,7 @@
 from types import TracebackType
 from typing import Self
 
+from psycopg.errors import UniqueViolation
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -25,7 +26,7 @@ from backend.adapters.database.transactions import (
     PostgresCustomerRepository,
     PostgresTransactionRepository,
 )
-from backend.app.shared.errors import PersistenceConflict
+from backend.app.shared.errors import DuplicateCustomer, DuplicateTransaction, PersistenceConflict
 from backend.app.shared.ports import UnitOfWork
 
 
@@ -72,6 +73,11 @@ class PostgresUnitOfWork:
         finally:
             self._session.close()
         if isinstance(exc, IntegrityError):
+            if isinstance(exc.orig, UniqueViolation):
+                if exc.orig.diag.constraint_name == "pk_transactions":
+                    raise DuplicateTransaction("transaction ID already exists") from exc
+                if exc.orig.diag.constraint_name == "pk_customers":
+                    raise DuplicateCustomer("customer ID already exists") from exc
             raise PersistenceConflict("database constraint rejected this unit of work") from exc
 
 

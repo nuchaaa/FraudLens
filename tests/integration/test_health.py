@@ -11,7 +11,7 @@ def test_http_liveness_and_docs() -> None:
         assert response.json() == {
             "status": "ok",
             "version": "0.1.0",
-            "stage": "persistence-foundation",
+            "stage": "transaction-api",
         }
         assert client.get("/docs").status_code == 200
         assert client.post("/transactions", json={}).status_code == 404

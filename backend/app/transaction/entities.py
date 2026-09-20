@@ -35,4 +35,8 @@ class Transaction:
         positive_amount(self.amount)
         currency_code(self.currency)
         nonempty(self.device_id, "device_id")
+        if len(self.device_id) > 200:
+            raise ValueError("device_id must contain at most 200 characters")
+        if any(ord(character) < 32 or ord(character) == 127 for character in self.device_id):
+            raise ValueError("device_id must not contain control characters")
         object.__setattr__(self, "timestamp", utc(self.timestamp))

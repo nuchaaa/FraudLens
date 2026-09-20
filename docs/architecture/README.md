@@ -12,15 +12,15 @@ flowchart TB
   Artifacts --> API
 ```
 
-Only liveness is currently exposed over HTTP. PostgreSQL tables, repositories and an atomic unit of work are implemented;
-HTTP business use cases are the next phase. Diagrams describe the intended system,
-not completed integrations.
+HTTP exposes liveness, authenticated synthetic customer enrollment and scoped
+transaction submission/retrieval. PostgreSQL repositories and an atomic unit of
+work back the intake use cases. React, ML and evaluation integrations remain planned.
 
 ## Responsibility map
 
 | Module | Ownership | Current state |
 |---|---|---|
-| transaction | Immutable synthetic transaction, amount/time validation | Domain implemented |
+| transaction | Immutable transaction, intake/retrieval, canonical idempotency | Domain + authenticated API implemented |
 | profile | Customer, observations, robust windows, snapshots, update gate | Initial domain implemented |
 | features | Ordered versioned numerical input | Contract only |
 | fraud | Prediction/model metadata and model strategy port | Contract only |
@@ -41,16 +41,19 @@ rolls back. Database constraint failures also roll back and become domain
 `PersistenceConflict` errors. Let write failures exit the context; do not catch a
 repository failure and then commit partially completed application work.
 
- The evaluation use case will lock or
-version the relevant profile, claim `(principal_id, idempotency_key)`, persist the
-transaction, immutable profile snapshot, assessment, optional case, audit and
-outbox records, and then commit once. Never send side effects before commit.
+The implemented intake use case checks the authenticated principal's role/customer
+scope, locks `(principal_id, idempotency_key)`, and commits transaction, audit,
+TransactionReceived outbox event and response record together. Matching retries
+short-circuit before business writes. Customer enrollment is admin-only and creates
+no profile history. Future evaluation will additionally version/capture the relevant
+profile, assessment and optional case. Never send side effects before commit.
 
-Idempotency must compare a canonical request fingerprint. Same key and same body
+Idempotency compares a versioned canonical request fingerprint. Same key and same body
 returns the original response; same key and different body returns 409. A unique
 constraint resolves races. A duplicate transaction ID with a different key must
 also be handled explicitly. No in-memory dictionary can guarantee durable
-idempotency. No idempotency API is implemented at this checkpoint.
+idempotency. Exact successful response JSON/status are stored in PostgreSQL and
+replayed even across API process restarts. See [ADR-008](../adr/ADR-008-transaction-api-and-service-credentials.md).
 
 Outbox workers deliver after commit, retry failures and record attempt counts.
 Multiple handlers can receive duplicates after partial delivery; consumers must
@@ -114,8 +117,8 @@ writes. A transaction-scoped PostgreSQL advisory lock serializes identical scope
 keys. A matching completed request returns its stored response; a changed digest
 raises `IdempotencyConflict`. Store the response and business writes in the same
 unit of work. Hash collisions only serialize unrelated requests; durable identity
-is the full composite primary key. HTTP digest canonicalization, replay status
-codes, authentication and request limits are Phase 3 tasks.
+is the full composite primary key. Phase 3 implements HTTP digest canonicalization,
+201 replay, expiring service credentials, customer scopes and a 16 KiB body limit.
 
 Case history has both domain checks and a database insertion trigger that locks
 the case and enforces sequence, source state and timestamp. Historical tables reject

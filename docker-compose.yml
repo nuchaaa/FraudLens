@@ -18,6 +18,7 @@ services:
     build: .
     environment:
       FRAUDLENS_ENVIRONMENT: development
+      FRAUDLENS_API_PRINCIPALS: ${FRAUDLENS_API_PRINCIPALS:-[]}
       FRAUDLENS_DATABASE_URL: postgresql+psycopg://fraudlens:${POSTGRES_PASSWORD}@postgres:5432/fraudlens
     ports:
       - "127.0.0.1:8000:8000"

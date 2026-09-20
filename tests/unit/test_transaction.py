@@ -41,6 +41,7 @@ def test_transaction_immutable(transaction: Transaction) -> None:
         transaction.amount = Decimal("1")  # type: ignore[misc]
 
 
-def test_blank_device_rejected(transaction: Transaction) -> None:
+@pytest.mark.parametrize("device_id", ["  ", "x" * 201, "device\u0000", "device\n"])
+def test_invalid_device_rejected(transaction: Transaction, device_id: str) -> None:
     with pytest.raises(ValueError):
-        replace(transaction, device_id="  ")
+        replace(transaction, device_id=device_id)
