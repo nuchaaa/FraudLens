@@ -71,7 +71,9 @@ class ProfileResponse(BaseModel):
     read_policy_version: str
     minimum_history: int
     history_source: Literal["repository_admissions"] = "repository_admissions"
-    admission_workflow_verified: Literal[False] = False
+    admission_workflow_verified: bool
+    admission_policy_version: str | None
+    learning_decision_id: UUID | None
     long_term: WindowResponse
     short_term: WindowResponse
 
@@ -87,6 +89,9 @@ class ProfileResponse(BaseModel):
             status=view.status,
             read_policy_version=view.policy.version,
             minimum_history=view.policy.minimum_history,
+            admission_workflow_verified=view.admission_workflow_verified,
+            admission_policy_version=view.admission_policy_version,
+            learning_decision_id=view.learning_decision_id,
             long_term=WindowResponse.from_domain(view.long_term),
             short_term=WindowResponse.from_domain(view.short_term),
         )

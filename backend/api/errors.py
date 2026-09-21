@@ -6,6 +6,7 @@ from sqlalchemy.exc import OperationalError, TimeoutError
 from backend.app.cases.entities import InvalidCaseTransition
 from backend.app.evaluation.contracts import EvaluationUnavailable
 from backend.app.features.context import FeatureInputError
+from backend.app.profile.learning import LearningInputError
 from backend.app.profile.read_model import ProfileHistoryUnavailable, ProfileQueryError
 from backend.app.shared.errors import (
     ConcurrentUpdate,
@@ -24,7 +25,7 @@ def install_error_handlers(app: FastAPI) -> None:
             status, detail = 503, str(exc)
         elif isinstance(exc, (ConcurrentUpdate, HistoryConflict, InvalidCaseTransition)):
             status, detail = 409, str(exc)
-        elif isinstance(exc, (ProfileQueryError, FeatureInputError)):
+        elif isinstance(exc, (ProfileQueryError, FeatureInputError, LearningInputError)):
             status, detail = 422, str(exc)
         elif isinstance(exc, ProfileHistoryUnavailable):
             status, detail = 409, str(exc)
@@ -57,6 +58,7 @@ def install_error_handlers(app: FastAPI) -> None:
         HistoryConflict,
         InvalidCaseTransition,
         ProfileQueryError,
+        LearningInputError,
         ProfileHistoryUnavailable,
         Forbidden,
         NotFound,

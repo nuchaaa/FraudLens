@@ -90,5 +90,8 @@ class ProfileView:
     timezone: str
     status: BaselineStatus
     policy: ProfileReadPolicy
+    admission_workflow_verified: bool
+    admission_policy_version: str | None
+    learning_decision_id: UUID | None
     long_term: BehaviorWindow
     short_term: BehaviorWindow

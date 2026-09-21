@@ -26,7 +26,7 @@ and production risk evaluation remain planned.
 | Module | Ownership | Current state |
 |---|---|---|
 | transaction | Immutable transaction, intake/retrieval, canonical idempotency | Domain + authenticated API implemented |
-| profile | Customer, observations, robust windows, revision-pinned reads, snapshots, update gate | Domain + scoped read API; trusted admission deferred |
+| profile | Customer, robust windows, revision-pinned reads, gate and learning provenance | Scoped reads + experimental authorized learning |
 | features | 29 ordered versioned features, immutable contexts and scoped capture | Pure extractor + artifact replay |
 | fraud | Prediction port and scoped experimental captured-context replay | Native XGBoost adapter; controlled opt-in evaluation only |
 | rules | Versioned specifications, evidence, reason codes and missing-input outcomes | Pure engine + local replay |
@@ -36,6 +36,7 @@ and production risk evaluation remain planned.
 | evaluation | Truthful scored/insufficient envelopes and exact durable replay | Opt-in scoped API + append-only PostgreSQL storage |
 | cases | Strict lifecycle and immutable transition history | Scoped experimental review API + database guards |
 | feedback | Analyst verdict and actor provenance | Append-only records; no automatic learning |
+| profile learning | Independent authorization, bootstrap and ordinary update orchestration | Opt-in API + append-only PostgreSQL evidence |
 | audit | Append-only action record | Domain + database append-only guards |
 | shared | Validation, ports, event envelope and outbox record | Contracts implemented |
 
@@ -215,3 +216,18 @@ review triggers serialize lifecycle changes and bind terminal feedback to its ac
 transition. Scoped durable idempotency precedes writes and all evidence commits atomically.
 No result changes transaction state, executes a suggested action, admits profile history
 or authorizes model training. The feature remains disabled by default.
+
+## Safe experimental profile learning
+
+[ADR-018](../adr/ADR-018-safe-profile-learning-authorization.md) separates analyst truth
+from permission to learn. Cold start needs at least five distinct legitimate closed cases,
+two reviewers and a separate admin authorizer. Existing-profile admission additionally
+requires verified provenance and an evaluation captured against the exact current revision.
+The pure gate admits only ordinary legitimate activity; exceptional, stale and insufficient
+evidence is quarantined, and confirmed fraud is excluded.
+
+Learning decisions/evidence and profile revisions commit with audit, outbox and exact
+idempotent response. PostgreSQL binds verified heads to immutable ACCEPT decisions and
+prevents case reuse. Legacy profiles remain explicitly unverified. Low-weight updates and
+corrections are unavailable until the data model can represent weights and superseding facts
+without rewriting append-only history. All thresholds remain experimental and uncalibrated.

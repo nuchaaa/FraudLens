@@ -1,11 +1,20 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 11 — Durable experimental evaluation and review complete.**
-Next work: **Phase 12 — Safe adaptive profile update design and orchestration; production behavioral validation remains open.**
+Current checkpoint: **Phase 12 — Safe experimental profile learning complete.**
+Next work: **Phase 13 — Outbox delivery and operational reliability; production behavioral validation remains open.**
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
 ## Completed capabilities
+
+- [x] Phase 12: separately authorized, idempotent profile-learning HTTP workflows.
+- [x] Reviewed cold-start bootstrap: 5–100 cases, two reviewers, independent admin.
+- [x] Exact-profile-version ordinary admission through the existing conservative pure gate.
+- [x] Exceptional/stale/insufficient evidence quarantined; confirmed fraud excluded.
+- [x] Immutable learning decisions/evidence and verified provenance on learning-created revisions.
+- [x] Atomic profile/revision/evidence/audit/outbox/response writes and concurrency controls.
+- [x] Legacy profiles remain unverified; weights/corrections explicitly unavailable.
+- [x] ADR-018; migration head 0006_safe_profile_learning; no dependency changes.
 
 - [x] Phase 11: opt-in authenticated evaluation and analyst case/review HTTP workflows.
 - [x] Atomic context/vector/policy/result/explanation/audit/outbox/exact-response persistence.
@@ -88,15 +97,15 @@ do not establish legitimacy, score risk or admit transactions.
 
 ## Verification — 2026-09-20–21
 
-- [x] **436 passed, 0 skipped, 2 upstream warnings; 95% combined backend/ML coverage.**
+- [x] **447 passed, 0 skipped, 2 upstream warnings; 95% combined backend/ML coverage.**
 - [x] Actual PostgreSQL 17.10, including prior-phase regressions.
 - [x] Migration upgrade/downgrade/metadata tests and upgrade with populated legacy profile data.
 - [x] Concurrent reader pins its version before another writer commits; old versions exclude
   backdated later admissions and retain their original timezone/window policy.
-- [x] Ruff lint/format and strict mypy pass (97 backend/ML source files).
+- [x] Ruff lint/format and strict mypy pass (100 backend/ML source files).
 - [x] Prior pip-audit found no known vulnerabilities; dependencies/lock unchanged, audit not rerun.
 - [x] Source/wheel builds and Compose configuration pass.
-- [x] Native database upgraded; head is 0005_experimental_reviews, with 19 business tables.
+- [x] Native database upgraded; head is 0006_safe_profile_learning, with 21 business tables.
 - [x] Actual local Uvicorn/PostgreSQL smoke passed: cold start, populated pinned profile,
   median/MAD/p95, authentication and cutoff validation, plus prior intake smoke checks.
   Temporary HTTP server and smoke schema were cleaned up.
@@ -135,6 +144,12 @@ Tests require a disposable *_test database and use a generated schema; the migra
 smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Important files
+
+- backend/app/profile/learning.py: independent authorization, bootstrap and gate orchestration.
+- backend/api/learning.py; backend/adapters/database/learning.py: opt-in HTTP and persistence.
+- backend/app/profile/entities.py; backend/adapters/database/profiles.py: revision provenance.
+- infra/migrations/versions/0006_safe_profile_learning.py: immutable learning evidence and guards.
+- tests/integration/test_profile_learning_api.py; docs/adr/ADR-018-safe-profile-learning-authorization.md.
 
 - backend/app/evaluation/{contracts,service}.py: truthful envelopes and atomic workflows.
 - backend/adapters/evaluation.py: server-controlled rules/native-model composition.
@@ -194,6 +209,24 @@ smoke also upgrades its default schema. Never substitute SQLite.
   unchanged Phase 3 workflow/security; docs/adr/ADR-008-transaction-api-and-service-credentials.md.
 
 ## Decisions and remaining limitations
+
+- Learning requires a closed case with exactly one terminal verdict and an admin authorizer
+  distinct from the reviewer. A case is single-use evidence. Feedback alone never learns.
+- Bootstrap requires 5–100 legitimate cases for one customer/currency, at least two reviewers,
+  absent-profile captures, one 180-day window and no amount >=10x the set median. These are
+  conservative authored thresholds, not calibration or proof against collusion.
+- Existing-profile legitimate admission requires verified provenance, the exact current
+  captured profile version, chronological event time and an ACCEPT from the existing gate.
+  Exceptional, late, stale-version, insufficient-history and legacy-profile inputs quarantine.
+  Confirmed fraud is excluded. Profile versions advance only for ACCEPT.
+- Learning decision/evidence, optional profile observation/revision, audit, outbox and exact
+  response commit atomically. PostgreSQL binds verified heads to matching immutable ACCEPT
+  decisions and rejects history changes. Concurrent bootstrap/update writers serialize.
+- Legacy profiles are migrated with `admission_workflow_verified=false`; provenance is never
+  invented. Reads expose policy/decision identity for verified revisions.
+- Low-weight updates remain unavailable because observations have no weight. Corrections and
+  retractions remain unavailable because append-only history needs superseding records and
+  replay semantics. No score, ALLOW suggestion, intake, enrollment or verdict bypasses this.
 
 - `FRAUDLENS_EXPERIMENTAL_ENABLED` defaults false. Rules-only can run without a model;
   ML-only/hybrid require the configured reviewed native bundle and independent manifest pin.
@@ -324,18 +357,16 @@ smoke also upgrades its default schema. Never substitute SQLite.
 - Revision admission checks use the full PostgreSQL transaction ID and physical xmin;
   writes use the top-level UoW without nested database savepoints. A DB owner can still
   bypass triggers. Restricted runtime grants remain security work.
-- history_source=repository_admissions and admission_workflow_verified=false disclose
-  the present provenance boundary. Customer creation/raw intake do not authorize learning.
-- Trusted bootstrap needs independent reviewed source evidence, immutable transaction IDs,
-  curator/time/policy provenance and atomic audit/events. No bootstrap/admission API exists.
-  Feedback is now durable, but gate orchestration remains Phase 12 work.
+- history_source=repository_admissions remains explicit. Legacy revisions disclose
+  admission_workflow_verified=false; Phase 12 revisions bind verified policy/decision evidence.
+  Customer creation/raw intake do not authorize learning.
 - Five-observation minimum and typical-hour count/share thresholds (2 / 10%) are
   uncalibrated descriptive policies. SUFFICIENT_HISTORY is not a risk/trust verdict.
 - Observation frequency is admitted count / configured window days, not raw intake velocity.
   Phase 5 supplies bounded raw device/recipient activity and velocity; recipient account age
   and external history completeness are unavailable.
-- Cold start, low-weight admission, compromised confirmations and corrections/retractions
-  remain unresolved research debt. Reads preserve quarantine/fraud exclusion.
+- Cold start now has conservative multi-review bootstrap. Low-weight admission,
+  compromised/colluding confirmations and corrections/retractions remain research debt.
 - Transactions remain immutable RECEIVED records. Experimental evaluation/review is separate
   derived append-only state; no production risk API, human login or frontend exists.
 - Outbox dispatch/claims/consumer deduplication, idempotency retention, centralized revocation,
@@ -345,15 +376,14 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Exact next tasks
 
-1. Read status/specification/runbook, ADR-017, ADR-009 and the existing profile gate/entities.
-2. Begin Phase 12 by specifying who may convert reviewed feedback into a learning decision.
-   Keep feedback capture separate from admission authorization and require explicit provenance.
-3. Define trusted cold-start/bootstrap, ordinary/low-weight admission, exceptional legitimate
-   quarantine, confirmed-fraud exclusion and correction/retraction behavior before adding writes.
-4. Design resistance to compromised confirmations and repeated self-reinforcement. Do not let
-   a score, suggested ALLOW, raw intake, enrollment or one analyst verdict authorize learning.
-5. Preserve immutable evaluation/case/feedback history and profile revisions. Any admission must
-   commit observation/revision/audit/outbox/idempotent response atomically with concurrency tests.
-6. Use PostgreSQL for authorization, replay, rollback, uniqueness, concurrency and history tests.
-   Thresholds remain uncalibrated; do not invent trust provenance or research metrics.
+1. Read status/specification/runbook, ADR-018/017 and existing outbox repository/contracts.
+2. Begin Phase 13 with durable outbox claiming, lease/retry behavior and safe concurrent workers.
+3. Define delivery identity, consumer deduplication contract, backoff/dead-letter visibility and
+   crash recovery before adding a dispatcher. Do not claim exactly-once external delivery.
+4. Keep delivery after business commit. Never let handler/network failures roll back or mutate
+   immutable evaluation, review or learning history. Preserve event schema/version identities.
+5. Add PostgreSQL worker tests for claim races, lease expiry, retry, crash between delivery and
+   acknowledgement, published immutability and bounded batches. Avoid external side effects in tests.
+6. Keep low-weight profile observations and correction/retraction records as separately designed
+   future work; do not weaken Phase 12 provenance or history guards.
 7. Run checks and update PROJECT_STATUS.md, NEXT_SESSION_PROMPT.md and SESSION_LOG.md.

@@ -43,6 +43,15 @@ class PostgresCustomerProfileRepository(Repository):
             return None
         return self._hydrate(row)
 
+    def get_for_update(self, customer_id: UUID, currency: str) -> CustomerBehaviorProfile | None:
+        row = self.session.scalar(
+            select(ProfileRow)
+            .where(ProfileRow.customer_id == customer_id, ProfileRow.currency == currency)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
+        return self._hydrate(row) if row is not None else None
+
     def _hydrate(self, row: ProfileRow | ProfileRevisionRow) -> CustomerBehaviorProfile:
         # One statement for the immutable observations; reads use the captured head's time.
         transactions = self.session.scalars(
@@ -69,6 +78,9 @@ class PostgresCustomerProfileRepository(Repository):
             row.timezone,
             row.long_window_days,
             row.short_window_days,
+            row.admission_workflow_verified,
+            row.admission_policy_version,
+            row.learning_decision_id,
         )
 
     def save(self, profile: CustomerBehaviorProfile, *, expected_version: int) -> None:
@@ -96,6 +108,9 @@ class PostgresCustomerProfileRepository(Repository):
                 timezone=profile.timezone,
                 long_window_days=profile.long_window_days,
                 short_window_days=profile.short_window_days,
+                admission_workflow_verified=profile.admission_workflow_verified,
+                admission_policy_version=profile.admission_policy_version,
+                learning_decision_id=profile.learning_decision_id,
             )
             self.session.add(row)
             self.session.flush()
@@ -158,6 +173,9 @@ class PostgresCustomerProfileRepository(Repository):
             profile.long_window_days,
             profile.short_window_days,
         )
+        row.admission_workflow_verified = profile.admission_workflow_verified
+        row.admission_policy_version = profile.admission_policy_version
+        row.learning_decision_id = profile.learning_decision_id
         self.session.flush()
 
 

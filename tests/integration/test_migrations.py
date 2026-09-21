@@ -6,10 +6,10 @@ from uuid import uuid4
 import pytest
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import Engine, inspect
+from sqlalchemy import Engine, inspect, text
 
 from backend.adapters.database.uow import PostgresUnitOfWork
-from backend.app.profile.entities import Customer, CustomerBehaviorProfile, ProfileObservation
+from backend.app.profile.entities import CustomerBehaviorProfile, ProfileObservation
 
 pytestmark = pytest.mark.postgres
 
@@ -25,7 +25,7 @@ def test_migration_upgrade_downgrade_and_metadata_match(db_engine: Engine, monke
     assert inspect(db_engine).get_table_names() == ["alembic_version"]
     command.upgrade(config, "head")
     command.check(config)
-    assert len(inspect(db_engine).get_table_names()) == 20
+    assert len(inspect(db_engine).get_table_names()) == 22
 
 
 def test_profile_revision_migration_preserves_existing_head_without_inventing_history(
@@ -41,15 +41,42 @@ def test_profile_revision_migration_preserves_existing_head_without_inventing_hi
     tx = replace(transaction, customer_id=uuid4())
     observation = ProfileObservation(tx.transaction_id, tx.amount, tx.timestamp, tx.recipient_id)
     original = CustomerBehaviorProfile(tx.customer_id, "KZT", tx.timestamp, (observation,))
-    with PostgresUnitOfWork(db_engine) as uow:
-        uow.customers.add(Customer(tx.customer_id, tx.timestamp))
-        uow.transactions.add(tx)
-        uow.profiles.save(original, expected_version=0)
-        uow.commit()
+    with db_engine.begin() as connection:
+        connection.execute(
+            text("INSERT INTO customers VALUES (:customer,:created,'Asia/Almaty')"),
+            {"customer": tx.customer_id, "created": tx.timestamp},
+        )
+        connection.execute(
+            text("""INSERT INTO transactions VALUES
+            (:transaction,:customer,:recipient,:amount,:currency,:timestamp,:channel,:device,:status)"""),
+            {
+                "transaction": tx.transaction_id,
+                "customer": tx.customer_id,
+                "recipient": tx.recipient_id,
+                "amount": tx.amount,
+                "currency": tx.currency,
+                "timestamp": tx.timestamp,
+                "channel": tx.channel.value,
+                "device": tx.device_id,
+                "status": tx.status.value,
+            },
+        )
+        connection.execute(
+            text("""INSERT INTO profiles VALUES
+            (:customer,'KZT',1,:as_of,'Asia/Almaty',180,30)"""),
+            {"customer": tx.customer_id, "as_of": tx.timestamp},
+        )
+        connection.execute(
+            text("INSERT INTO profile_observations VALUES (:transaction,:customer,'KZT',1,0)"),
+            {"transaction": tx.transaction_id, "customer": tx.customer_id},
+        )
     updated = replace(original, version=2, as_of=original.as_of + timedelta(days=1), timezone="UTC")
-    with PostgresUnitOfWork(db_engine) as uow:
-        uow.profiles.save(updated, expected_version=1)
-        uow.commit()
+    with db_engine.begin() as connection:
+        connection.execute(
+            text("""UPDATE profiles SET version=2,as_of=:as_of,timezone='UTC'
+            WHERE customer_id=:customer AND currency='KZT'"""),
+            {"customer": tx.customer_id, "as_of": updated.as_of},
+        )
     command.upgrade(config, "head")
     command.check(config)
     with PostgresUnitOfWork(db_engine) as uow:

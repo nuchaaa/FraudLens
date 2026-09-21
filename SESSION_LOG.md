@@ -259,3 +259,30 @@
   remain unverified; production behavioral validation remains open.
 - Next: Phase 12 safe adaptive profile updates, beginning with separately authorized
   feedback-to-gate provenance, trusted bootstrap/cold start and correction semantics.
+
+## 2026-09-21 — Phase 12 safe experimental profile learning
+
+- Added admin-only, disabled-by-default profile learning as a decision separate from analyst
+  feedback. The authorizer must differ from terminal reviewers; cases are closed, terminal,
+  scoped and single-use. Exact durable idempotent replay remains authorization-first.
+- Added reviewed cold-start bootstrap requiring 5–100 legitimate cases, one customer/currency,
+  absent-profile evaluations, at least two reviewers, one active 180-day window and no amount
+  >=10x median. These are authored uncalibrated safeguards, not production validation.
+- Orchestrated existing-profile updates through the pure gate. Exact current profile capture
+  and verified provenance are required. Ordinary legitimate activity is admitted; exceptional,
+  stale, late, insufficient or legacy evidence quarantines; confirmed fraud is excluded.
+- Added immutable learning decision/evidence tables and provenance fields on profile heads and
+  revisions. PostgreSQL binds verified revisions to matching ACCEPT decisions, validates review/
+  evaluation evidence, prevents case reuse and rejects history mutation. Legacy heads remain false.
+- Atomically commits decision/evidence, optional observation/revision, audit, outbox and exact
+  response. Tested rollback, replay, authorization, separation of duties, stale captures,
+  exceptional baseline preservation, fraud exclusion, immutability and concurrent bootstrap/update.
+- Deliberately left low-weight admission and correction/retraction unavailable because current
+  append-only observations cannot represent weights or superseding facts honestly.
+- Final verification: 447 passed, no skips, 95% combined coverage; two unchanged upstream
+  warnings. Ruff/format, strict mypy (100 source files), Alembic, builds and Compose pass.
+  Dependencies and predictive metrics unchanged; Docker runtime/remote CI remain unverified.
+- Added ADR-018 and updated README, architecture, development and checkpoint files. Migration
+  head is 0006_safe_profile_learning with 21 business tables.
+- Next: Phase 13 durable outbox claiming/delivery/retry reliability with truthful at-least-once
+  semantics and consumer deduplication contract.

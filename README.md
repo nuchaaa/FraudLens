@@ -6,7 +6,7 @@ FraudLens is a research-oriented modular monolith investigating how banking frau
 detection can learn legitimate behavior changes without letting exceptional or
 fraudulent transactions corrupt a customer's normal baseline.
 
-**Status: Phase 11 durable experimental evaluation/review checkpoint; not a deployable fraud product.**
+**Status: Phase 12 safe experimental profile-learning checkpoint; not a deployable fraud product.**
 Submission/retrieval, scoped service credentials, durable request replay and atomic
 audit/outbox storage are implemented on PostgreSQL. Opt-in experimental HTTP evaluation
 now atomically retains its exact captured facts, vector, policy, result, optional native-model
@@ -33,6 +33,11 @@ Phase 11 exposes the same experimental composition behind disabled-by-default au
 routes and binds cases to stored evaluations. Feedback never executes an action, changes a
 profile or trains a model. See
 [ADR-017](docs/adr/ADR-017-durable-experimental-evaluations-and-review.md).
+Phase 12 adds separately authorized learning decisions: reviewed cold-start bootstrap and
+ordinary legitimate updates can create verified profile revisions, while exceptional,
+stale or insufficient evidence remains quarantined and fraud is excluded. Low-weight
+updates and corrections remain unavailable. See
+[ADR-018](docs/adr/ADR-018-safe-profile-learning-authorization.md).
 See [PROJECT_STATUS.md](PROJECT_STATUS.md) for verified progress.
 
 ## Problem and behavioral fraud detection
@@ -144,8 +149,8 @@ docker compose up --build -d
 docker compose exec backend alembic upgrade head
 ```
 
-Migrations now create 19 business tables and database history protections, including
-an immutable profile revision journal and append-only experimental evaluation/review records.
+Migrations now create 21 business tables and database history protections, including
+immutable profile revisions, evaluation/review records and profile-learning provenance.
 The initial foundation marker is preserved in migration history. Compose currently contains backend and PostgreSQL only; a
 frontend service will be added when the console exists. Use a dedicated local
 database; never point migration/test commands at a real banking database.
@@ -203,8 +208,8 @@ baseline comparisons and threats to validity.
 5. Versioned behavioral features and deterministic rules — implemented.
 6. Offline model comparison, experimental inference, hybrid risk and SHAP — implemented;
    production behavioral validation remains open.
-7. Durable experimental evaluation, cases and feedback — implemented; safe profile update
-   orchestration and outbox delivery remain deferred.
+7. Durable experimental evaluation, cases, feedback and conservative profile learning —
+   implemented; weights, corrections and outbox delivery remain deferred.
 8. Analyst console, security review, deterministic demos and research experiments.
 
 ## Continuation

@@ -398,3 +398,33 @@ are not executed. Feedback does not admit observations, update profiles, alter i
 transactions or train models. Do not enable these routes for remote or production use; there
 is no human authentication, production authorization design or outbox dispatcher. See
 ADR-017 for the persistence and trust boundary.
+
+## Phase 12 safe experimental profile learning
+
+The same `FRAUDLENS_EXPERIMENTAL_ENABLED=true` opt-in enables these authenticated routes:
+
+- `POST /api/v1/experimental/profile-learning/bootstrap`
+- `POST /api/v1/experimental/profile-learning/case`
+- `GET /api/v1/experimental/profile-learning/decisions/{decision_id}`
+
+Writes require an admin credential and `Idempotency-Key`. The admin must differ from the
+terminal reviewers. Bootstrap takes 5–100 unique closed legitimate case IDs for the same
+customer/currency, requires at least two reviewers, and accepts only evaluations captured
+with an explicitly absent profile. It creates version 1 only when no profile exists.
+
+Single-case learning requires `expected_profile_version`. A legitimate ordinary transaction
+is admitted only if its evaluation captured that exact verified profile version and the
+existing gate accepts it. Exceptional amounts, late reviews, stale evaluation versions,
+legacy unverified profiles and insufficient history are recorded as QUARANTINE without a
+profile change. Confirmed fraud is recorded as REJECT_FROM_PROFILE.
+
+The exact response, immutable learning decision/evidence, audit, outbox and any profile
+revision commit atomically. Profile GET responses now expose `admission_workflow_verified`,
+`admission_policy_version` and `learning_decision_id`. Upgraded legacy profiles correctly
+remain unverified. A case can support only one learning decision.
+
+This is local experimental functionality. The five-observation/two-reviewer bootstrap and
+10x median exclusion are authored, uncalibrated policy. Low-weight admission and corrections
+are deliberately unavailable because current append-only observations cannot represent
+weights or superseding facts honestly. No transaction status, model or operational action
+is changed. See ADR-018.

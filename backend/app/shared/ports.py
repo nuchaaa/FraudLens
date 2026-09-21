@@ -1,6 +1,6 @@
 from datetime import datetime
 from types import TracebackType
-from typing import Protocol, Self
+from typing import TYPE_CHECKING, Protocol, Self
 from uuid import UUID
 
 from backend.app.audit.entities import AuditEvent
@@ -14,6 +14,9 @@ from backend.app.rules.contracts import RuleVersion
 from backend.app.shared.events import DomainEvent, OutboxEvent
 from backend.app.transaction.entities import Transaction
 from backend.app.transaction.idempotency import IdempotencyRecord
+
+if TYPE_CHECKING:
+    from backend.app.profile.learning import LearningDecision
 
 
 class CustomerRepository(Protocol):
@@ -76,6 +79,9 @@ class TransactionRepository(Protocol):
 
 class CustomerProfileRepository(Protocol):
     def get(self, customer_id: UUID, currency: str) -> CustomerBehaviorProfile | None: ...
+    def get_for_update(
+        self, customer_id: UUID, currency: str
+    ) -> CustomerBehaviorProfile | None: ...
     def get_revision(
         self,
         customer_id: UUID,
@@ -112,6 +118,11 @@ class EvaluationReviewRepository(Protocol):
     def add_feedback(self, feedback: ReviewFeedback) -> None: ...
 
 
+class ProfileLearningRepository(Protocol):
+    def get(self, decision_id: UUID) -> "LearningDecision | None": ...
+    def add(self, decision: "LearningDecision") -> None: ...
+
+
 class UnitOfWork(Protocol):
     """Adapters must atomically commit business writes and outbox records."""
 
@@ -119,6 +130,8 @@ class UnitOfWork(Protocol):
     def evaluations(self) -> EvaluationRepository: ...
     @property
     def reviews(self) -> EvaluationReviewRepository: ...
+    @property
+    def learning(self) -> ProfileLearningRepository: ...
     @property
     def customers(self) -> CustomerRepository: ...
     @property

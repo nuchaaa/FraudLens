@@ -100,6 +100,9 @@ class ProfileService:
                 profile.timezone,
                 status,
                 self.policy,
+                profile.admission_workflow_verified,
+                profile.admission_policy_version,
+                profile.learning_decision_id,
                 long_term,
                 short_term,
             )

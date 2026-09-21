@@ -22,6 +22,7 @@ from backend.adapters.database.history import (
     PostgresOutboxRepository,
 )
 from backend.adapters.database.idempotency import PostgresIdempotencyRepository
+from backend.adapters.database.learning import PostgresProfileLearningRepository
 from backend.adapters.database.profiles import (
     PostgresCustomerProfileRepository,
     PostgresSnapshotRepository,
@@ -47,6 +48,7 @@ class PostgresUnitOfWork:
         self._entered = False
         self.evaluations = PostgresEvaluationRepository(self._session)
         self.reviews = PostgresEvaluationReviewRepository(self._session)
+        self.learning = PostgresProfileLearningRepository(self._session)
         self.customers = PostgresCustomerRepository(self._session)
         self.transactions = PostgresTransactionRepository(self._session)
         self.profiles = PostgresCustomerProfileRepository(self._session)
@@ -87,6 +89,10 @@ class PostgresUnitOfWork:
             if isinstance(exc.orig, UniqueViolation):
                 if exc.orig.diag.constraint_name == "uq_evaluation_cases_assessment_id":
                     raise ConcurrentUpdate("evaluation already has a case") from exc
+                if exc.orig.diag.constraint_name == "uq_profile_learning_evidence_case_id":
+                    raise ConcurrentUpdate("case already used for profile learning") from exc
+                if exc.orig.diag.constraint_name == "pk_profiles":
+                    raise ConcurrentUpdate("profile already exists") from exc
                 if exc.orig.diag.constraint_name == "pk_transactions":
                     raise DuplicateTransaction("transaction ID already exists") from exc
                 if exc.orig.diag.constraint_name == "pk_customers":

@@ -6,6 +6,7 @@ from typing import Any
 from uuid import UUID
 
 from sqlalchemy import (
+    Boolean,
     CheckConstraint,
     DateTime,
     ForeignKey,
@@ -60,11 +61,23 @@ class ProfileRow(Base):
     timezone: Mapped[str] = mapped_column(String(100))
     long_window_days: Mapped[int]
     short_window_days: Mapped[int]
+    admission_workflow_verified: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=text("false")
+    )
+    admission_policy_version: Mapped[str | None] = mapped_column(String(100))
+    learning_decision_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("profile_learning_decisions.decision_id", deferrable=True, initially="DEFERRED")
+    )
     __table_args__ = (
         CheckConstraint("currency ~ '^[A-Z]{3}$'", name="currency"),
         CheckConstraint("version > 0", name="version"),
         CheckConstraint(
             "short_window_days > 0 AND long_window_days >= short_window_days", name="windows"
+        ),
+        CheckConstraint(
+            "admission_workflow_verified = "
+            "(admission_policy_version IS NOT NULL AND learning_decision_id IS NOT NULL)",
+            name="admission_provenance",
         ),
     )
 
@@ -78,6 +91,11 @@ class ProfileRevisionRow(Base):
     timezone: Mapped[str] = mapped_column(String(100))
     long_window_days: Mapped[int]
     short_window_days: Mapped[int]
+    admission_workflow_verified: Mapped[bool] = mapped_column(Boolean)
+    admission_policy_version: Mapped[str | None] = mapped_column(String(100))
+    learning_decision_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("profile_learning_decisions.decision_id", deferrable=True, initially="DEFERRED")
+    )
     writer_xid: Mapped[str] = mapped_column(server_default=text("pg_current_xact_id()::text"))
     __table_args__ = (
         ForeignKeyConstraint(
@@ -86,6 +104,11 @@ class ProfileRevisionRow(Base):
         CheckConstraint("version > 0", name="version"),
         CheckConstraint(
             "short_window_days > 0 AND long_window_days >= short_window_days", name="windows"
+        ),
+        CheckConstraint(
+            "admission_workflow_verified = "
+            "(admission_policy_version IS NOT NULL AND learning_decision_id IS NOT NULL)",
+            name="admission_provenance",
         ),
     )
 
@@ -374,3 +397,43 @@ class EvaluationFeedbackRow(Base):
         ),
         CheckConstraint("length(trim(comment)) > 0 AND length(comment) <= 2000", name="comment"),
     )
+
+
+class ProfileLearningDecisionRow(Base):
+    __tablename__ = "profile_learning_decisions"
+    decision_id: Mapped[UUID] = mapped_column(primary_key=True)
+    customer_id: Mapped[UUID] = mapped_column(ForeignKey("customers.customer_id"))
+    currency: Mapped[str] = mapped_column(String(3))
+    actor_id: Mapped[UUID]
+    kind: Mapped[str] = mapped_column(String(20))
+    action: Mapped[str] = mapped_column(String(30))
+    reason: Mapped[str] = mapped_column(String(100))
+    policy_version: Mapped[str] = mapped_column(String(100))
+    profile_version_before: Mapped[int | None]
+    profile_version_after: Mapped[int | None]
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    response_json: Mapped[str]
+    __table_args__ = (
+        CheckConstraint("currency ~ '^[A-Z]{3}$'", name="currency"),
+        CheckConstraint("kind IN ('CASE_UPDATE','BOOTSTRAP')", name="kind"),
+        CheckConstraint("action IN ('ACCEPT','QUARANTINE','REJECT_FROM_PROFILE')", name="action"),
+        CheckConstraint(
+            "profile_version_before IS NULL OR profile_version_before > 0", name="before_version"
+        ),
+        CheckConstraint(
+            "profile_version_after IS NULL OR profile_version_after > 0", name="after_version"
+        ),
+    )
+
+
+class ProfileLearningEvidenceRow(Base):
+    __tablename__ = "profile_learning_evidence"
+    decision_id: Mapped[UUID] = mapped_column(
+        ForeignKey("profile_learning_decisions.decision_id"), primary_key=True
+    )
+    case_id: Mapped[UUID] = mapped_column(
+        ForeignKey("evaluation_cases.case_id"), primary_key=True, unique=True
+    )
+    feedback_id: Mapped[UUID] = mapped_column(ForeignKey("evaluation_feedback.feedback_id"))
+    transaction_id: Mapped[UUID] = mapped_column(ForeignKey("transactions.transaction_id"))
+    reviewer_id: Mapped[UUID]

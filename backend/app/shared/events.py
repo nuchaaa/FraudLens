@@ -19,6 +19,7 @@ class EventType(StrEnum):
     PROFILE_UPDATE_REQUESTED = "ProfileUpdateRequested"
     PROFILE_UPDATED = "ProfileUpdated"
     PROFILE_TRANSACTION_QUARANTINED = "ProfileTransactionQuarantined"
+    PROFILE_TRANSACTION_REJECTED = "ProfileTransactionRejected"
 
 
 @dataclass(frozen=True)

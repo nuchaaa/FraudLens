@@ -69,6 +69,9 @@ class CustomerBehaviorProfile:
     timezone: str = "Asia/Almaty"
     long_window_days: int = 180
     short_window_days: int = 30
+    admission_workflow_verified: bool = False
+    admission_policy_version: str | None = None
+    learning_decision_id: UUID | None = None
 
     def __post_init__(self) -> None:
         currency_code(self.currency)
@@ -76,6 +79,10 @@ class CustomerBehaviorProfile:
         ZoneInfo(self.timezone)
         if self.version < 1 or not 0 < self.short_window_days <= self.long_window_days:
             raise ValueError("invalid profile version or window")
+        if self.admission_workflow_verified != (
+            self.admission_policy_version is not None and self.learning_decision_id is not None
+        ):
+            raise ValueError("verified profile provenance must be complete")
         if len({o.transaction_id for o in self.observations}) != len(self.observations):
             raise ValueError("duplicate profile observation")
         if any(o.timestamp > self.as_of for o in self.observations):
