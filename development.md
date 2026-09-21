@@ -148,7 +148,7 @@ values. Money must be a string, not a floating-point JSON number.
 
 Use only synthetic data and localhost for this demo. Remote deployment needs TLS,
 edge time/rate limits, restricted database roles and a security review. Outbox rows
-are durable but no dispatcher runs. See [ADR-008](docs/adr/ADR-008-transaction-api-and-service-credentials.md)
+are durable; the local worker runs only when explicitly invoked below. See [ADR-008](docs/adr/ADR-008-transaction-api-and-service-credentials.md)
 for authorization, atomicity and the planned immutable transaction lifecycle.
 
 ## Customer behavior reads
@@ -396,7 +396,8 @@ the same. All four new business tables reject UPDATE, DELETE and TRUNCATE.
 Every result remains uncalibrated, experimental and production-ineligible. Suggested actions
 are not executed. Feedback does not admit observations, update profiles, alter immutable
 transactions or train models. Do not enable these routes for remote or production use; there
-is no human authentication, production authorization design or outbox dispatcher. See
+is no human authentication or production authorization design. The local outbox recorder
+executes no operational action. See
 ADR-017 for the persistence and trust boundary.
 
 ## Phase 12 safe experimental profile learning
@@ -428,3 +429,42 @@ This is local experimental functionality. The five-observation/two-reviewer boot
 are deliberately unavailable because current append-only observations cannot represent
 weights or superseding facts honestly. No transaction status, model or operational action
 is changed. See ADR-018.
+
+## Phase 13 local outbox worker
+
+Apply migration `0007_outbox_delivery`. With the database URL configured, an authorized
+local database operator can inspect state or run one bounded batch:
+
+```sh
+.venv/bin/python -m backend.adapters.events status
+.venv/bin/python -m backend.adapters.events run --limit 100
+```
+
+The command exits after at most 100 claims (limit 1–1000). It is not a daemon, does not
+start with FastAPI, and sends nothing externally. The fixed destination is
+`local-recording-v1`; a successful handler writes an immutable consumer receipt.
+Do not treat `published` as proof of a notification, fraud action or profile change.
+This operator CLI uses database access, not an HTTP service credential; restrict the
+database role and host before deployment. No new public endpoint exists.
+
+Defaults: 60-second lease, five total claims, 5-second exponential retry delay capped at
+one hour. Run again after the delay to retry. Process termination leaves an expiring lease;
+after expiry another run can recover it. Keep policy identical across workers. There is
+no heartbeat, forced handler timeout, ordering guarantee or exactly-once external effect.
+An empty run can reflect live leases, delayed retries, locks or a bounded exhaustion sweep;
+inspect status rather than assuming the backlog is drained.
+
+`status` reports pending/published/dead counts, live/expired leases and up to 100 oldest
+dead-letter IDs, attempt counts and fixed error categories. Inspect larger backlogs with
+read-only SQL against `outbox_delivery` joined to `outbox_events`. Payloads and exception
+messages are intentionally omitted. Failed handlers become `handler_failed`; exhausted
+crashed claims become `attempts_exhausted`; unreadable envelopes become `unsupported_envelope`.
+Unknown schema versions retry without recording a receipt. Terminal records cannot be
+reset or deleted through this implementation. Investigate dead letters; audited redrive
+and external destinations need separate design. Do not disable history guards to redrive.
+
+Claims commit before handling, and acknowledgement commits separately. A crash after
+receipt commit may redeliver the event; the consumer's composite identity deduplicates it.
+The migration backfills queue state for older events without inventing receipts for past
+publication. Downgrade deletes operational leases/receipt history: use it only in disposable
+tests, never as a restart procedure. See ADR-019 for the consumer contract and limitations.

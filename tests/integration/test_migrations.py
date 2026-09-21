@@ -25,7 +25,7 @@ def test_migration_upgrade_downgrade_and_metadata_match(db_engine: Engine, monke
     assert inspect(db_engine).get_table_names() == ["alembic_version"]
     command.upgrade(config, "head")
     command.check(config)
-    assert len(inspect(db_engine).get_table_names()) == 22
+    assert len(inspect(db_engine).get_table_names()) == 24
 
 
 def test_profile_revision_migration_preserves_existing_head_without_inventing_history(

@@ -286,3 +286,30 @@
   head is 0006_safe_profile_learning with 21 business tables.
 - Next: Phase 13 durable outbox claiming/delivery/retry reliability with truthful at-least-once
   semantics and consumer deduplication contract.
+
+## 2026-09-21 — Phase 13 leased local outbox delivery
+
+- Defined ADR-019 before implementing the dispatcher: single local recording destination,
+  database-clock leases, UUID fencing, capped exponential retries, visible dead letters and
+  truthful at-least-once semantics. No external effects or exactly-once external guarantee.
+- Added framework-free delivery policy/port/dispatcher and PostgreSQL short claim/completion
+  transactions. SKIP LOCKED permits concurrent workers; expired claims recover after crashes.
+  Stale tokens cannot acknowledge/fail another lease. Legacy helpers reject leased/terminal rows.
+- Added migration 0007_outbox_delivery: atomic delivery-state initialization/backfill and immutable
+  consumer receipts. Historical publication remains intact without invented receipts. Schema has
+  21 business tables plus two operational tables (24 including Alembic).
+- Local receipt effect and consumer deduplication commit together, before separate acknowledgement.
+  Published events, terminal delivery rows and receipt history resist mutation. Unknown envelopes
+  dead-letter without blocking valid work; unsupported schema versions retry/fail explicitly.
+- Added operator `python -m backend.adapters.events run --limit 100` and `status`; no HTTP route,
+  auto-start worker, network consumer or profile-learning side effect. Payloads/secrets stay out
+  of CLI output; bounded status includes dead-letter identities and active/expired lease counts.
+- Verified concurrency, locks, bounded batches, backoff/exhaustion, crashes before/after handling,
+  stale slow handlers, claim/ack rollback, deduplication, immutability and populated migration.
+  Real subprocess CLI run/status passed in a disposable PostgreSQL schema.
+- Final checks: 479 passed, zero skipped, 94% combined backend/ML coverage, two unchanged upstream
+  warnings. Ruff/format, strict mypy (103 source files), Alembic upgrade/check, builds and Compose
+  configuration passed. Dependencies unchanged; audit not rerun. Docker runtime/remote CI remain
+  unverified. No research metrics or production validation added.
+- Updated README, architecture/runbook and all checkpoint files. Next: Phase 14 analyst frontend,
+  beginning with real scoped API contract inventory and safe local credential handling.

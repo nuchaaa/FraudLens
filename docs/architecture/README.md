@@ -66,7 +66,11 @@ replayed even across API process restarts. See [ADR-008](../adr/ADR-008-transact
 Outbox workers deliver after commit, retry failures and record attempt counts.
 Multiple handlers can receive duplicates after partial delivery; consumers must
 deduplicate event IDs transactionally. The current in-memory publisher propagates
-exceptions; it is only an adapter, not an outbox worker.
+exceptions; it is only an adapter, not an outbox worker. Phase 13 adds a separate bounded
+worker through a framework-free DeliveryQueue port. PostgreSQL delivery state uses short
+SKIP LOCKED claims, database-clock leases and UUID fencing, capped retries and dead letters.
+The sole consumer commits an immutable deduplicated local receipt before acknowledgement.
+No external delivery, fraud action or automatic learning is performed. See ADR-019.
 
 ## Profile semantics
 

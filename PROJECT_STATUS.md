@@ -1,11 +1,18 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 12 — Safe experimental profile learning complete.**
-Next work: **Phase 13 — Outbox delivery and operational reliability; production behavioral validation remains open.**
+Current checkpoint: **Phase 13 — Leased local outbox delivery complete.**
+Next work: **Phase 14 — Analyst frontend; production behavioral validation remains open.**
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
 ## Completed capabilities
+
+- [x] Phase 13: bounded worker through framework-free delivery ports; explicit local operator CLI.
+- [x] PostgreSQL SKIP LOCKED claims, database-clock leases, UUID fencing and crash recovery.
+- [x] Capped retry/backoff, dead-letter visibility, unknown-envelope isolation and immutable terminals.
+- [x] Local recording consumer with durable receipt deduplication; no external effects or fan-out.
+- [x] Migration 0007_outbox_delivery; 21 business tables plus 2 operational tables.
+- [x] ADR-019, PostgreSQL concurrency/crash/rollback/migration tests and CLI subprocess smoke.
 
 - [x] Phase 12: separately authorized, idempotent profile-learning HTTP workflows.
 - [x] Reviewed cold-start bootstrap: 5–100 cases, two reviewers, independent admin.
@@ -97,15 +104,16 @@ do not establish legitimacy, score risk or admit transactions.
 
 ## Verification — 2026-09-20–21
 
-- [x] **447 passed, 0 skipped, 2 upstream warnings; 95% combined backend/ML coverage.**
+- [x] **479 passed, 0 skipped, 2 upstream warnings; 94% combined backend/ML coverage.**
 - [x] Actual PostgreSQL 17.10, including prior-phase regressions.
 - [x] Migration upgrade/downgrade/metadata tests and upgrade with populated legacy profile data.
 - [x] Concurrent reader pins its version before another writer commits; old versions exclude
   backdated later admissions and retain their original timezone/window policy.
-- [x] Ruff lint/format and strict mypy pass (100 backend/ML source files).
+- [x] Ruff lint/format and strict mypy pass (103 backend/ML source files).
 - [x] Prior pip-audit found no known vulnerabilities; dependencies/lock unchanged, audit not rerun.
 - [x] Source/wheel builds and Compose configuration pass.
-- [x] Native database upgraded; head is 0006_safe_profile_learning, with 21 business tables.
+- [x] Native database upgraded; head is 0007_outbox_delivery, with 23 non-Alembic tables.
+- [x] Actual worker CLI subprocess recorded/acknowledged an event and reported status in a disposable schema.
 - [x] Actual local Uvicorn/PostgreSQL smoke passed: cold start, populated pinned profile,
   median/MAD/p95, authentication and cutoff validation, plus prior intake smoke checks.
   Temporary HTTP server and smoke schema were cleaned up.
@@ -144,6 +152,12 @@ Tests require a disposable *_test database and use a generated schema; the migra
 smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Important files
+
+- backend/app/shared/delivery.py: queue port, policy, claim and bounded dispatcher.
+- backend/adapters/database/delivery.py: PostgreSQL leases, retries, status and local consumer.
+- backend/adapters/events/__main__.py: explicit `run --limit` and `status` operator CLI.
+- infra/migrations/versions/0007_outbox_delivery.py; tests/integration/test_outbox_delivery.py.
+- docs/adr/ADR-019-outbox-delivery.md: delivery contract and operational limits.
 
 - backend/app/profile/learning.py: independent authorization, bootstrap and gate orchestration.
 - backend/api/learning.py; backend/adapters/database/learning.py: opt-in HTTP and persistence.
@@ -239,7 +253,7 @@ smoke also upgrades its default schema. Never substitute SQLite.
   expected versions and row locks govern review. Terminal feedback must match its transition
   actor/time. PostgreSQL rejects UPDATE/DELETE/TRUNCATE for all four Phase 11 tables.
 - Evaluation and review each atomically commit business evidence, audit, outbox and durable
-  idempotent response. Outbox dispatch remains absent. Feedback never directly admits profile
+  idempotent response. Outbox delivery supports local recording only. Feedback never directly admits profile
   history, changes immutable RECEIVED transactions, retrains a model or proves legitimacy.
 - API/PostgreSQL integration includes restart replay, late arrivals, rollbacks, malformed
   envelopes, authorization, concurrent retries/reviewers and native-model provenance. No new
@@ -369,21 +383,22 @@ smoke also upgrades its default schema. Never substitute SQLite.
   compromised/colluding confirmations and corrections/retractions remain research debt.
 - Transactions remain immutable RECEIVED records. Experimental evaluation/review is separate
   derived append-only state; no production risk API, human login or frontend exists.
-- Outbox dispatch/claims/consumer deduplication, idempotency retention, centralized revocation,
+- External outbox destinations/audited redrive, idempotency retention, centralized revocation,
   rate limits, database grants and deployment hardening remain unfinished.
 - Service credentials are configuration snapshots; rotate while retaining principal UUID
   and restart all processes to apply revocation/scope changes. Remote use requires TLS.
 
 ## Exact next tasks
 
-1. Read status/specification/runbook, ADR-018/017 and existing outbox repository/contracts.
-2. Begin Phase 13 with durable outbox claiming, lease/retry behavior and safe concurrent workers.
-3. Define delivery identity, consumer deduplication contract, backoff/dead-letter visibility and
-   crash recovery before adding a dispatcher. Do not claim exactly-once external delivery.
-4. Keep delivery after business commit. Never let handler/network failures roll back or mutate
-   immutable evaluation, review or learning history. Preserve event schema/version identities.
-5. Add PostgreSQL worker tests for claim races, lease expiry, retry, crash between delivery and
-   acknowledgement, published immutability and bounded batches. Avoid external side effects in tests.
-6. Keep low-weight profile observations and correction/retraction records as separately designed
-   future work; do not weaken Phase 12 provenance or history guards.
-7. Run checks and update PROJECT_STATUS.md, NEXT_SESSION_PROMPT.md and SESSION_LOG.md.
+1. Read status/specification/runbook and ADR-017/018/019, then inspect existing API response contracts.
+2. Begin Phase 14 React/TypeScript/Vite analyst console. First inventory endpoint gaps: current APIs
+   focus on individual records; scoped paginated list/read projections may be needed for real screens.
+3. Design local service-credential handling without bundled secrets or persistent browser tokens.
+   Human login remains Phase 15; preserve authentication, scope and experimental opt-in.
+4. Show real retained transaction/evaluation/case/profile data with loading/empty/error states.
+   Keep absent scores and uncalibrated experimental flags explicit; never invent dashboard metrics.
+5. Preserve review/learning separation, explicit confirmation and idempotency for console writes.
+   Intake and verdict alone never authorize learning; suggested actions stay unexecuted.
+6. Keep weights/corrections, external consumers/redrive, deployment hardening and research validation
+   separate. Outbox is at least once with bounded retries, no ordering or external exactly-once promise.
+7. Run relevant frontend and PostgreSQL checks; update all three checkpoint files before stopping.

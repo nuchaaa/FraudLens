@@ -4,7 +4,7 @@ from uuid import UUID
 
 from sqlalchemy import select, update
 
-from backend.adapters.database.models import AuditRow, FeedbackRow, OutboxRow
+from backend.adapters.database.models import AuditRow, FeedbackRow, OutboxDeliveryRow, OutboxRow
 from backend.adapters.database.repository_base import Repository
 from backend.app.audit.entities import AuditEvent
 from backend.app.feedback.entities import AnalystDecision, AnalystVerdict
@@ -94,6 +94,7 @@ class PostgresOutboxRepository(Repository):
         return tuple(event for event_id in ids if (event := self.get(event_id)) is not None)
 
     def record_attempt(self, event_id: UUID) -> None:
+        self._unleased(event_id)
         result = self.session.execute(
             update(OutboxRow)
             .where(OutboxRow.event_id == event_id, OutboxRow.published_at.is_(None))
@@ -104,6 +105,7 @@ class PostgresOutboxRepository(Repository):
             raise ValueError("event is missing or already published")
 
     def mark_published(self, event_id: UUID, at: datetime) -> None:
+        delivery = self._unleased(event_id)
         result = self.session.execute(
             update(OutboxRow)
             .where(OutboxRow.event_id == event_id, OutboxRow.published_at.is_(None))
@@ -112,3 +114,16 @@ class PostgresOutboxRepository(Repository):
         )
         if result.scalar_one_or_none() is None:
             raise ValueError("event is missing or already published")
+        delivery.completed_at = utc(at)
+        self.session.flush()
+
+    def _unleased(self, event_id: UUID) -> OutboxDeliveryRow:
+        """Legacy repository helpers cannot bypass an active worker or dead letter."""
+        row = self.session.scalar(
+            select(OutboxDeliveryRow)
+            .where(OutboxDeliveryRow.event_id == event_id)
+            .with_for_update()
+        )
+        if row is None or row.token is not None or row.dead_at or row.completed_at:
+            raise ValueError("event is missing, leased or terminal")
+        return row

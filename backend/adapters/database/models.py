@@ -316,6 +316,32 @@ class OutboxRow(Base):
     )
 
 
+class OutboxDeliveryRow(Base):
+    __tablename__ = "outbox_delivery"
+    event_id: Mapped[UUID] = mapped_column(ForeignKey("outbox_events.event_id"), primary_key=True)
+    token: Mapped[UUID | None]
+    lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    available_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    dead_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_error: Mapped[str | None] = mapped_column(String(40))
+    __table_args__ = (
+        CheckConstraint("(token IS NULL) = (lease_until IS NULL)", name="lease_pair"),
+        CheckConstraint("completed_at IS NULL OR dead_at IS NULL", name="terminal"),
+        CheckConstraint(
+            "(completed_at IS NULL AND dead_at IS NULL) OR token IS NULL", name="terminal_lease"
+        ),
+        Index("ix_outbox_delivery_due", "available_at"),
+    )
+
+
+class ConsumerReceiptRow(Base):
+    __tablename__ = "consumer_receipts"
+    consumer_id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    event_id: Mapped[UUID] = mapped_column(ForeignKey("outbox_events.event_id"), primary_key=True)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
 class IdempotencyRow(Base):
     __tablename__ = "idempotency_records"
     principal_id: Mapped[UUID] = mapped_column(primary_key=True)

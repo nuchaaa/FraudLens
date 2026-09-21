@@ -6,14 +6,14 @@ FraudLens is a research-oriented modular monolith investigating how banking frau
 detection can learn legitimate behavior changes without letting exceptional or
 fraudulent transactions corrupt a customer's normal baseline.
 
-**Status: Phase 12 safe experimental profile-learning checkpoint; not a deployable fraud product.**
+**Status: Phase 13 local outbox delivery checkpoint; not a deployable fraud product.**
 Submission/retrieval, scoped service credentials, durable request replay and atomic
 audit/outbox storage are implemented on PostgreSQL. Opt-in experimental HTTP evaluation
 now atomically retains its exact captured facts, vector, policy, result, optional native-model
 explanation and response. Scoped analyst cases and immutable feedback history are durable.
 There is no production risk endpoint, human login or analyst console yet.
 Profile reads now expose robust short/long statistics, cold-start states and immutable
-revision selection. Profile admission remains closed pending trusted-history workflows.
+revision selection. Profile admission requires the separately authorized experimental workflow.
 The pure feature engine provides 29 ordered features with explicit missing-history indicators,
 scoped PostgreSQL capture and offline artifact replay. See [development.md](development.md)
 for capture/replay commands and [ADR-010](docs/adr/ADR-010-feature-context-and-availability.md)
@@ -38,6 +38,9 @@ ordinary legitimate updates can create verified profile revisions, while excepti
 stale or insufficient evidence remains quarantined and fraud is excluded. Low-weight
 updates and corrections remain unavailable. See
 [ADR-018](docs/adr/ADR-018-safe-profile-learning-authorization.md).
+Phase 13 adds leased outbox delivery to a local deduplicating recording consumer, with
+bounded retries, crash recovery and visible dead letters. It performs no external actions
+and promises no exactly-once external delivery. See [ADR-019](docs/adr/ADR-019-outbox-delivery.md).
 See [PROJECT_STATUS.md](PROJECT_STATUS.md) for verified progress.
 
 ## Problem and behavioral fraud detection
@@ -71,7 +74,7 @@ flowchart LR
     P --> DB[SQLAlchemy + PostgreSQL repositories]
     P --> ML[Experimental native model adapter — offline replay + opt-in evaluation]
     P --> EV[In-process event adapter]
-    DB --> OB[Durable outbox — dispatcher planned]
+    DB --> OB[Durable outbox — leased local recording worker]
 ```
 
 Domain code under `backend/app` imports no web framework, ORM or ML library.
@@ -209,7 +212,7 @@ baseline comparisons and threats to validity.
 6. Offline model comparison, experimental inference, hybrid risk and SHAP — implemented;
    production behavioral validation remains open.
 7. Durable experimental evaluation, cases, feedback and conservative profile learning —
-   implemented; weights, corrections and outbox delivery remain deferred.
+   implemented; weights and corrections remain deferred. Leased local outbox delivery is implemented.
 8. Analyst console, security review, deterministic demos and research experiments.
 
 ## Continuation
