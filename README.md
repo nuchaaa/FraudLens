@@ -6,7 +6,7 @@ FraudLens is a research-oriented modular monolith investigating how banking frau
 detection can learn legitimate behavior changes without letting exceptional or
 fraudulent transactions corrupt a customer's normal baseline.
 
-**Status: Phase 7 synthetic ML experiment checkpoint; not a deployable fraud product.**
+**Status: Phase 7 synthetic and external benchmark checkpoints; not a deployable fraud product.**
 Submission/retrieval, scoped service credentials, durable request replay and atomic
 audit/outbox storage are implemented on PostgreSQL. There is no risk evaluation,
 serving model, human login or analyst console yet.
@@ -84,7 +84,9 @@ Planned: React/TypeScript/Vite and SHAP.
 Three-seed **synthetic-only** comparisons now train Logistic Regression, Random Forest
 and XGBoost with chronological train/validation/test splits and held-out customers.
 [Measured results](ml/experiments/phase7-synthetic-v1/README.md) are engineering evidence,
-not real-world fraud performance. No production model is selected. Fit transforms and class-balancing methods on training data only.
+not real-world fraud performance. A separate [ULB retrospective benchmark](ml/experiments/ulb-retrospective-v1/README.md)
+now compares anonymized external features under its own contract. Neither result selects
+a production behavioral model. Fit transforms and class-balancing methods on training data only.
 Evaluate precision, recall, F1, ROC-AUC, PR-AUC and false-positive rate. Choose
 thresholds and models on validation data; report the untouched test set once.
 Feature generation must replay only history available before each transaction.

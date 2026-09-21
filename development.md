@@ -252,3 +252,29 @@ remain unfinished. See ADR-012 and docs/research/dataset-assessment.md.
 
 When using uv to run tests/types, pass `--group ml` so uv does not remove the optional
 ML dependencies. CI now installs/tests this group, but remote CI is still unverified.
+
+## Phase 7 external retrospective benchmark
+
+ULB version 3 has a separate `ulb-pca-v1` feature contract. Its model is incompatible
+with behavior-v1/customer profiles and is never loaded into business endpoints.
+The source/license notice is docs/research/ulb-NOTICE.md; the frozen protocol is
+ulb-benchmark-protocol.md. Use the optional ML group as above.
+
+```sh
+# Download public anonymized data to a new ignored local directory; network required.
+.venv/bin/python -m ml.src.datasets.ulb --output work/ulb-v3
+# All training and evaluation below is offline.
+.venv/bin/python -m ml.src.training.ulb_benchmark \
+  --source work/ulb-v3/creditcard.csv --output work/ulb-benchmark-v1
+```
+
+Existing workspace download: ../../work/phase7/ulb-v3/creditcard.csv.
+Recorded successful run: ../../work/phase7/ulb-benchmark-v1-run2.
+The first run stopped during CSV parsing before any training/evaluation; its directory
+has no completed report. Quoted numeric parsing is now covered by a regression test.
+Do not overwrite successful runs or tune on their test metrics. Summary reports are
+under ml/experiments/ulb-retrospective-v1; raw rows, split indices and model stay local.
+
+The pinned SHA256 check rejects changed source bytes. Label availability, arrivals,
+customer identity and upstream PCA fitting scope remain unknown. This is retrospective
+benchmark evidence only; it does not authorize deployment or behavioral-profile learning.

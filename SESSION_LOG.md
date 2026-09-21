@@ -152,3 +152,22 @@
 - Added ADR-012, dataset assessment, measured results and updated checkpoint/runbook files.
 - Next: external dataset suitability and defensible production baseline remain Phase 7 work;
   Phase 8 serving integration must not silently promote synthetic experiment artifacts.
+
+## 2026-09-20–21 — Phase 7 external retrospective benchmark
+
+- Verified ULB v3 public metadata via Kaggle API, preserving source/license evidence and
+  ODbL/DbCL attribution. Downloaded anonymized bytes outside Git with pinned SHA256.
+- Froze protocol before import/training: V1…V28/Amount under ulb-pca-v1, first identical
+  feature occurrence, 86,400/129,600-second partitions, fixed models/seed and validation selection.
+- Imported 284,807 rows; excluded 9,144 later identical feature tuples. Labels/arrivals,
+  customer identity/currency and upstream PCA scope remain unknown; no behavioral mapping.
+- First import stopped pre-training on quoted CSV values. Fixed parser and added a regression
+  test; no protocol/model/selection changes. Complete run is ../../work/phase7/ulb-benchmark-v1-run2.
+- Logistic Regression selected by validation AP; final test AP 0.733432, precision 0.274854,
+  recall 0.824561, F1 0.412281. No production eligibility, calibration or adaptation claim.
+- Verification: 304 passed, none skipped, 96% backend/ML coverage, two upstream warnings.
+  Ruff/format/strict mypy (81 files), package builds and Compose configuration passed.
+  PostgreSQL migration/schema tests passed. No dependency/schema change; prior audit retained.
+- Added source notice, frozen protocol, ADR-013, measured report and all checkpoint updates.
+- Next: Phase 8 experimental artifact-verified inference; production behavioral validation
+  remains open. Docker runtime and remote CI still unverified; native PostgreSQL stays running.

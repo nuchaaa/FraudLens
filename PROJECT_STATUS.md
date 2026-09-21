@@ -1,11 +1,17 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 7 — Synthetic offline experiment checkpoint complete; external validation open.**
-Next work: **Phase 7 external-data suitability and production baseline; Phase 8 inference later.**
+Current checkpoint: **Phase 7 — Synthetic and external retrospective benchmark checkpoints complete.**
+Next work: **Phase 8 explicitly experimental inference; production behavioral validation remains open.**
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
 ## Completed capabilities
+
+- [x] Public ULB metadata resolves version 3 and listed ODbL/DbCL terms; source/CSV hashes saved.
+- [x] Strict bounded fetch/import, quoted CSV support, independent ulb-pca-v1 feature contract.
+- [x] Frozen day-based split and label-independent feature-duplicate policy; no invented history.
+- [x] Fixed LR/RF/XGBoost comparison, validation-only selection, final selected-model test.
+- [x] 15 new tests plus full prior regressions; source notice, ADR-013 and measured report.
 
 - [x] Phase 7 engineering checkpoint: original deterministic synthetic event generator,
   event/arrival/label clocks, static authored bootstrap and chronological/customer splits.
@@ -15,7 +21,8 @@ do not establish legitimacy, score risk or admit transactions.
   per recorded run for the selected model. No production promotion.
 - [x] Reproducibility artifacts/hashes, measured reports and seven ML pipeline tests.
 - [x] Optional ML group, CI definition updated, ADR-012 and dataset suitability review.
-- [ ] External dataset/license/availability verification and production baseline selection.
+- [x] ULB v3 license/version evidence, pinned import and separate ulb-pca-v1 benchmark.
+- [ ] Suitable point-in-time behavioral dataset and production model selection.
 
 - [x] Phase 6: rules-v1, five deterministic specifications with stable reason codes.
 - [x] Explicit MATCHED / NOT_MATCHED / NOT_EVALUATED outcomes, evidence and missing flags.
@@ -49,14 +56,14 @@ do not establish legitimacy, score risk or admit transactions.
 - [x] Scope, cold-start, cutoff, currency, DST, revision, rollback, concurrency and upgrade tests.
 - [x] ADR-009 and updated README, architecture, development and continuation files.
 
-## Verification — 2026-09-20
+## Verification — 2026-09-20–21
 
-- [x] **289 passed, 0 skipped, 2 upstream warnings; 96% combined backend/ML coverage.**
+- [x] **304 passed, 0 skipped, 2 upstream warnings; 96% combined backend/ML coverage.**
 - [x] Actual PostgreSQL 17.10, including prior-phase regressions.
 - [x] Migration upgrade/downgrade/metadata tests and upgrade with populated legacy profile data.
 - [x] Concurrent reader pins its version before another writer commits; old versions exclude
   backdated later admissions and retain their original timezone/window policy.
-- [x] Ruff lint/format and strict mypy pass (77 backend/ML source files).
+- [x] Ruff lint/format and strict mypy pass (81 backend/ML source files).
 - [x] pip-audit: no known vulnerabilities; updated optional ML dependencies audited.
 - [x] Source/wheel builds and Compose configuration pass.
 - [x] Native database upgraded; head is 0004_profile_revisions, with 15 business tables.
@@ -67,7 +74,7 @@ do not establish legitimacy, score risk or admit transactions.
 - [ ] Remote CI has not been pushed/run.
 
 No known failing tests. The unchanged warnings concern Starlette's httpx TestClient
-and AnyIO BlockingPortal deprecations. Synthetic-only model metrics are recorded; no real-world performance is claimed.
+and AnyIO BlockingPortal deprecations. Synthetic and external retrospective metrics are recorded; no production behavioral performance is claimed.
 
 ## Environment and commands
 
@@ -99,6 +106,11 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Important files
 
+- ml/src/datasets/ulb.py; ml/src/features/ulb.py; ml/src/training/ulb_benchmark.py.
+- tests/ml/test_ulb_benchmark.py; ml/experiments/ulb-retrospective-v1/{README.md,report.json}.
+- docs/research/ulb-{benchmark-protocol.md,NOTICE.md,source-metadata.json,source-manifest.json}.
+- docs/adr/ADR-013-external-retrospective-benchmark.md.
+
 - ml/src/datasets/{synthetic,prepare}.py; ml/src/training/experiment.py.
 - tests/ml/test_experiment.py; ml/experiments/phase7-synthetic-v1/{README.md,seed*.json}.
 - docs/adr/ADR-012-offline-experiment-boundaries.md; docs/research/dataset-assessment.md.
@@ -128,6 +140,20 @@ smoke also upgrades its default schema. Never substitute SQLite.
   unchanged Phase 3 workflow/security; docs/adr/ADR-008-transaction-api-and-service-credentials.md.
 
 ## Decisions and remaining limitations
+
+- ULB v3 is eligible only for an anonymized retrospective benchmark, not behavior-v1.
+  Unknown customer/currency/device/arrival/label availability and PCA fitting scope are
+  explicit limitations. No held-out-customer or adaptation claim can be made.
+- Import: 284,807 rows; 9,144 later identical feature tuples excluded independently of labels.
+  Train/validation/test = 140,216 / 46,357 / 89,090; boundaries 86,400 / 129,600 seconds.
+- Logistic Regression won validation AP. At frozen validation threshold 0.95, final-test
+  AP=0.733432, precision=0.274854, recall=0.824561, F1=0.412281, FPR=0.002787.
+  These are measured retrospective results, not a production policy or calibrated probability.
+- Source: ../../work/phase7/ulb-v3/creditcard.csv; complete artifacts:
+  ../../work/phase7/ulb-benchmark-v1-run2. The first attempt stopped pre-training on quoted
+  numeric CSV parsing; the fix was tested without changing the evaluation protocol.
+- Dependencies/schema unchanged this session. Prior clean dependency audit still applies
+  to the unchanged lockfile; it was not rerun. API loads no model and retains fail-closed access.
 
 - Synthetic models are trained and measured, but production_eligible=false. XGBoost won
   validation AP for all three seeds. Test AP ranged 0.5757–0.7313; this reflects authored
@@ -191,13 +217,15 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Exact next tasks
 
-1. Read status/specification/runbook, ADR-012, research protocol and dataset assessment.
-2. Resolve Phase 7 external-data eligibility: exact license/source version, schema, labels,
-   identity/currency and historical availability. No candidate is yet approved/imported.
-3. If external data cannot support behavior-v1, define a separate honest benchmark contract;
-   do not invent device/currency/arrival/feedback facts. Preserve synthetic-only boundaries.
-4. Freeze experimental protocol before new test evaluation; keep model/threshold selection
-   validation-only. Do not choose a production model from the current synthetic metrics.
-5. Phase 8 inference may follow a defensible baseline, or an explicitly experimental demo
-   boundary. Do not wire current artifacts silently into business endpoints.
-6. Run checks and update all three checkpoint files. Adaptive A/B/C/D research remains future.
+1. Read status/specification/runbook, ADR-010/012/013, source notice and both measured reports.
+2. Begin Phase 8 with an explicitly experimental inference boundary: inspect FraudModel,
+   FraudPrediction and ModelVersion contracts and actual saved synthetic behavior-v1 artifacts.
+3. Design a trusted artifact manifest/loader with exact hash, model/feature versions/order,
+   training provenance and experimental eligibility. Never load arbitrary uploaded pickle.
+4. Implement the appropriate model adapter and offline captured-context replay with parity,
+   incompatible/corrupt artifact, feature-version and failure tests; no invented model metadata.
+5. Keep ulb-pca-v1 separate: no mapping from PCA components to customer behavior. Do not
+   promote either benchmark into production or introduce unprotected business writes.
+6. Durable atomic evaluation/context persistence and immutable transaction lifecycle need
+   their own design. Admission, production validation and adaptive research remain unfinished.
+7. Run checks and update PROJECT_STATUS.md, NEXT_SESSION_PROMPT.md and SESSION_LOG.md.

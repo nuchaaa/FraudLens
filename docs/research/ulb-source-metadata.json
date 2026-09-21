@@ -1,0 +1,14 @@
+{
+  "retrieved_on": "2026-09-20",
+  "metadata_url": "https://www.kaggle.com/api/v1/datasets/list?search=creditcardfraud",
+  "dataset": {
+    "id": 310,
+    "ref": "mlg-ulb/creditcardfraud",
+    "title": "Credit Card Fraud Detection",
+    "ownerName": "Machine Learning Group - ULB",
+    "lastUpdated": "2018-03-23T01:17:27.913Z",
+    "licenseName": "Database: Open Database, Contents: Database Contents",
+    "currentVersionNumber": 3,
+    "url": "https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud"
+  }
+}

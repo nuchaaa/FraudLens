@@ -1,36 +1,38 @@
-Continue FraudLens from the Phase 7 synthetic offline experiment checkpoint.
+Continue FraudLens from the completed Phase 7 external retrospective benchmark checkpoint.
 Read PROJECT_STATUS.md first, then docs/PROJECT_SPECIFICATION.md, development.md,
-docs/adr/ADR-012-offline-experiment-boundaries.md, docs/research/protocol.md and
-docs/research/dataset-assessment.md. Do not redo completed work.
+docs/adr/ADR-013-external-retrospective-benchmark.md, ADR-012, docs/research/protocol.md,
+docs/research/ulb-benchmark-protocol.md and ulb-NOTICE.md. Do not redo completed work.
 
 Repository: /Users/nurasilkirgizbek/Documents/Codex/2026-09-19/if-my-chat-gpt-open-my-2/outputs/fraudlens
 Goal: explainable adaptive behavioral fraud detection with safe customer profiles.
-Architecture: modular monolith; backend/app framework-free; backend/api HTTP;
-backend/adapters infrastructure; ml/src offline experiments, excluded from serving wheel.
-Phases 0–6 remain complete. Phase 7 engineering pipeline is implemented; external-data
-validation and production baseline selection remain OPEN. Do not call the synthetic
-winner a validated production model.
+Architecture: modular monolith; backend/app framework-free, backend/api HTTP,
+backend/adapters infrastructure, ml/src offline (excluded from serving wheel).
+Phases 0–6 and Phase 7 synthetic/external benchmark engineering checkpoints are complete.
+Production behavioral validation remains OPEN. No serving model or risk API exists.
 
-New: original synthetic-behavior-v1 generator, explicit event/arrival/label clocks,
-static authored bootstrap, point-in-time replay through production behavior-v1 features,
-chronological splits with label maturity, held-out customers, three-model comparison,
-validation-only selection and threshold tuning, artifact hashes and measured reports.
-Seeds 17/29/43 compare Logistic Regression, Random Forest and XGBoost; XGBoost had best
-validation average precision each time. Selected-model final-test AP: 0.7313/0.5757/0.6427.
-All results are synthetic_only=true, production_eligible=false. No real-world fraud or
-adaptive-profile effectiveness claim. No source dataset has been approved/imported.
+New: public Kaggle metadata verified ULB dataset ID 310/version 3 and listed ODbL/DbCL
+terms. Hash-pinned download/import, strict CSV validation, separate ulb-pca-v1 contract,
+label-independent duplicate exclusion, frozen time splits and fixed three-model comparison.
+Dataset fields cannot support behavior-v1: no customer/recipient/device/currency fields,
+arrival/label availability or known PCA fitting scope. Do not invent these facts.
 
-Validation: 289 tests passed, none skipped, 96% combined backend/ML coverage. Ruff/format,
-strict mypy (77 source files), locked sync, package builds, Compose and Alembic checks
-passed. Updated dependency audit found no known vulnerabilities. Two upstream deprecations
-remain. Docker execution and remote CI are unverified. No known failing tests.
+Measured external run: 284,807 source rows, 9,144 later identical feature tuples excluded.
+Train/validation/test: 140,216/46,357/89,090 rows; boundaries 86,400/129,600 elapsed seconds.
+Logistic Regression won validation average precision. At validation-selected threshold
+0.95: final-test AP 0.733432, precision 0.274854, recall 0.824561, F1 0.412281,
+FPR 0.002787 (94 TP, 248 FP, 20 FN, 88,728 TN). Retrospective evidence only;
+production_eligible=false and behavioral_compatible=false. Do not retune on this test.
+Earlier synthetic behavior-v1 XGBoost runs remain intact and production-ineligible.
 
-Optional ml dependency group: scikit-learn 1.8.0, XGBoost 3.2.0 (plus locked dependencies).
-macOS libomp 22.1.8 installed for XGBoost. Backend runtime dependencies/schema unchanged.
-Migration head 0004_profile_revisions; 15 business tables. PostgreSQL remains running
-without TCP on owner-only /private/tmp socket, port 55439, database fraudlens_test;
-cluster ../../work/fraudlens-postgres/data. See development.md for restart/stop.
-Sandboxed socket access may need approved execution; never substitute SQLite.
+Validation: 304 tests passed, zero skipped, 96% combined backend/ML coverage.
+Ruff/format, strict mypy (81 files), builds, Compose configuration and PostgreSQL
+migration/schema tests passed. Two upstream deprecations remain. Dependencies unchanged;
+prior clean audit applies. Docker runtime and remote CI unverified. No known failing tests.
+
+PostgreSQL remains running: no TCP, owner-only /private/tmp socket, port 55439,
+database fraudlens_test; cluster ../../work/fraudlens-postgres/data. See development.md.
+Schema unchanged: 0004_profile_revisions, 15 business tables. Never substitute SQLite.
+Sandbox socket access may require approved execution. macOS libomp is installed.
 
 Commands from repository root:
 UV_CACHE_DIR=../../work/uv-cache ../../work/bootstrap/bin/uv sync --locked --group ml
@@ -43,33 +45,28 @@ export FRAUDLENS_DATABASE_URL="$TEST_DATABASE_URL"
 .venv/bin/ruff format --check .
 .venv/bin/mypy
 UV_CACHE_DIR=../../work/uv-cache ../../work/bootstrap/bin/uv build --offline
-.venv/bin/python -m ml.src.training.experiment --output work/new-run --seed 17
-When using uv run, pass --group ml for tests/types. Experiment output must not exist.
+Use --group ml with uv run for tests/types. Experiment output directories must be new.
 
-Important: ml/src/datasets/{synthetic,prepare}.py; ml/src/training/experiment.py;
-tests/ml/test_experiment.py; ml/experiments/phase7-synthetic-v1/{README.md,seed*.json};
-pyproject.toml; uv.lock; ADR-010/011/012. Full local artifacts are outside Git at
-../../work/phase7/final-seed17, final-seed29 and final-seed43. Reports retain hashes,
-versions, splits, model parameters and metrics. Joblib files may only be loaded from
-trusted local runs. No model is registered or loaded in the API.
+Important new files: ml/src/datasets/ulb.py; ml/src/features/ulb.py;
+ml/src/training/ulb_benchmark.py; tests/ml/test_ulb_benchmark.py;
+ml/experiments/ulb-retrospective-v1/{README.md,report.json}; docs/research/ulb-*.
+Source: ../../work/phase7/ulb-v3/creditcard.csv. Complete external artifacts:
+../../work/phase7/ulb-benchmark-v1-run2. First attempt failed before training on quoted
+numeric CSV; parser fixed and regression-tested without changing protocol/settings.
+Synthetic artifacts: ../../work/phase7/final-seed17, final-seed29, final-seed43.
+Load joblib only from trusted locally generated artifacts. Neither model is in the API.
 
-Dataset limitations: one event/customer/day, KZT only, authored distributions and static
-bootstrap, two-day label delay, 0/2/120-minute arrival delay. Labels are stochastic latent
-conditions, not rule outputs. Held-out customers have prior synthetic history, not cold
-starts. Current work does not test adaptation, burst fraud, compromised feedback or
-real-world performance. No calibrated probabilities or confidence intervals claimed.
+Next: Phase 8 — explicitly experimental inference. First inspect FraudModel,
+FraudPrediction and ModelVersion ports and actual saved synthetic behavior-v1 artifacts.
+Design a trusted manifest/loader with exact model hash, feature version/order, training
+provenance and experimental eligibility. Implement the model adapter and captured-context
+replay with parity, corrupt/incompatible artifact and failure tests. Never load arbitrary
+uploaded pickle or invent model metadata. Keep ulb-pca-v1 separate from behavior-v1.
+No silent production promotion, unprotected writes or fabricated calibrated probabilities.
 
-First next: resolve Phase 7 external-data eligibility: license/version, schema, identity,
-currency, chronology and label/arrival availability. ULB/PaySim are candidates only;
-Kaggle terms were not verified. If facts cannot support behavior-v1, define a separate
-honest benchmark contract instead of inventing fields. Freeze evaluation protocol before
-new test inspection. Production selection remains blocked on defensible evidence.
-Phase 8 can follow a validated baseline or an explicitly experimental demo boundary;
-never silently promote current synthetic artifacts into business endpoints.
-
-Preserve all earlier safeguards: pinned pre-decision profile versions, strict cutoffs,
-no raw-intake admission, no invented historical commit times. Transactions remain immutable
-RECEIVED. Trusted bootstrap/feedback/gate orchestration, corrections, low-weight admission,
-human login, SHAP, frontend and outbox dispatch remain future work. Business routes fail
-closed without configured expiring service credentials. Update PROJECT_STATUS.md,
-NEXT_SESSION_PROMPT.md and SESSION_LOG.md before ending. Never fabricate metrics.
+Preserve pinned pre-decision profiles and strict cutoffs. Current captures do not reconstruct
+past availability. Transactions stay immutable RECEIVED; atomic evaluation/context storage
+needs separate design. Raw intake/enrollment never establishes legitimacy. Trusted bootstrap,
+feedback/gate orchestration, low-weight admission, corrections, human login, SHAP, frontend
+and outbox dispatch remain future work. Update PROJECT_STATUS.md, NEXT_SESSION_PROMPT.md
+and SESSION_LOG.md before ending. Never fabricate metrics.

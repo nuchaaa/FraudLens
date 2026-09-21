@@ -62,5 +62,6 @@ ml/experiments/phase7-synthetic-v1; these do not validate the adaptive-profile h
 ## Current experiment boundary
 
 ADR-012 records the static synthetic experiment and predeclared selection rules.
-No A/B/C/D adaptive comparison or external-data study has run. Dataset suitability
-and real point-in-time evidence remain prerequisites for a production baseline.
+No A/B/C/D adaptive comparison has run. ADR-013 now records a separate ULB retrospective
+external benchmark with unknown arrival/label availability and PCA fitting scope. It does
+not validate behavior-v1 or establish a production baseline.

@@ -1,0 +1,17 @@
+{
+  "source_url": "https://www.kaggle.com/api/v1/datasets/download/mlg-ulb/creditcardfraud?datasetVersionNumber=3",
+  "dataset": "mlg-ulb/creditcardfraud",
+  "version": 3,
+  "retrieved_on": "2026-09-20",
+  "license": "ODbL-1.0 / DbCL-1.0",
+  "files": {
+    "source.zip": {
+      "bytes": 69155672,
+      "sha256": "a0360ce715992212e9ac72d8ccdca97f4be87dc1fdf2bed011358f7ab409a28a"
+    },
+    "creditcard.csv": {
+      "bytes": 150828752,
+      "sha256": "76274b691b16a6c49d3f159c883398e03ccd6d1ee12d9d8ee38f4b4b98551a89"
+    }
+  }
+}

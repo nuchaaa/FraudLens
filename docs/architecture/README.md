@@ -159,3 +159,10 @@ No feature operation changes profiles or evaluates fraud risk.
 The shared threshold specification implements the existing port; complete reports
 retain policy fingerprints and three-state outcomes. No ORM/HTTP dependencies, risk
 score or profile mutation are introduced. Assessment integration remains future work.
+
+## External benchmark boundary
+
+[ADR-013](../adr/ADR-013-external-retrospective-benchmark.md) introduces a separate offline
+ulb-pca-v1 contract for anonymized external features. It reuses model comparison utilities,
+not behavioral history construction. No benchmark rows enter operational PostgreSQL tables;
+no source identities or currency are invented. Serving APIs still load no model.
