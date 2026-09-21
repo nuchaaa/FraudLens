@@ -353,3 +353,118 @@ def test_risk_cli_native_model_replay(
     (path / "model.ubj").write_bytes(b"corrupt")
     assert risk_main(args) == 1
     assert capsys.readouterr().out == ""
+
+
+@pytest.mark.parametrize("cold", [False, True])
+def test_native_treeshap_parity_and_replay(
+    bundle: tuple[Path, str, XGBClassifier],
+    context: FeatureContext,
+    cold: bool,
+) -> None:
+    import math
+
+    from xgboost import DMatrix
+
+    from backend.app.explainability.contracts import ExplainableFraudModel, sigmoid
+
+    path, pin, original = bundle
+    port: ExplainableFraudModel = ExperimentalXGBoostModel(path, expected_manifest_sha256=pin)
+    vector = extract_features(replace(context, profile=None) if cold else context)
+    result = port.explain(vector)
+    matrix = DMatrix(np.asarray([vector.values], dtype=np.float64))
+    expected = original.get_booster().predict(matrix, pred_contribs=True)
+    assert result.contributions == tuple(float(v) for v in expected[0, :-1])
+    assert result.base_value == float(expected[0, -1])
+    assert math.fsum((result.base_value, *result.contributions)) == pytest.approx(
+        result.raw_margin, abs=1e-5
+    )
+    assert sigmoid(result.raw_margin) == pytest.approx(port.predict(vector).probability, abs=1e-6)
+    assert result == port.explain(vector)
+    assert result.features == vector
+    assert result.model_version == port.predict(vector).model_version
+    assert result.output_space == "raw_margin_log_odds"
+    assert len(result.contributions) == 29
+    with pytest.raises(ValueError, match="order"):
+        port.explain(replace(vector, names=tuple(reversed(vector.names))))
+    with pytest.raises(ValueError, match="version"):
+        port.explain(replace(vector, version="ulb-pca-v1"))
+
+
+@pytest.mark.parametrize(
+    "problem", ["shape", "margin_shape", "score_shape", "nan", "additivity", "link", "booster"]
+)
+def test_native_explanation_failure(
+    bundle: tuple[Path, str, XGBClassifier],
+    context: FeatureContext,
+    monkeypatch: pytest.MonkeyPatch,
+    problem: str,
+) -> None:
+    path, pin, _ = bundle
+    adapter = ExperimentalXGBoostModel(path, expected_manifest_sha256=pin)
+    original = adapter._booster.predict
+
+    def bad_predict(*args: object, **kwargs: object) -> np.ndarray:
+        output = original(*args, **kwargs)
+        if kwargs.get("pred_contribs"):
+            if problem == "shape":
+                return np.zeros((1, 29))
+            if problem == "nan":
+                output[0, 0, 0] = float("nan")
+            if problem == "additivity":
+                output[0, 0, 0] += 1
+        elif kwargs.get("output_margin"):
+            if problem == "margin_shape":
+                return np.zeros((1,))
+        elif problem == "score_shape":
+            return np.zeros((2, 1))
+        elif problem == "link":
+            output[0, 0] = 0
+        return output
+
+    monkeypatch.setattr(adapter._booster, "predict", bad_predict)
+    if problem == "booster":
+        config = json.loads(adapter._booster.save_config())
+        config["learner"]["gradient_booster"]["name"] = "gblinear"
+        monkeypatch.setattr(adapter._booster, "save_config", lambda: json.dumps(config))
+    with pytest.raises(ValueError):
+        adapter.explain(extract_features(context))
+
+
+@pytest.mark.parametrize("strategy", ["rules_only", "ml_only", "hybrid"])
+def test_explanation_cli(
+    bundle: tuple[Path, str, XGBClassifier],
+    context: FeatureContext,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+    strategy: str,
+) -> None:
+    from xgboost.core import XGBoostError
+
+    from backend.adapters.risk.__main__ import main as risk_main
+
+    path, pin, _ = bundle
+    context_path = tmp_path / "explain-context.json"
+    write_context(context_path, context)
+    monkeypatch.setenv("FRAUDLENS_DATABASE_URL", "invalid")
+    args = ["--context", str(context_path), "--strategy", strategy, "--explain"]
+    if strategy != "rules_only":
+        args += ["--bundle", str(path), "--manifest-sha256", pin]
+    assert risk_main(args) == 0
+    result = json.loads(capsys.readouterr().out)
+    assert result["explanation"]["causal"] is False
+    if strategy == "rules_only":
+        assert result["explanation"]["model"] is None
+    else:
+        exp = result["explanation"]["model"]
+        assert exp["features"] == result["features"]
+        assert exp["uncalibrated_score"] == result["prediction"]["uncalibrated_score"]
+
+        def fail(*args: object, **kwargs: object) -> None:
+            raise XGBoostError("sensitive raw content")
+
+        monkeypatch.setattr(ExperimentalXGBoostModel, "explain", fail)
+        assert risk_main(args) == 1
+        captured = capsys.readouterr()
+        assert captured.out == ""
+        assert "sensitive" not in captured.err

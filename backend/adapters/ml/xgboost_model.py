@@ -16,6 +16,7 @@ from backend.adapters.ml.bundle import (
     ExperimentalManifest,
     checked_bytes,
 )
+from backend.app.explainability.contracts import ModelExplanation
 from backend.app.features.contracts import FeatureVector
 from backend.app.fraud.ports import FraudPrediction
 
@@ -71,16 +72,50 @@ class ExperimentalXGBoostModel:
             raise ArtifactError("unsupported model shape or objective")
         self._clock = clock
 
-    def predict(self, features: FeatureVector) -> FraudPrediction:
+    def _matrix(self, features: FeatureVector) -> DMatrix:
         if (
             features.version != self.manifest.feature_version
             or features.names != self.manifest.feature_names
         ):
             raise ArtifactError("model requires exact feature version and order")
         values = np.asarray([features.values], dtype=np.float64)
-        scores = self._booster.predict(DMatrix(values), validate_features=True)
+        return DMatrix(values)
+
+    def predict(self, features: FeatureVector) -> FraudPrediction:
+        scores = self._booster.predict(self._matrix(features), validate_features=True)
         if scores.shape != (1,):
             raise ArtifactError("model must return one binary score")
         return FraudPrediction(
             float(scores[0]), self.manifest.model_version, features.version, self._clock()
+        )
+
+    def explain(self, features: FeatureVector) -> ModelExplanation:
+        matrix = self._matrix(features)
+        config = json.loads(self._booster.save_config())
+        if config["learner"]["gradient_booster"]["name"] != "gbtree":
+            raise ArtifactError("native TreeSHAP requires the reviewed tree booster")
+        contributions = self._booster.predict(
+            matrix,
+            pred_contribs=True,
+            approx_contribs=False,
+            strict_shape=True,
+            validate_features=True,
+            iteration_range=(0, 0),
+            training=False,
+        )
+        margin = self._booster.predict(matrix, output_margin=True, strict_shape=True)
+        scores = self._booster.predict(matrix, strict_shape=True)
+        if (
+            contributions.shape != (1, 1, len(features.names) + 1)
+            or margin.shape != (1, 1)
+            or scores.shape != (1, 1)
+        ):
+            raise ArtifactError("unsupported explanation output shape")
+        return ModelExplanation(
+            self.manifest.model_version,
+            features,
+            tuple(float(v) for v in contributions[0, 0, :-1]),
+            float(contributions[0, 0, -1]),
+            float(margin[0, 0]),
+            float(scores[0, 0]),
         )

@@ -1,11 +1,18 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 9 — Experimental Risk + Decision complete.**
-Next work: **Phase 10 experimental explainability; production behavioral validation remains open.**
+Current checkpoint: **Phase 10 — Experimental native explainability complete.**
+Next work: **Phase 11 Cases / Feedback preparation: durable evaluation foundation first; production behavioral validation remains open.**
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
 ## Completed capabilities
+
+- [x] Phase 10: framework-free explanation contract and native XGBoost TreeSHAP adapter.
+- [x] Exact vector/model binding, finite shape checks and margin/link reconstruction validation.
+- [x] All 29 raw-margin contributions plus bias, stable top-five readable messages and missing masks.
+- [x] Optional --explain risk replay for every strategy, keeping rule/hybrid evidence separate.
+- [x] 44 additional tests; all 2,400 original seed17 vectors passed numerical reconstruction.
+- [x] ADR-016 and retained numerical verification; no dependencies/schema/API changes.
 
 - [x] Phase 9: pure rules-only, ML-only and hybrid composition on one captured context.
 - [x] Versioned configurable rule weights, hybrid weight and decision thresholds; full policy hash.
@@ -73,12 +80,12 @@ do not establish legitimacy, score risk or admit transactions.
 
 ## Verification — 2026-09-20–21
 
-- [x] **365 passed, 0 skipped, 2 upstream warnings; 96% combined backend/ML coverage.**
+- [x] **409 passed, 0 skipped, 2 upstream warnings; 96% combined backend/ML coverage.**
 - [x] Actual PostgreSQL 17.10, including prior-phase regressions.
 - [x] Migration upgrade/downgrade/metadata tests and upgrade with populated legacy profile data.
 - [x] Concurrent reader pins its version before another writer commits; old versions exclude
   backdated later admissions and retain their original timezone/window policy.
-- [x] Ruff lint/format and strict mypy pass (89 backend/ML source files).
+- [x] Ruff lint/format and strict mypy pass (91 backend/ML source files).
 - [x] Prior pip-audit found no known vulnerabilities; dependencies/lock unchanged, audit not rerun.
 - [x] Source/wheel builds and Compose configuration pass.
 - [x] Native database upgraded; head is 0004_profile_revisions, with 15 business tables.
@@ -120,6 +127,11 @@ Tests require a disposable *_test database and use a generated schema; the migra
 smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Important files
+
+- backend/app/explainability/{contracts,service}.py: typed port, invariants and readable explanation.
+- backend/adapters/ml/xgboost_model.py: native TreeSHAP; backend/adapters/risk/__main__.py: --explain.
+- tests/unit/test_explainability.py; tests/ml/test_inference.py: contract/native/CLI tests.
+- docs/adr/ADR-016-native-model-explanations.md; ml/experiments/phase10-explanations/verification.json.
 
 - backend/app/risk/service.py: policy, fingerprint, missingness and three-mode composition.
 - backend/adapters/risk/__main__.py: offline configurable policy/model replay.
@@ -166,6 +178,25 @@ smoke also upgrades its default schema. Never substitute SQLite.
   unchanged Phase 3 workflow/security; docs/adr/ADR-008-transaction-api-and-service-credentials.md.
 
 ## Decisions and remaining limitations
+
+- explanation-v1-experimental uses native non-approximate XGBoost TreeSHAP with all trees.
+  Full ordered contributions + bias reconstruct raw model margin (log-odds), not probability
+  or heuristic hybrid/rule scores. Stable sigmoid links margin to the uncalibrated score.
+- Numerical checks: margin absolute/relative tolerances 1e-5/1e-6; score absolute 1e-6.
+  Exact vector/model identity must match the evaluated prediction. Missing/corrupt/incompatible
+  outputs fail; no fabricated explanation or fallback. Base is a model reference, not fraud rate.
+- Readable top-five contributions rank by absolute magnitude with feature-order tie breaking.
+  Missing history values are labelled placeholders; zero-MAD flooring is described explicitly.
+  Rules-only has no model explanation. Hybrid abstention remains even when its model is explained.
+- All 2,400 original hash-pinned seed17 prepared rows passed reconstruction: maximum margin
+  difference 2.2863969206809998e-6; sigmoid score difference 8.22891939034065e-8. These are
+  software checks, not predictive metrics or independent second-implementation SHAP validation.
+- Actual --explain saved-context replay passed. Local numerical summary and full report:
+  ../../work/phase10/treeshap-seed17/{verification.json,replay.json}; summary committed in
+  ml/experiments/phase10-explanations. No training/tuning, new dependencies or database writes.
+- Attributions depend on model-internal path statistics and correlated input representations;
+  they do not prove causality, legitimacy, calibration or production suitability. No external
+  background dataset, causal interpretation or contribution-to-probability conversion added.
 
 - risk-v1-experimental uses full positive rules-v1 weights (0.40, 0.15, 0.25, 0.10, 0.10)
   in stable code order. Complete rule score is matched-weight sum / total-weight sum.
@@ -272,7 +303,8 @@ smoke also upgrades its default schema. Never substitute SQLite.
 - Cold start, low-weight admission, compromised confirmations and corrections/retractions
   remain unresolved research debt. Reads preserve quarantine/fraud exclusion.
 - Transactions remain immutable RECEIVED records. Evaluation needs separate derived state
-  or an append-only lifecycle; no risk API, HTTP inference, SHAP, human login or frontend exists.
+  or an append-only lifecycle; no risk API, HTTP inference, human login or frontend exists.
+  Native experimental SHAP is available only through offline replay.
 - Outbox dispatch/claims/consumer deduplication, idempotency retention, centralized revocation,
   rate limits, database grants and deployment hardening remain unfinished.
 - Service credentials are configuration snapshots; rotate while retaining principal UUID
@@ -280,16 +312,16 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Exact next tasks
 
-1. Read status/specification/runbook, ADR-014/015, ADR-010/011/012 and research protocol.
-2. Begin Phase 10 experimental Explainability: inspect existing explanation contracts,
-   captured vectors, native Booster and risk result before adding a compatible attribution path.
-3. Define exact model output space (raw margin versus uncalibrated model score), feature order,
-   base value/additivity tolerances, and clear separation from heuristic rule/hybrid scores.
-4. Validate supported XGBoost/SHAP or native TreeSHAP behavior from primary documentation;
-   add only necessary dependencies and audit any lockfile changes. No arbitrary pickle loads.
-5. Implement offline technical contributions and factual readable explanations on the same
-   pinned input/model, with parity/additivity/order/missingness/failure and replay tests.
-6. Keep model contributions distinct from rule reasons and causal claims. All outputs remain
-   experimental; no profile learning or unprotected API/database writes. Durable evaluation
-   provenance/registration/storage remains separate work per ADR-015.
+1. Read status/specification/runbook and ADR-015/016 plus existing case/feedback/persistence contracts.
+2. Begin Phase 11 Cases / Feedback preparation with its prerequisite: design an append-only
+   durable experimental evaluation envelope for scored and insufficient-evidence results.
+3. Represent absent profiles/rules-only models and unknown legacy training time truthfully;
+   do not fabricate existing RiskAssessment/ModelVersion fields. Review migration compatibility.
+4. Implement authorized scoped idempotent evaluation/context/vector/policy/explanation storage
+   and atomic audit/outbox/response writes before allowing case creation from evaluations.
+   Keep transactions immutable RECEIVED and experimental action execution disabled.
+5. Use PostgreSQL tests for migration, rollback, immutability, concurrent replay and conflicts.
+   Preserve pinned capture provenance and safe credential scopes; never accept arbitrary pickle.
+6. Then add scoped case/analyst-feedback use cases using existing strict transitions, immutable
+   history and explicit actor provenance. Feedback never directly admits history or retrains models.
 7. Run checks and update PROJECT_STATUS.md, NEXT_SESSION_PROMPT.md and SESSION_LOG.md.

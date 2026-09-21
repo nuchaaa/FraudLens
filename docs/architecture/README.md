@@ -28,7 +28,7 @@ work back the intake use cases. Experimental inference/risk composition runs off
 | rules | Versioned specifications, evidence, reason codes and missing-input outcomes | Pure engine + local replay |
 | risk | Versioned experimental composition, evidence and missingness | Pure service + offline three-strategy replay |
 | decision | Configurable risk-to-action thresholds | Experimental suggestions; no operational execution |
-| explainability | Human reasons and technical SHAP contributions | Planned |
+| explainability | Native TreeSHAP contract, additivity checks, missing-aware readable contributions | Pure service + native adapter + offline replay |
 | cases | Strict lifecycle and immutable transition history | Domain implemented |
 | feedback | Analyst verdict and prediction provenance | Domain record implemented |
 | audit | Append-only action record | Domain + database append-only guards |
@@ -184,3 +184,12 @@ identify authored weights and thresholds. Rules-only/hybrid abstain on unavailab
 ML-only discloses missing rule evidence. No fallback, case creation or operational action.
 Future durable evaluation requires an explicit nullable provenance/result design and atomic
 context/vector/evidence/assessment/audit/outbox/response persistence under scoped idempotency.
+
+## Experimental explanation boundary
+
+[ADR-016](../adr/ADR-016-native-model-explanations.md) adds a framework-free explanation
+port and checked native XGBoost TreeSHAP on the exact evaluated feature vector. The existing
+risk CLI optionally includes explanations. Full contributions plus bias reconstruct model
+margin, not hybrid/rule score. Model identity, score and vector must agree with evaluation.
+Readable contributions label missing-history placeholders; rule reasons stay separate.
+No new dependency, causal claim, persistence, operational action or production promotion.

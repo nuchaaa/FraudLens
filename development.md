@@ -334,3 +334,26 @@ an uncalibrated score while disclosing missing evidence. This is not a runtime f
 Invalid model/policy/artifact inputs instead fail nonzero without a successful report.
 All actions are suggestions, production eligibility remains false, and no data is written.
 See ADR-015 for formulas, missingness semantics and the future atomic persistence design.
+
+## Phase 10 experimental explanations
+
+Add `--explain` to any Phase 9 replay command. No additional dependency is required.
+Native XGBoost supplies exact TreeSHAP attributions in raw model margin/log-odds space.
+
+```sh
+.venv/bin/python -m backend.adapters.risk \
+  --context ../../work/phase8/first-context.json --strategy hybrid --explain \
+  --bundle ../../work/phase8/seed17 \
+  --manifest-sha256 52ca9d5e967e39d8153e0a7b2b4ac593d647cb0046d3909dbb199cf05fd5d903
+```
+
+The report includes all feature contributions, the base value, margin, uncalibrated model
+score, numerical tolerances, five readable contributions and separate rule evidence.
+Contributions sum with the base to the model margin, never the hybrid/rule score. Missing
+history placeholders are labelled explicitly; model attributions are not causal evidence.
+Rules-only with `--explain` returns rule evidence and a null model explanation.
+
+Actual numerical verification of all 2,400 stored seed17 rows and saved-context replay
+are retained at ../../work/phase10/treeshap-seed17/{verification.json,replay.json}.
+The committed numerical summary is ml/experiments/phase10-explanations/verification.json.
+No retraining, predictive evaluation, case creation or profile learning occurred.

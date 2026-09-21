@@ -9,12 +9,16 @@ from pydantic import TypeAdapter
 
 from backend.adapters.features.artifacts import ContextArtifact, encode_context, read_context
 from backend.app.decision.policy import DecisionPolicy
+from backend.app.explainability.service import RiskExplanation, explain_risk
 from backend.app.risk.service import ExperimentalRiskResult, RiskPolicy, Strategy, evaluate_risk
 from backend.app.rules.engine import RulePolicy
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Experimental read-only Risk + Decision replay")
+    parser.add_argument(
+        "--explain", action="store_true", help="Include native TreeSHAP and factual reasons"
+    )
     parser.add_argument("--context", type=Path, required=True)
     parser.add_argument("--strategy", choices=list(Strategy), required=True)
     parser.add_argument("--bundle", type=Path)
@@ -60,6 +64,11 @@ def main(argv: list[str] | None = None) -> int:
         document["context_sha256"] = ContextArtifact.model_validate_json(
             encode_context(context)
         ).sha256
+        if args.explain:
+            explanation = explain_risk(result, model=model)
+            document["explanation"] = json.loads(
+                TypeAdapter(RiskExplanation).dump_json(explanation)
+            )
         document["manifest_sha256"] = args.manifest_sha256
         document["synthetic_model_only"] = model is not None
         print(json.dumps(document, allow_nan=False))

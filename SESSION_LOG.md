@@ -213,3 +213,22 @@
   evaluation design. Updated README, architecture, development and three checkpoint files.
 - Next: Phase 10 experimental explainability with exact output-space/additivity semantics.
   Production validation and durable HTTP evaluation remain open; PostgreSQL remains running.
+
+## 2026-09-21 — Phase 10 native experimental explainability
+
+- Verified XGBoost native contribution semantics against primary docs and installed 3.2.0.
+  Added framework-free explanation port/contracts plus non-approximate native TreeSHAP.
+- Bound all 29 contributions, base, margin and score to exact evaluated model/vector.
+  Added finite/shape/additivity/link validation, stable signed top-five readable messages,
+  explicit missing placeholders and separate rule evidence. Existing CLI gains --explain.
+- Checked all 2,400 hash-verified original seed17 prepared rows: max margin reconstruction
+  error 2.2863969206809998e-6 and sigmoid error 8.22891939034065e-8, within fixed tolerances.
+  Real native CLI explanation passed while hybrid correctly retained insufficient evidence.
+  These are implementation checks, not new predictive metrics; no retraining/test tuning.
+- Added 44 tests. Full PostgreSQL suite: 409 passed, no skips, 96% combined coverage;
+  two existing warnings. Ruff/format/strict mypy (91 files), builds and Compose config pass.
+  No new dependencies or schema changes; prior audit retained. Docker/remote CI unverified.
+- Documented ADR-016, numerical verification summary, runbook, architecture and checkpoint files.
+  No causal/calibration claim, operational action, database write or model promotion introduced.
+- Next: Phase 11 Cases / Feedback preparation, starting with durable experimental evaluation
+  and truthful nullable provenance before case linking. PostgreSQL remains running locally.

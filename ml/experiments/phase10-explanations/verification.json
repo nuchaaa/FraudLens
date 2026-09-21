@@ -1,0 +1,14 @@
+{
+  "rows": 2400,
+  "manifest_sha256": "52ca9d5e967e39d8153e0a7b2b4ac593d647cb0046d3909dbb199cf05fd5d903",
+  "prepared_sha256": "69d5bda4cbe4ff59eaf2ff22e8094c7d4aca92881293b640716d18e7be85a00d",
+  "model_version": "experimental-xgb-429dc7ec772d7f78700c9e608a43f3eb6152f1c3b0d88af399240d779e7a1d65",
+  "max_absolute_margin_reconstruction_error": 2.2863969206809998e-06,
+  "max_absolute_sigmoid_score_error": 8.22891939034065e-08,
+  "margin_atol": 1e-05,
+  "margin_rtol": 1e-06,
+  "score_atol": 1e-06,
+  "synthetic_only": true,
+  "production_eligible": false,
+  "predictive_performance_measurement": false
+}
