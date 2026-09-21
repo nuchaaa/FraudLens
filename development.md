@@ -278,3 +278,33 @@ under ml/experiments/ulb-retrospective-v1; raw rows, split indices and model sta
 The pinned SHA256 check rejects changed source bytes. Label availability, arrivals,
 customer identity and upstream PCA fitting scope remain unknown. This is retrospective
 benchmark evidence only; it does not authorize deployment or behavioral-profile learning.
+
+## Phase 8 experimental native inference
+
+Use the optional ML group and libomp as above. Export only an existing reviewed local run:
+
+```sh
+.venv/bin/python -m ml.src.training.export_model \
+  --run ../../work/phase7/final-seed17 --seed 17 --output work/experimental-seed17
+```
+
+The command prints its trusted manifest digest. Keep that value independently; do not
+replace it with a checksum calculated from an untrusted incoming bundle. Native replay
+loads no pickle, database or credentials. Use a saved behavior-v1 context within the
+experimental KZT/UTC/180-day/30-day scope. Existing non-UTC profiles are rejected.
+
+The verified workspace export and replay fixture can be run now:
+
+```sh
+.venv/bin/python -m backend.adapters.ml \
+  --bundle ../../work/phase8/seed17 \
+  --manifest-sha256 52ca9d5e967e39d8153e0a7b2b4ac593d647cb0046d3909dbb199cf05fd5d903 \
+  --context ../../work/phase8/first-context.json
+```
+
+A new export has a new manifest digest because exported_at changes. Use its own trusted
+printed digest, not the example above. Outputs are explicitly synthetic and uncalibrated;
+there is no automatic decision or API model loading. Model version is derived from the
+native artifact hash. trained_at remains unknown; no database ModelVersion is fabricated.
+See ADR-014. The retained replay fixture comes from the original synthetic source, not an
+assumption about historical database commit times.

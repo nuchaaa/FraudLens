@@ -171,3 +171,25 @@
 - Added source notice, frozen protocol, ADR-013, measured report and all checkpoint updates.
 - Next: Phase 8 experimental artifact-verified inference; production behavioral validation
   remains open. Docker runtime and remote CI still unverified; native PostgreSQL stays running.
+
+## 2026-09-21 — Phase 8 explicitly experimental native inference
+
+- Inspected original synthetic reports/artifacts and existing FraudModel/FraudPrediction/
+  ModelVersion contracts. Legacy trained_at is unknown; preserved null without registration.
+- Added restricted export of independently pinned reviewed synthetic pickle bytes to native
+  UBJSON. Seed17 conversion matched all 2,400 saved feature scores exactly (difference 0.0).
+  No training, tuning or new predictive metrics; original experiment artifacts unchanged.
+- Added strict manifest/native adapter, exact feature/runtime/provenance validation, pure
+  KZT/UTC/180-day/30-day context service and offline CLI exposing uncalibrated_score.
+  Actual native CLI replay passed from original synthetic source facts. No HTTP/DB writes.
+- Added 25 tests for parity, corruption, incompatible provenance/features/scope, invalid
+  outputs, clock ordering, missing files, bounded reads and pinned-before-unpickle export.
+- Verification: 329 passed, none skipped, 95% combined backend/ML coverage, two existing
+  upstream warnings. Ruff/format, strict mypy (86 files), builds and Compose config pass.
+  Compose config requires POSTGRES_PASSWORD; checked with a temporary non-secret dummy value.
+  PostgreSQL migration/schema checks passed in the full suite. Dependencies/schema unchanged;
+  prior clean audit retained. Docker execution and remote CI remain unverified.
+- Added ADR-014, committed manifest/parity evidence, runbook/architecture/README updates and
+  all three checkpoint files. Native model bytes remain outside Git under work/phase8/seed17.
+- Next: Phase 9 experimental risk/decision composition with explicit rule scoring/missingness;
+  production behavioral validation and atomic evaluation provenance/storage remain open.

@@ -23,7 +23,7 @@ work back the intake use cases. React, ML and evaluation integrations remain pla
 | transaction | Immutable transaction, intake/retrieval, canonical idempotency | Domain + authenticated API implemented |
 | profile | Customer, observations, robust windows, revision-pinned reads, snapshots, update gate | Domain + scoped read API; trusted admission deferred |
 | features | 29 ordered versioned features, immutable contexts and scoped capture | Pure extractor + artifact replay |
-| fraud | Prediction/model metadata and model strategy port | Contract only |
+| fraud | Prediction port and scoped experimental captured-context replay | Native XGBoost adapter; no HTTP inference |
 | rules | Versioned specifications, evidence, reason codes and missing-input outcomes | Pure engine + local replay |
 | risk | Assessment/reason values and aggregation strategies | Domain implemented |
 | decision | Configurable risk-to-action thresholds | Domain implemented |
@@ -166,3 +166,11 @@ score or profile mutation are introduced. Assessment integration remains future 
 ulb-pca-v1 contract for anonymized external features. It reuses model comparison utilities,
 not behavioral history construction. No benchmark rows enter operational PostgreSQL tables;
 no source identities or currency are invented. Serving APIs still load no model.
+
+## Experimental inference
+
+[ADR-014](../adr/ADR-014-experimental-native-inference.md) binds native model artifacts
+to independently trusted manifest hashes. The pure application service uses the FraudModel
+port and shared features; adapters handle native XGBoost loading. Offline conversion alone
+reads the reviewed legacy pickles. Unknown training times remain unknown; no database
+model registration or automatic transaction/profile lifecycle change is implied.

@@ -1,11 +1,19 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 7 — Synthetic and external retrospective benchmark checkpoints complete.**
-Next work: **Phase 8 explicitly experimental inference; production behavioral validation remains open.**
+Current checkpoint: **Phase 8 — Explicitly experimental native inference complete.**
+Next work: **Phase 9 experimental Risk + Decision; production behavioral validation remains open.**
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
 ## Completed capabilities
+
+- [x] Phase 8: native XGBoost FraudModel adapter and pure captured-context inference service.
+- [x] Independently pinned manifests, exact model/report hashes, feature order and runtime checks.
+- [x] Restricted exporter for three reviewed synthetic runs; inference never loads pickle/joblib.
+- [x] Explicit KZT/UTC/180-day/30-day scope and uncalibrated experimental output flags.
+- [x] Native seed17 export matches all 2,400 saved scores exactly (maximum difference 0.0).
+- [x] Database-free replay CLI, 25 new tests, ADR-014 and committed manifest/parity evidence.
+- [ ] HTTP inference, durable model registration and atomic context/vector/assessment persistence.
 
 - [x] Public ULB metadata resolves version 3 and listed ODbL/DbCL terms; source/CSV hashes saved.
 - [x] Strict bounded fetch/import, quoted CSV support, independent ulb-pca-v1 feature contract.
@@ -58,13 +66,13 @@ do not establish legitimacy, score risk or admit transactions.
 
 ## Verification — 2026-09-20–21
 
-- [x] **304 passed, 0 skipped, 2 upstream warnings; 96% combined backend/ML coverage.**
+- [x] **329 passed, 0 skipped, 2 upstream warnings; 95% combined backend/ML coverage.**
 - [x] Actual PostgreSQL 17.10, including prior-phase regressions.
 - [x] Migration upgrade/downgrade/metadata tests and upgrade with populated legacy profile data.
 - [x] Concurrent reader pins its version before another writer commits; old versions exclude
   backdated later admissions and retain their original timezone/window policy.
-- [x] Ruff lint/format and strict mypy pass (81 backend/ML source files).
-- [x] pip-audit: no known vulnerabilities; updated optional ML dependencies audited.
+- [x] Ruff lint/format and strict mypy pass (86 backend/ML source files).
+- [x] Prior pip-audit found no known vulnerabilities; dependencies/lock unchanged, audit not rerun.
 - [x] Source/wheel builds and Compose configuration pass.
 - [x] Native database upgraded; head is 0004_profile_revisions, with 15 business tables.
 - [x] Actual local Uvicorn/PostgreSQL smoke passed: cold start, populated pinned profile,
@@ -106,6 +114,12 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Important files
 
+- backend/adapters/ml/{bundle,xgboost_model,__main__}.py: strict native loading and replay.
+- backend/app/fraud/service.py: framework-free scoped captured-context prediction.
+- ml/src/training/export_model.py: reviewed, pinned, one-time native conversion.
+- tests/ml/test_inference.py; docs/adr/ADR-014-experimental-native-inference.md.
+- ml/experiments/phase8-native-export/{README.md,manifest.json,parity.json}.
+
 - ml/src/datasets/ulb.py; ml/src/features/ulb.py; ml/src/training/ulb_benchmark.py.
 - tests/ml/test_ulb_benchmark.py; ml/experiments/ulb-retrospective-v1/{README.md,report.json}.
 - docs/research/ulb-{benchmark-protocol.md,NOTICE.md,source-metadata.json,source-manifest.json}.
@@ -140,6 +154,25 @@ smoke also upgrades its default schema. Never substitute SQLite.
   unchanged Phase 3 workflow/security; docs/adr/ADR-008-transaction-api-and-service-credentials.md.
 
 ## Decisions and remaining limitations
+
+- Native bundle: ../../work/phase8/seed17; original synthetic source remains unchanged.
+  Manifest SHA256: 52ca9d5e967e39d8153e0a7b2b4ac593d647cb0046d3909dbb199cf05fd5d903.
+  Native SHA256: 429dc7ec772d7f78700c9e608a43f3eb6152f1c3b0d88af399240d779e7a1d65.
+  Model version is experimental-xgb- followed by the full native SHA256.
+- Actual CLI replay passed using ../../work/phase8/first-context.json, hydrated from the
+  original synthetic source. No retraining or new predictive performance measurement occurred.
+- Export parity is software equivalence, not accuracy, calibration or production evidence.
+  The adapter checks exact behavior-v1 order, XGBoost runtime and report provenance; the
+  context service enforces KZT/UTC/180-day/30-day scope. ULB inputs are incompatible.
+- Legacy reports do not contain exact training time. Manifest trained_at=null is intentional;
+  exported_at is actual export time. No ModelVersion record is created: its required
+  trained_at cannot be truthfully supplied. Never substitute file modification/export times.
+- FraudPrediction retains its legacy probability field internally; CLI exposes it as
+  uncalibrated_score, with synthetic_only=true, production_eligible=false, calibrated=false.
+  Replay preserves scores/versions but generates a new actual inference timestamp.
+- Trusted manifest digest must come from independent reviewed provenance. Adjacent file
+  hashes alone do not establish trust. Only the restricted offline exporter deserializes
+  verified reviewed pickle bytes; native inference never loads uploaded pickle/joblib.
 
 - ULB v3 is eligible only for an anonymized retrospective benchmark, not behavior-v1.
   Unknown customer/currency/device/arrival/label availability and PCA fitting scope are
@@ -209,7 +242,7 @@ smoke also upgrades its default schema. Never substitute SQLite.
 - Cold start, low-weight admission, compromised confirmations and corrections/retractions
   remain unresolved research debt. Reads preserve quarantine/fraud exclusion.
 - Transactions remain immutable RECEIVED records. Evaluation needs separate derived state
-  or an append-only lifecycle; no risk API, serving ML, SHAP, human login or frontend exists.
+  or an append-only lifecycle; no risk API, HTTP inference, SHAP, human login or frontend exists.
 - Outbox dispatch/claims/consumer deduplication, idempotency retention, centralized revocation,
   rate limits, database grants and deployment hardening remain unfinished.
 - Service credentials are configuration snapshots; rotate while retaining principal UUID
@@ -217,15 +250,15 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Exact next tasks
 
-1. Read status/specification/runbook, ADR-010/012/013, source notice and both measured reports.
-2. Begin Phase 8 with an explicitly experimental inference boundary: inspect FraudModel,
-   FraudPrediction and ModelVersion contracts and actual saved synthetic behavior-v1 artifacts.
-3. Design a trusted artifact manifest/loader with exact hash, model/feature versions/order,
-   training provenance and experimental eligibility. Never load arbitrary uploaded pickle.
-4. Implement the appropriate model adapter and offline captured-context replay with parity,
-   incompatible/corrupt artifact, feature-version and failure tests; no invented model metadata.
-5. Keep ulb-pca-v1 separate: no mapping from PCA components to customer behavior. Do not
-   promote either benchmark into production or introduce unprotected business writes.
-6. Durable atomic evaluation/context persistence and immutable transaction lifecycle need
-   their own design. Admission, production validation and adaptive research remain unfinished.
+1. Read status/specification/runbook, ADR-014, ADR-010/011/012 and research protocol.
+2. Begin Phase 9 Risk + Decision: inspect existing risk strategies, decision policy, rule
+   outcomes and experimental inference service before adding new composition.
+3. Define versioned experimental rule-to-score mapping, missing-input/NOT_EVALUATED behavior,
+   explicit aggregation weights/thresholds and stable explanations; never imply calibration.
+4. Implement pure captured-context composition with deterministic replay, boundary, missingness,
+   compatibility and failure tests. Keep production_eligible=false and ULB separate.
+5. Design durable model provenance/context/vector/assessment persistence separately before
+   writes: legacy trained_at is unknown and transactions remain immutable RECEIVED records.
+6. No automatic admission, unprotected business writes or implicit production promotion.
+   Production behavioral validation and trusted adaptive workflows remain open.
 7. Run checks and update PROJECT_STATUS.md, NEXT_SESSION_PROMPT.md and SESSION_LOG.md.

@@ -1,0 +1,6 @@
+{
+  "rows": 2400,
+  "max_absolute_score_difference": 0.0,
+  "absolute_tolerance": 1e-07,
+  "synthetic_only": true
+}

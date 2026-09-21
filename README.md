@@ -6,10 +6,10 @@ FraudLens is a research-oriented modular monolith investigating how banking frau
 detection can learn legitimate behavior changes without letting exceptional or
 fraudulent transactions corrupt a customer's normal baseline.
 
-**Status: Phase 7 synthetic and external benchmark checkpoints; not a deployable fraud product.**
+**Status: Phase 8 experimental native inference checkpoint; not a deployable fraud product.**
 Submission/retrieval, scoped service credentials, durable request replay and atomic
 audit/outbox storage are implemented on PostgreSQL. There is no risk evaluation,
-serving model, human login or analyst console yet.
+HTTP model inference, human login or analyst console yet.
 Profile reads now expose robust short/long statistics, cold-start states and immutable
 revision selection. Profile admission remains closed pending trusted-history workflows.
 The pure feature engine provides 29 ordered features with explicit missing-history indicators,
@@ -18,6 +18,9 @@ for capture/replay commands and [ADR-010](docs/adr/ADR-010-feature-context-and-a
 for temporal and provenance limits.
 Five versioned rules now produce stable reasons and explicit unavailable-input outcomes
 from captured features; local rule replay is documented in the development runbook.
+Experimental offline model replay now verifies native artifacts and exact feature contracts.
+It remains synthetic-only and does not load a model into HTTP routes. See
+[ADR-014](docs/adr/ADR-014-experimental-native-inference.md).
 See [PROJECT_STATUS.md](PROJECT_STATUS.md) for verified progress.
 
 ## Problem and behavioral fraud detection
@@ -49,7 +52,7 @@ flowchart LR
     UC --> D[Pure Python domain modules]
     UC --> P[Repository / ML / event ports]
     P --> DB[SQLAlchemy + PostgreSQL repositories]
-    P --> ML[Offline trained model adapters — planned]
+    P --> ML[Experimental native model adapter — offline only]
     P --> EV[In-process event adapter]
     DB --> OB[Durable outbox — dispatcher planned]
 ```
