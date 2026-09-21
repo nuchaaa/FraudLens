@@ -1,6 +1,5 @@
 import json
 from dataclasses import replace
-from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
 
@@ -10,10 +9,10 @@ from xgboost import XGBClassifier
 
 from backend.adapters.features.artifacts import write_context
 from backend.adapters.ml.__main__ import main
-from backend.adapters.ml.bundle import ArtifactError, ExperimentalManifest, checked_bytes, sha256
+from backend.adapters.ml.bundle import ArtifactError, checked_bytes, sha256
 from backend.adapters.ml.xgboost_model import ExperimentalXGBoostModel
 from backend.app.features.context import ContextSource, FeatureContext
-from backend.app.features.engine import FEATURE_NAMES, extract_features
+from backend.app.features.engine import extract_features
 from backend.app.fraud.ports import FraudModel
 from backend.app.fraud.service import predict_experimental_context
 from backend.app.profile.entities import CustomerBehaviorProfile
@@ -22,50 +21,8 @@ from ml.src.training import export_model
 
 
 @pytest.fixture
-def bundle(tmp_path: Path) -> tuple[Path, str, XGBClassifier]:
-    rng = np.random.default_rng(17)
-    x = rng.normal(size=(40, 29))
-    model = XGBClassifier(n_estimators=3, max_depth=2, n_jobs=1, random_state=17)
-    model.fit(x, np.asarray([0, 1] * 20))
-    from importlib.metadata import version
-
-    report = {
-        "status": "complete",
-        "experiment_version": "synthetic-comparison-v1",
-        "generator_version": "synthetic-behavior-v1",
-        "feature_version": "behavior-v1",
-        "feature_names": FEATURE_NAMES,
-        "source_sha256": "a" * 64,
-        "lock_sha256": "b" * 64,
-        "seed": 17,
-        "selected_model": "xgboost",
-        "synthetic_only": True,
-        "production_eligible": False,
-        "artifacts": {"selected.joblib": "c" * 64},
-        "packages": {"xgboost": version("xgboost")},
-    }
-    raw_report = json.dumps(report).encode()
-    native = bytes(model.get_booster().save_raw(raw_format="ubj"))
-    manifest = ExperimentalManifest.model_validate(
-        {
-            "model_version": f"experimental-xgb-{sha256(native)}",
-            "model_sha256": sha256(native),
-            "feature_names": FEATURE_NAMES,
-            "training_report_sha256": sha256(raw_report),
-            "training_dataset_sha256": "a" * 64,
-            "training_lock_sha256": "b" * 64,
-            "original_pickle_sha256": "c" * 64,
-            "seed": 17,
-            "xgboost_version": version("xgboost"),
-            "exported_at": datetime.now(UTC),
-        }
-    )
-    path = tmp_path / "bundle"
-    path.mkdir()
-    (path / "manifest.json").write_text(manifest.model_dump_json())
-    (path / "model.ubj").write_bytes(native)
-    (path / "training-report.json").write_bytes(raw_report)
-    return path, sha256((path / "manifest.json").read_bytes()), model
+def bundle(native_bundle) -> tuple[Path, str, XGBClassifier]:
+    return native_bundle
 
 
 @pytest.fixture

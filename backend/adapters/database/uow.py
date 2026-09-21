@@ -12,6 +12,10 @@ from backend.adapters.database.assessments import (
     PostgresRuleRepository,
 )
 from backend.adapters.database.cases import PostgresFraudCaseRepository
+from backend.adapters.database.evaluations import (
+    PostgresEvaluationRepository,
+    PostgresEvaluationReviewRepository,
+)
 from backend.adapters.database.history import (
     PostgresAuditRepository,
     PostgresFeedbackRepository,
@@ -26,7 +30,12 @@ from backend.adapters.database.transactions import (
     PostgresCustomerRepository,
     PostgresTransactionRepository,
 )
-from backend.app.shared.errors import DuplicateCustomer, DuplicateTransaction, PersistenceConflict
+from backend.app.shared.errors import (
+    ConcurrentUpdate,
+    DuplicateCustomer,
+    DuplicateTransaction,
+    PersistenceConflict,
+)
 from backend.app.shared.ports import UnitOfWork
 
 
@@ -36,6 +45,8 @@ class PostgresUnitOfWork:
     def __init__(self, engine: Engine) -> None:
         self._session = Session(engine, autoflush=False, expire_on_commit=False, autobegin=False)
         self._entered = False
+        self.evaluations = PostgresEvaluationRepository(self._session)
+        self.reviews = PostgresEvaluationReviewRepository(self._session)
         self.customers = PostgresCustomerRepository(self._session)
         self.transactions = PostgresTransactionRepository(self._session)
         self.profiles = PostgresCustomerProfileRepository(self._session)
@@ -74,6 +85,8 @@ class PostgresUnitOfWork:
             self._session.close()
         if isinstance(exc, IntegrityError):
             if isinstance(exc.orig, UniqueViolation):
+                if exc.orig.diag.constraint_name == "uq_evaluation_cases_assessment_id":
+                    raise ConcurrentUpdate("evaluation already has a case") from exc
                 if exc.orig.diag.constraint_name == "pk_transactions":
                     raise DuplicateTransaction("transaction ID already exists") from exc
                 if exc.orig.diag.constraint_name == "pk_customers":

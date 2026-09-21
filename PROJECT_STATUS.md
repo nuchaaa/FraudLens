@@ -1,11 +1,19 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 10 — Experimental native explainability complete.**
-Next work: **Phase 11 Cases / Feedback preparation: durable evaluation foundation first; production behavioral validation remains open.**
+Current checkpoint: **Phase 11 — Durable experimental evaluation and review complete.**
+Next work: **Phase 12 — Safe adaptive profile update design and orchestration; production behavioral validation remains open.**
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
 ## Completed capabilities
+
+- [x] Phase 11: opt-in authenticated evaluation and analyst case/review HTTP workflows.
+- [x] Atomic context/vector/policy/result/explanation/audit/outbox/exact-response persistence.
+- [x] Truthful scored or insufficient-evidence envelopes with nullable model/profile provenance.
+- [x] Scoped durable idempotency, restart replay, optimistic review concurrency and rollback.
+- [x] Four append-only PostgreSQL tables with envelope, lifecycle and feedback provenance guards.
+- [x] Feedback remains evidence only: no transaction change, action execution, learning or admission.
+- [x] ADR-017; migration head 0005_experimental_reviews; feature disabled by default.
 
 - [x] Phase 10: framework-free explanation contract and native XGBoost TreeSHAP adapter.
 - [x] Exact vector/model binding, finite shape checks and margin/link reconstruction validation.
@@ -80,15 +88,15 @@ do not establish legitimacy, score risk or admit transactions.
 
 ## Verification — 2026-09-20–21
 
-- [x] **409 passed, 0 skipped, 2 upstream warnings; 96% combined backend/ML coverage.**
+- [x] **436 passed, 0 skipped, 2 upstream warnings; 95% combined backend/ML coverage.**
 - [x] Actual PostgreSQL 17.10, including prior-phase regressions.
 - [x] Migration upgrade/downgrade/metadata tests and upgrade with populated legacy profile data.
 - [x] Concurrent reader pins its version before another writer commits; old versions exclude
   backdated later admissions and retain their original timezone/window policy.
-- [x] Ruff lint/format and strict mypy pass (91 backend/ML source files).
+- [x] Ruff lint/format and strict mypy pass (97 backend/ML source files).
 - [x] Prior pip-audit found no known vulnerabilities; dependencies/lock unchanged, audit not rerun.
 - [x] Source/wheel builds and Compose configuration pass.
-- [x] Native database upgraded; head is 0004_profile_revisions, with 15 business tables.
+- [x] Native database upgraded; head is 0005_experimental_reviews, with 19 business tables.
 - [x] Actual local Uvicorn/PostgreSQL smoke passed: cold start, populated pinned profile,
   median/MAD/p95, authentication and cutoff validation, plus prior intake smoke checks.
   Temporary HTTP server and smoke schema were cleaned up.
@@ -127,6 +135,14 @@ Tests require a disposable *_test database and use a generated schema; the migra
 smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Important files
+
+- backend/app/evaluation/{contracts,service}.py: truthful envelopes and atomic workflows.
+- backend/adapters/evaluation.py: server-controlled rules/native-model composition.
+- backend/api/evaluations.py: opt-in scoped evaluation/case/review routes.
+- backend/adapters/database/evaluations.py and models.py: durable repositories/mappings.
+- infra/migrations/versions/0005_experimental_reviews_experimental_reviews.py: four
+  append-only tables and database provenance/lifecycle guards.
+- tests/integration/test_evaluation_api.py; docs/adr/ADR-017-durable-experimental-evaluations-and-review.md.
 
 - backend/app/explainability/{contracts,service}.py: typed port, invariants and readable explanation.
 - backend/adapters/ml/xgboost_model.py: native TreeSHAP; backend/adapters/risk/__main__.py: --explain.
@@ -178,6 +194,23 @@ smoke also upgrades its default schema. Never substitute SQLite.
   unchanged Phase 3 workflow/security; docs/adr/ADR-008-transaction-api-and-service-credentials.md.
 
 ## Decisions and remaining limitations
+
+- `FRAUDLENS_EXPERIMENTAL_ENABLED` defaults false. Rules-only can run without a model;
+  ML-only/hybrid require the configured reviewed native bundle and independent manifest pin.
+- Evaluation input is a transaction/profile version/strategy, not caller scores or vectors.
+  Capture and evaluation use one UoW; exact response bytes are stored and replayed after restart.
+- `experimental_evaluations` truthfully permits absent profile/model provenance and unknown
+  legacy `trained_at`. SCORED requires finite score/decision fields; INSUFFICIENT_EVIDENCE
+  requires them null. All results remain production-ineligible and execute no action.
+- Experimental cases link only to stored evaluations. Analyst/admin scope, strict lifecycle,
+  expected versions and row locks govern review. Terminal feedback must match its transition
+  actor/time. PostgreSQL rejects UPDATE/DELETE/TRUNCATE for all four Phase 11 tables.
+- Evaluation and review each atomically commit business evidence, audit, outbox and durable
+  idempotent response. Outbox dispatch remains absent. Feedback never directly admits profile
+  history, changes immutable RECEIVED transactions, retrains a model or proves legitimacy.
+- API/PostgreSQL integration includes restart replay, late arrivals, rollbacks, malformed
+  envelopes, authorization, concurrent retries/reviewers and native-model provenance. No new
+  predictive metrics, tuning or production validation occurred.
 
 - explanation-v1-experimental uses native non-approximate XGBoost TreeSHAP with all trees.
   Full ordered contributions + bias reconstruct raw model margin (log-odds), not probability
@@ -272,7 +305,8 @@ smoke also upgrades its default schema. Never substitute SQLite.
 - Raw activity spans strictly (candidate - 180 days, candidate), same customer/currency,
   excluding candidate ID. More than 10,000 rows fails explicitly instead of truncating.
 - Local artifacts preserve exact input facts and Decimal strings. SHA256 is integrity,
-  not authenticity; 16 MiB limit and create-only writes. No durable assessment persistence yet.
+  not authenticity; 16 MiB limit and create-only writes. Phase 11 now durably retains
+  experimental evaluation envelopes while legacy risk assessments remain unchanged.
 - A new capture can see late arrivals. Replay saved original contexts for past decisions;
   current event-time queries cannot reconstruct historical knowledge. Capture time is not
   commit time. Declared offline provenance requires independent dataset validation.
@@ -294,7 +328,7 @@ smoke also upgrades its default schema. Never substitute SQLite.
   the present provenance boundary. Customer creation/raw intake do not authorize learning.
 - Trusted bootstrap needs independent reviewed source evidence, immutable transaction IDs,
   curator/time/policy provenance and atomic audit/events. No bootstrap/admission API exists.
-  Authorized feedback and gate orchestration remain Phase 11/12.
+  Feedback is now durable, but gate orchestration remains Phase 12 work.
 - Five-observation minimum and typical-hour count/share thresholds (2 / 10%) are
   uncalibrated descriptive policies. SUFFICIENT_HISTORY is not a risk/trust verdict.
 - Observation frequency is admitted count / configured window days, not raw intake velocity.
@@ -302,9 +336,8 @@ smoke also upgrades its default schema. Never substitute SQLite.
   and external history completeness are unavailable.
 - Cold start, low-weight admission, compromised confirmations and corrections/retractions
   remain unresolved research debt. Reads preserve quarantine/fraud exclusion.
-- Transactions remain immutable RECEIVED records. Evaluation needs separate derived state
-  or an append-only lifecycle; no risk API, HTTP inference, human login or frontend exists.
-  Native experimental SHAP is available only through offline replay.
+- Transactions remain immutable RECEIVED records. Experimental evaluation/review is separate
+  derived append-only state; no production risk API, human login or frontend exists.
 - Outbox dispatch/claims/consumer deduplication, idempotency retention, centralized revocation,
   rate limits, database grants and deployment hardening remain unfinished.
 - Service credentials are configuration snapshots; rotate while retaining principal UUID
@@ -312,16 +345,15 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Exact next tasks
 
-1. Read status/specification/runbook and ADR-015/016 plus existing case/feedback/persistence contracts.
-2. Begin Phase 11 Cases / Feedback preparation with its prerequisite: design an append-only
-   durable experimental evaluation envelope for scored and insufficient-evidence results.
-3. Represent absent profiles/rules-only models and unknown legacy training time truthfully;
-   do not fabricate existing RiskAssessment/ModelVersion fields. Review migration compatibility.
-4. Implement authorized scoped idempotent evaluation/context/vector/policy/explanation storage
-   and atomic audit/outbox/response writes before allowing case creation from evaluations.
-   Keep transactions immutable RECEIVED and experimental action execution disabled.
-5. Use PostgreSQL tests for migration, rollback, immutability, concurrent replay and conflicts.
-   Preserve pinned capture provenance and safe credential scopes; never accept arbitrary pickle.
-6. Then add scoped case/analyst-feedback use cases using existing strict transitions, immutable
-   history and explicit actor provenance. Feedback never directly admits history or retrains models.
+1. Read status/specification/runbook, ADR-017, ADR-009 and the existing profile gate/entities.
+2. Begin Phase 12 by specifying who may convert reviewed feedback into a learning decision.
+   Keep feedback capture separate from admission authorization and require explicit provenance.
+3. Define trusted cold-start/bootstrap, ordinary/low-weight admission, exceptional legitimate
+   quarantine, confirmed-fraud exclusion and correction/retraction behavior before adding writes.
+4. Design resistance to compromised confirmations and repeated self-reinforcement. Do not let
+   a score, suggested ALLOW, raw intake, enrollment or one analyst verdict authorize learning.
+5. Preserve immutable evaluation/case/feedback history and profile revisions. Any admission must
+   commit observation/revision/audit/outbox/idempotent response atomically with concurrency tests.
+6. Use PostgreSQL for authorization, replay, rollback, uniqueness, concurrency and history tests.
+   Thresholds remain uncalibrated; do not invent trust provenance or research metrics.
 7. Run checks and update PROJECT_STATUS.md, NEXT_SESSION_PROMPT.md and SESSION_LOG.md.

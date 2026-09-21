@@ -307,3 +307,70 @@ class IdempotencyRow(Base):
         CheckConstraint("status_code >= 200 AND status_code < 300", name="status"),
         CheckConstraint("length(key) > 0 AND key = trim(key)", name="key"),
     )
+
+
+class EvaluationRow(Base):
+    __tablename__ = "experimental_evaluations"
+    evaluation_id: Mapped[UUID] = mapped_column(primary_key=True)
+    transaction_id: Mapped[UUID]
+    customer_id: Mapped[UUID]
+    currency: Mapped[str] = mapped_column(String(3))
+    actor_id: Mapped[UUID]
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    response_json: Mapped[str]
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["transaction_id", "customer_id", "currency"],
+            ["transactions.transaction_id", "transactions.customer_id", "transactions.currency"],
+        ),
+        UniqueConstraint("evaluation_id", "transaction_id"),
+        CheckConstraint(
+            "((response_json::jsonb->>'production_eligible') = 'false' AND "
+            "(response_json::jsonb->>'schema_version') = 'experimental-evaluation-v1') IS TRUE",
+            name="experimental",
+        ),
+    )
+
+
+class EvaluationCaseRow(Base):
+    __tablename__ = "evaluation_cases"
+    case_id: Mapped[UUID] = mapped_column(primary_key=True)
+    transaction_id: Mapped[UUID]
+    assessment_id: Mapped[UUID] = mapped_column(unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["assessment_id", "transaction_id"],
+            ["experimental_evaluations.evaluation_id", "experimental_evaluations.transaction_id"],
+        ),
+    )
+
+
+class EvaluationTransitionRow(Base):
+    __tablename__ = "evaluation_case_transitions"
+    case_id: Mapped[UUID] = mapped_column(ForeignKey("evaluation_cases.case_id"), primary_key=True)
+    sequence: Mapped[int] = mapped_column(primary_key=True)
+    previous: Mapped[str] = mapped_column(String(30))
+    target: Mapped[str] = mapped_column(String(30))
+    actor_id: Mapped[UUID]
+    timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    __table_args__ = (CheckConstraint("sequence > 0", name="sequence"),)
+
+
+class EvaluationFeedbackRow(Base):
+    __tablename__ = "evaluation_feedback"
+    feedback_id: Mapped[UUID] = mapped_column(primary_key=True)
+    case_id: Mapped[UUID] = mapped_column(ForeignKey("evaluation_cases.case_id"))
+    actor_id: Mapped[UUID]
+    verdict: Mapped[str] = mapped_column(String(30))
+    timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    comment: Mapped[str]
+    sequence: Mapped[int]
+    __table_args__ = (
+        UniqueConstraint("case_id", "sequence"),
+        CheckConstraint("sequence > 0", name="sequence"),
+        CheckConstraint(
+            "verdict IN ('CONFIRMED_FRAUD','LEGITIMATE','NEEDS_INVESTIGATION')", name="verdict"
+        ),
+        CheckConstraint("length(trim(comment)) > 0 AND length(comment) <= 2000", name="comment"),
+    )

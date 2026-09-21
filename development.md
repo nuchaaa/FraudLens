@@ -64,8 +64,8 @@ testing and has not yet been runtime-verified in this workspace.
 ```
 
 `/health/live` is public process liveness. Business routes require PostgreSQL and
-configured credentials. No serving model is loaded; accepted transactions remain
-RECEIVED and do not update profiles.
+configured credentials. Experimental writes are disabled by default; accepted
+transactions remain RECEIVED and do not update profiles.
 
 ## Authenticated synthetic API
 
@@ -357,3 +357,44 @@ Actual numerical verification of all 2,400 stored seed17 rows and saved-context 
 are retained at ../../work/phase10/treeshap-seed17/{verification.json,replay.json}.
 The committed numerical summary is ml/experiments/phase10-explanations/verification.json.
 No retraining, predictive evaluation, case creation or profile learning occurred.
+
+## Phase 11 durable experimental evaluation and review
+
+Apply migration `0005_experimental_reviews`, configure the normal database and service
+principals, then explicitly opt in for a local research run:
+
+```sh
+export FRAUDLENS_EXPERIMENTAL_ENABLED=true
+```
+
+Rules-only evaluation needs no model. ML-only or hybrid additionally require the reviewed
+native bundle and its independently pinned manifest digest:
+
+```sh
+export FRAUDLENS_EXPERIMENTAL_MODEL_BUNDLE=../../work/phase8/seed17
+export FRAUDLENS_EXPERIMENTAL_MANIFEST_SHA256=52ca9d5e967e39d8153e0a7b2b4ac593d647cb0046d3909dbb199cf05fd5d903
+```
+
+Authenticated routes are:
+
+- `POST /api/v1/experimental/evaluations` with `Idempotency-Key`
+- `GET /api/v1/experimental/evaluations/{evaluation_id}`
+- `POST /api/v1/experimental/cases` with `Idempotency-Key`
+- `GET /api/v1/experimental/cases/{case_id}`
+- `POST /api/v1/experimental/cases/{case_id}/review` with `Idempotency-Key`
+
+Service/admin roles may evaluate transactions within their customer scope. Analyst/admin
+roles may create and review cases within scope. Evaluation requests select a transaction,
+explicit profile version or explicit absence, and `rules_only`, `ml_only` or `hybrid`.
+Model strategies must also supply the configured manifest SHA256; rules-only forbids it.
+
+Successful retries return the exact stored JSON with `Idempotency-Replayed: true`, even
+after restart. GET never recomputes current history. Evaluation, audit, outbox event and
+stored response commit together; case transition, feedback, audit, outbox and response do
+the same. All four new business tables reject UPDATE, DELETE and TRUNCATE.
+
+Every result remains uncalibrated, experimental and production-ineligible. Suggested actions
+are not executed. Feedback does not admit observations, update profiles, alter immutable
+transactions or train models. Do not enable these routes for remote or production use; there
+is no human authentication, production authorization design or outbox dispatcher. See
+ADR-017 for the persistence and trust boundary.

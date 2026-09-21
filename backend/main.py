@@ -8,8 +8,9 @@ from sqlalchemy.engine import Engine
 
 from backend.adapters.database.base import create_database_engine
 from backend.adapters.database.uow import create_unit_of_work
+from backend.adapters.evaluation import ExperimentalEvaluationEngine
 from backend.adapters.security import CredentialRegistry
-from backend.api import health, profiles, transactions
+from backend.api import evaluations, health, profiles, transactions
 from backend.api.dependencies import ApiServices
 from backend.api.errors import install_error_handlers
 from backend.api.limits import BusinessRequestLimits
@@ -31,13 +32,19 @@ def create_app(
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         configure_logging(config.log_level)
+        evaluation_engine = ExperimentalEvaluationEngine(
+            config.experimental_model_bundle if config.experimental_enabled else None,
+            config.experimental_manifest_sha256 if config.experimental_enabled else None,
+        )
         engine: Engine | None = None
         factory = uow_factory
         if factory is None and config.database_url is not None:
             engine = create_database_engine(config.database_url.get_secret_value())
             database = engine
             factory = partial(create_unit_of_work, database)
-        app.state.services = ApiServices(credentials, factory)
+        app.state.services = ApiServices(
+            credentials, factory, config.experimental_enabled, evaluation_engine
+        )
         logging.getLogger("fraudlens").info("FraudLens transaction API started")
         try:
             yield
@@ -49,7 +56,10 @@ def create_app(
         title="FraudLens",
         version="0.1.0",
         lifespan=lifespan,
-        description="Authenticated synthetic transaction intake. Risk evaluation is not available.",
+        description=(
+            "Authenticated synthetic intake. "
+            "Opt-in experimental evaluation and review; production-ineligible."
+        ),
         docs_url=None if config.environment == "production" else "/docs",
         redoc_url=None,
         openapi_url=None if config.environment == "production" else "/openapi.json",
@@ -59,6 +69,7 @@ def create_app(
     app.include_router(health.router)
     app.include_router(transactions.router)
     app.include_router(profiles.router)
+    app.include_router(evaluations.router)
     return app
 
 

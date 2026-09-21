@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Literal
 
 from pydantic import SecretStr
@@ -11,3 +12,7 @@ class Settings(BaseSettings):
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
     database_url: SecretStr | None = None
     api_principals: SecretStr | None = None
+
+    experimental_enabled: bool = False
+    experimental_model_bundle: Path | None = None
+    experimental_manifest_sha256: str | None = None

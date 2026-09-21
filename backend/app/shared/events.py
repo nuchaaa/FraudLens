@@ -11,6 +11,7 @@ class EventType(StrEnum):
     TRANSACTION_RECEIVED = "TransactionReceived"
     RISK_EVALUATED = "RiskEvaluated"
     TRANSACTION_FLAGGED = "TransactionFlagged"
+    CASE_REVIEW_CHANGED = "CaseReviewChanged"
     FRAUD_CASE_CREATED = "FraudCaseCreated"
     ANALYST_DECISION_MADE = "AnalystDecisionMade"
     TRANSACTION_CONFIRMED_LEGITIMATE = "TransactionConfirmedLegitimate"

@@ -232,3 +232,30 @@
   No causal/calibration claim, operational action, database write or model promotion introduced.
 - Next: Phase 11 Cases / Feedback preparation, starting with durable experimental evaluation
   and truthful nullable provenance before case linking. PostgreSQL remains running locally.
+
+## 2026-09-21 — Phase 11 durable experimental evaluation and review
+
+- Added disabled-by-default authenticated evaluation routes that derive server-controlled
+  facts, features, rules, risk and optional native explanation. Callers cannot supply scores,
+  vectors, policies, explanations or models. Rules-only and model strategies retain truthful
+  nullable provenance; unknown legacy training time remains null.
+- Added an atomic application workflow for context/vector/policy/result/audit/outbox/exact
+  idempotent response persistence. Authorization precedes replay, advisory locking precedes
+  writes, and GET/restart replay returns stored bytes without querying current history.
+- Added scoped analyst/admin cases and strict review transitions with optimistic versions.
+  Feedback records actor/verdict/comment but never changes a transaction/profile, executes
+  an action, admits history or trains a model.
+- Added migration 0005 with experimental_evaluations, evaluation_cases,
+  evaluation_case_transitions and evaluation_feedback. PostgreSQL rejects UPDATE, DELETE and
+  TRUNCATE and enforces envelope identity/status plus transition/feedback provenance.
+- Tested native and rules-only modes, missing evidence, exact replay after restart, late
+  arrivals, scope/role failures, malformed envelopes, all rollback points, concurrent retry,
+  concurrent reviewers and immutable history against PostgreSQL 17.10.
+- Final suite: 436 passed, no skips, 95% combined backend/ML coverage; two unchanged upstream
+  warnings. Ruff/format, strict mypy (97 source files), migrations, package builds and Compose
+  configuration pass. No dependencies or predictive metrics changed; prior audit retained.
+- Added ADR-017 and updated README, architecture, runbook and all checkpoint files. Migration
+  head is 0005_experimental_reviews with 19 business tables. Docker runtime and remote CI
+  remain unverified; production behavioral validation remains open.
+- Next: Phase 12 safe adaptive profile updates, beginning with separately authorized
+  feedback-to-gate provenance, trusted bootstrap/cold start and correction semantics.

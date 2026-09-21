@@ -6,10 +6,12 @@ FraudLens is a research-oriented modular monolith investigating how banking frau
 detection can learn legitimate behavior changes without letting exceptional or
 fraudulent transactions corrupt a customer's normal baseline.
 
-**Status: Phase 10 experimental explainability checkpoint; not a deployable fraud product.**
+**Status: Phase 11 durable experimental evaluation/review checkpoint; not a deployable fraud product.**
 Submission/retrieval, scoped service credentials, durable request replay and atomic
-audit/outbox storage are implemented on PostgreSQL. There is no durable risk evaluation or
-HTTP model inference, human login or analyst console yet.
+audit/outbox storage are implemented on PostgreSQL. Opt-in experimental HTTP evaluation
+now atomically retains its exact captured facts, vector, policy, result, optional native-model
+explanation and response. Scoped analyst cases and immutable feedback history are durable.
+There is no production risk endpoint, human login or analyst console yet.
 Profile reads now expose robust short/long statistics, cold-start states and immutable
 revision selection. Profile admission remains closed pending trusted-history workflows.
 The pure feature engine provides 29 ordered features with explicit missing-history indicators,
@@ -27,6 +29,10 @@ actions remain experimental and unexecuted. See [ADR-015](docs/adr/ADR-015-exper
 Native TreeSHAP now explains the model margin with checked additivity and readable,
 missing-aware contributions. Rule reasons stay separate; no causal claim is made. Add
 `--explain` to offline risk replay; see [ADR-016](docs/adr/ADR-016-native-model-explanations.md).
+Phase 11 exposes the same experimental composition behind disabled-by-default authenticated
+routes and binds cases to stored evaluations. Feedback never executes an action, changes a
+profile or trains a model. See
+[ADR-017](docs/adr/ADR-017-durable-experimental-evaluations-and-review.md).
 See [PROJECT_STATUS.md](PROJECT_STATUS.md) for verified progress.
 
 ## Problem and behavioral fraud detection
@@ -58,7 +64,7 @@ flowchart LR
     UC --> D[Pure Python domain modules]
     UC --> P[Repository / ML / event ports]
     P --> DB[SQLAlchemy + PostgreSQL repositories]
-    P --> ML[Experimental native model adapter — offline only]
+    P --> ML[Experimental native model adapter — offline replay + opt-in evaluation]
     P --> EV[In-process event adapter]
     DB --> OB[Durable outbox — dispatcher planned]
 ```
@@ -138,8 +144,8 @@ docker compose up --build -d
 docker compose exec backend alembic upgrade head
 ```
 
-Migrations now create 15 business tables and database history protections, including
-an immutable profile revision journal.
+Migrations now create 19 business tables and database history protections, including
+an immutable profile revision journal and append-only experimental evaluation/review records.
 The initial foundation marker is preserved in migration history. Compose currently contains backend and PostgreSQL only; a
 frontend service will be added when the console exists. Use a dedicated local
 database; never point migration/test commands at a real banking database.
@@ -179,16 +185,14 @@ cryptographic tamper evidence.
 
 ## Limitations and research direction
 
-This checkpoint verifies authenticated intake and domain invariants; it does not
-establish fraud-detection accuracy or deployment security. Profile observations are
-persisted; robust statistics are computed in
-memory from the active window. Phase 4 summaries qualify typical hours using explicit,
-uncalibrated count/share thresholds and expose the underlying counts. No categories,
-device history, recipient ages, feature
-extraction or model artifact exists. Outbox storage and delivery metadata exist,
-but background dispatch and consumer deduplication remain unimplemented.
-Authentication and application workflows must enforce trusted feedback provenance. See the research protocol for baseline comparisons and
-threats to validity.
+This checkpoint verifies authenticated intake, experimental evaluation/review and domain
+invariants; it does not establish fraud-detection accuracy or deployment security. Robust
+profile summaries, bounded device/recipient activity features, deterministic rules and a
+synthetic-only reviewed native model exist. Recipient account age and authoritative external
+history are unavailable. Thresholds and scores are uncalibrated. Outbox storage and delivery
+metadata exist, but background dispatch and consumer deduplication remain unimplemented.
+Feedback is durable but does not authorize profile learning. See the research protocol for
+baseline comparisons and threats to validity.
 
 ## Roadmap
 
@@ -196,9 +200,11 @@ threats to validity.
 2. PostgreSQL tables, repositories, atomic unit of work and migration tests — implemented.
 3. Authenticated transaction API with durable, scoped idempotency — implemented.
 4. Versioned profile reads and behavior summaries — implemented; trusted admission remains deferred.
-5. Production features and deterministic rules.
-6. Offline model comparison, inference, hybrid risk and SHAP.
-7. Cases, feedback, profile update use cases, outbox delivery.
+5. Versioned behavioral features and deterministic rules — implemented.
+6. Offline model comparison, experimental inference, hybrid risk and SHAP — implemented;
+   production behavioral validation remains open.
+7. Durable experimental evaluation, cases and feedback — implemented; safe profile update
+   orchestration and outbox delivery remain deferred.
 8. Analyst console, security review, deterministic demos and research experiments.
 
 ## Continuation

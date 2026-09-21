@@ -5,6 +5,7 @@ from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from backend.adapters.security import CredentialRegistry
+from backend.app.evaluation.contracts import EvaluationEngine
 from backend.app.shared.security import Principal
 from backend.app.transaction.service import TransactionService, UnitOfWorkFactory
 
@@ -15,6 +16,8 @@ bearer = HTTPBearer(auto_error=False)
 class ApiServices:
     credentials: CredentialRegistry
     uow_factory: UnitOfWorkFactory | None
+    experimental_enabled: bool = False
+    evaluation_engine: EvaluationEngine | None = None
 
 
 def get_services(request: Request) -> ApiServices:

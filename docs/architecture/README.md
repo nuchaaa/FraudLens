@@ -11,11 +11,15 @@ flowchart TB
   Train[Offline experiments] --> Artifacts[Controlled model artifacts]
   Artifacts --> Replay[Experimental offline risk replay]
   Context[Captured input artifacts] --> Replay
+  Service --> Eval[Opt-in experimental evaluation API]
+  Analyst --> Eval
+  Eval --> DB
 ```
 
-HTTP exposes liveness, authenticated synthetic customer enrollment and scoped
-transaction submission/retrieval and profile reads. PostgreSQL repositories and an atomic unit of
-work back the intake use cases. Experimental inference/risk composition runs offline; React and durable HTTP evaluation remain planned.
+HTTP exposes liveness, authenticated synthetic customer enrollment, scoped transaction
+submission/retrieval, profile reads and disabled-by-default experimental evaluation/review.
+PostgreSQL repositories and an atomic unit of work back the workflows. React, human login
+and production risk evaluation remain planned.
 
 ## Responsibility map
 
@@ -24,13 +28,14 @@ work back the intake use cases. Experimental inference/risk composition runs off
 | transaction | Immutable transaction, intake/retrieval, canonical idempotency | Domain + authenticated API implemented |
 | profile | Customer, observations, robust windows, revision-pinned reads, snapshots, update gate | Domain + scoped read API; trusted admission deferred |
 | features | 29 ordered versioned features, immutable contexts and scoped capture | Pure extractor + artifact replay |
-| fraud | Prediction port and scoped experimental captured-context replay | Native XGBoost adapter; no HTTP inference |
+| fraud | Prediction port and scoped experimental captured-context replay | Native XGBoost adapter; controlled opt-in evaluation only |
 | rules | Versioned specifications, evidence, reason codes and missing-input outcomes | Pure engine + local replay |
 | risk | Versioned experimental composition, evidence and missingness | Pure service + offline three-strategy replay |
 | decision | Configurable risk-to-action thresholds | Experimental suggestions; no operational execution |
 | explainability | Native TreeSHAP contract, additivity checks, missing-aware readable contributions | Pure service + native adapter + offline replay |
-| cases | Strict lifecycle and immutable transition history | Domain implemented |
-| feedback | Analyst verdict and prediction provenance | Domain record implemented |
+| evaluation | Truthful scored/insufficient envelopes and exact durable replay | Opt-in scoped API + append-only PostgreSQL storage |
+| cases | Strict lifecycle and immutable transition history | Scoped experimental review API + database guards |
+| feedback | Analyst verdict and actor provenance | Append-only records; no automatic learning |
 | audit | Append-only action record | Domain + database append-only guards |
 | shared | Validation, ports, event envelope and outbox record | Contracts implemented |
 
@@ -46,8 +51,9 @@ The implemented intake use case checks the authenticated principal's role/custom
 scope, locks `(principal_id, idempotency_key)`, and commits transaction, audit,
 TransactionReceived outbox event and response record together. Matching retries
 short-circuit before business writes. Customer enrollment is admin-only and creates
-no profile history. Future evaluation will additionally version/capture the relevant
-profile, assessment and optional case. Never send side effects before commit.
+no profile history. Experimental evaluation captures context/vector/policy/result and
+commits them with audit, outbox and exact response. Case review uses the same boundary
+for transition/feedback/audit/outbox/response. Never send side effects before commit.
 
 Idempotency compares a versioned canonical request fingerprint. Same key and same body
 returns the original response; same key and different body returns 409. A unique
@@ -181,9 +187,9 @@ model registration or automatic transaction/profile lifecycle change is implied.
 [ADR-015](../adr/ADR-015-experimental-risk-and-decision.md) composes existing rule/model
 ports and decision policy over one saved context. Full settings and a canonical fingerprint
 identify authored weights and thresholds. Rules-only/hybrid abstain on unavailable rules;
-ML-only discloses missing rule evidence. No fallback, case creation or operational action.
-Future durable evaluation requires an explicit nullable provenance/result design and atomic
-context/vector/evidence/assessment/audit/outbox/response persistence under scoped idempotency.
+ML-only discloses missing rule evidence. No fallback or operational action. Phase 11 now
+implements the separate nullable-provenance envelope and atomic context/vector/evidence/
+result/audit/outbox/response persistence under scoped idempotency.
 
 ## Experimental explanation boundary
 
@@ -193,3 +199,19 @@ risk CLI optionally includes explanations. Full contributions plus bias reconstr
 margin, not hybrid/rule score. Model identity, score and vector must agree with evaluation.
 Readable contributions label missing-history placeholders; rule reasons stay separate.
 No new dependency, causal claim, persistence, operational action or production promotion.
+
+## Durable experimental evaluation and review
+
+[ADR-017](../adr/ADR-017-durable-experimental-evaluations-and-review.md) introduces a
+separate truthful envelope because legacy assessments require provenance unavailable for
+rules-only and legacy synthetic-model results. The opt-in API derives every feature and
+score from server-controlled facts and configuration; callers cannot upload vectors,
+scores, policies, explanations or models. Stored JSON pins the exact original context and
+is returned without recomputation.
+
+PostgreSQL append-only guards protect evaluations, experimental cases, transitions and
+feedback. Envelope triggers check identity, score/null semantics and experimental flags;
+review triggers serialize lifecycle changes and bind terminal feedback to its actor and
+transition. Scoped durable idempotency precedes writes and all evidence commits atomically.
+No result changes transaction state, executes a suggested action, admits profile history
+or authorizes model training. The feature remains disabled by default.
