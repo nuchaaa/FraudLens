@@ -193,3 +193,23 @@
   all three checkpoint files. Native model bytes remain outside Git under work/phase8/seed17.
 - Next: Phase 9 experimental risk/decision composition with explicit rule scoring/missingness;
   production behavioral validation and atomic evaluation provenance/storage remain open.
+
+## 2026-09-21 — Phase 9 experimental Risk + Decision
+
+- Inspected existing strategies, decision policy, rules and inference. Added pure composition
+  over saved contexts with configurable versioned weights/thresholds and full policy hash.
+- Rules-only and hybrid abstain on any required unavailable rule; partial reasons remain.
+  ML-only discloses missing evidence. No silent fallback, calibrated probability, executed
+  action, profile admission, model registration, HTTP endpoint or database write introduced.
+- Added offline CLI with input/manifest fingerprints, full feature/rule evidence and actual
+  clocks. Native seed17 replay passed and correctly abstained on missing prior activity.
+  Original model/data and benchmark metrics unchanged; no predictive metrics claimed.
+- Added 36 tests covering strategies, partial/cold histories, boundaries, stable reasons,
+  fingerprint changes, incompatible contracts, failures, clocks and native-model CLI replay.
+- Full PostgreSQL verification: 365 passed, no skips, 96% combined coverage, two existing
+  warnings. Ruff/format/strict mypy (89 files), builds and Compose config passed. Schema and
+  dependencies unchanged; prior clean audit retained. Docker runtime/remote CI unverified.
+- Documented ADR-015 formulas, limitations and future append-only nullable-provenance/atomic
+  evaluation design. Updated README, architecture, development and three checkpoint files.
+- Next: Phase 10 experimental explainability with exact output-space/additivity semantics.
+  Production validation and durable HTTP evaluation remain open; PostgreSQL remains running.

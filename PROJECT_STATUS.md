@@ -1,11 +1,18 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 8 — Explicitly experimental native inference complete.**
-Next work: **Phase 9 experimental Risk + Decision; production behavioral validation remains open.**
+Current checkpoint: **Phase 9 — Experimental Risk + Decision complete.**
+Next work: **Phase 10 experimental explainability; production behavioral validation remains open.**
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
 ## Completed capabilities
+
+- [x] Phase 9: pure rules-only, ML-only and hybrid composition on one captured context.
+- [x] Versioned configurable rule weights, hybrid weight and decision thresholds; full policy hash.
+- [x] Explicit null scores/actions for insufficient required rule evidence; no silent fallback.
+- [x] Stable rule reasons/evidence, input fingerprint, real model identity and replay clocks.
+- [x] Offline risk CLI, 36 new tests, ADR-015 and future atomic evaluation design boundary.
+- [x] Every suggested action remains experimental and unexecuted; no API/schema/dependency changes.
 
 - [x] Phase 8: native XGBoost FraudModel adapter and pure captured-context inference service.
 - [x] Independently pinned manifests, exact model/report hashes, feature order and runtime checks.
@@ -66,12 +73,12 @@ do not establish legitimacy, score risk or admit transactions.
 
 ## Verification — 2026-09-20–21
 
-- [x] **329 passed, 0 skipped, 2 upstream warnings; 95% combined backend/ML coverage.**
+- [x] **365 passed, 0 skipped, 2 upstream warnings; 96% combined backend/ML coverage.**
 - [x] Actual PostgreSQL 17.10, including prior-phase regressions.
 - [x] Migration upgrade/downgrade/metadata tests and upgrade with populated legacy profile data.
 - [x] Concurrent reader pins its version before another writer commits; old versions exclude
   backdated later admissions and retain their original timezone/window policy.
-- [x] Ruff lint/format and strict mypy pass (86 backend/ML source files).
+- [x] Ruff lint/format and strict mypy pass (89 backend/ML source files).
 - [x] Prior pip-audit found no known vulnerabilities; dependencies/lock unchanged, audit not rerun.
 - [x] Source/wheel builds and Compose configuration pass.
 - [x] Native database upgraded; head is 0004_profile_revisions, with 15 business tables.
@@ -114,6 +121,11 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Important files
 
+- backend/app/risk/service.py: policy, fingerprint, missingness and three-mode composition.
+- backend/adapters/risk/__main__.py: offline configurable policy/model replay.
+- tests/unit/test_risk_service.py; tests/ml/test_inference.py: domain and native CLI checks.
+- docs/adr/ADR-015-experimental-risk-and-decision.md: semantics and persistence design boundary.
+
 - backend/adapters/ml/{bundle,xgboost_model,__main__}.py: strict native loading and replay.
 - backend/app/fraud/service.py: framework-free scoped captured-context prediction.
 - ml/src/training/export_model.py: reviewed, pinned, one-time native conversion.
@@ -154,6 +166,23 @@ smoke also upgrades its default schema. Never substitute SQLite.
   unchanged Phase 3 workflow/security; docs/adr/ADR-008-transaction-api-and-service-credentials.md.
 
 ## Decisions and remaining limitations
+
+- risk-v1-experimental uses full positive rules-v1 weights (0.40, 0.15, 0.25, 0.10, 0.10)
+  in stable code order. Complete rule score is matched-weight sum / total-weight sum.
+  Default hybrid weight 0.5 and decision thresholds 0.35/0.65/0.85 are authored illustration,
+  not empirical calibration. Parameters plus missingness semantics have a canonical hash.
+- Any unavailable rule makes rule_score null. Rules-only/hybrid return INSUFFICIENT_EVIDENCE
+  with null score/level/action and all partial evidence; no subset renormalization or fallback.
+  ML-only may score explicit missing-history features while reporting unavailable evidence.
+- Suggested actions are never executed. No score/ALLOW suggestion authorizes admission or
+  confirms legitimacy. All results remain production_eligible=false and calibrated=false.
+- Offline replay retains vector, context identity/source/capture time, policy/rule evidence,
+  manifest pin and canonical context digest. Actual inference/evaluation timestamps change.
+  Existing native seed17 replay passed with the saved context; hybrid abstained correctly
+  because prior raw history is absent. No new predictive metrics or model tuning occurred.
+- ExperimentalRiskResult does not fabricate a persisted RiskAssessment. ADR-015 sketches
+  an append-only evaluation envelope with nullable/unknown provenance and atomic scoped
+  idempotent context/vector/evidence/result/audit/outbox/response writes for future work.
 
 - Native bundle: ../../work/phase8/seed17; original synthetic source remains unchanged.
   Manifest SHA256: 52ca9d5e967e39d8153e0a7b2b4ac593d647cb0046d3909dbb199cf05fd5d903.
@@ -203,7 +232,8 @@ smoke also upgrades its default schema. Never substitute SQLite.
 - Default inclusive thresholds: 10x admitted median and five prior transfers in five
   minutes. Both are uncalibrated. Full policy plus fingerprint accompany each report.
 - Missing history means NOT_EVALUATED; empty reasons are not a safe/fraud-free verdict.
-  No rule score, probability, automatic action or durable assessment is produced.
+  The rule engine itself produces no score; Phase 9 composes a separate heuristic index.
+  No calibrated probability, automatic action or durable assessment is produced.
 - Blacklist checks are deferred until an explicit authoritative versioned input exists.
 
 - Feature version behavior-v1 fixes 29 names/order, policy and imputation. Baseline minimum
@@ -250,15 +280,16 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Exact next tasks
 
-1. Read status/specification/runbook, ADR-014, ADR-010/011/012 and research protocol.
-2. Begin Phase 9 Risk + Decision: inspect existing risk strategies, decision policy, rule
-   outcomes and experimental inference service before adding new composition.
-3. Define versioned experimental rule-to-score mapping, missing-input/NOT_EVALUATED behavior,
-   explicit aggregation weights/thresholds and stable explanations; never imply calibration.
-4. Implement pure captured-context composition with deterministic replay, boundary, missingness,
-   compatibility and failure tests. Keep production_eligible=false and ULB separate.
-5. Design durable model provenance/context/vector/assessment persistence separately before
-   writes: legacy trained_at is unknown and transactions remain immutable RECEIVED records.
-6. No automatic admission, unprotected business writes or implicit production promotion.
-   Production behavioral validation and trusted adaptive workflows remain open.
+1. Read status/specification/runbook, ADR-014/015, ADR-010/011/012 and research protocol.
+2. Begin Phase 10 experimental Explainability: inspect existing explanation contracts,
+   captured vectors, native Booster and risk result before adding a compatible attribution path.
+3. Define exact model output space (raw margin versus uncalibrated model score), feature order,
+   base value/additivity tolerances, and clear separation from heuristic rule/hybrid scores.
+4. Validate supported XGBoost/SHAP or native TreeSHAP behavior from primary documentation;
+   add only necessary dependencies and audit any lockfile changes. No arbitrary pickle loads.
+5. Implement offline technical contributions and factual readable explanations on the same
+   pinned input/model, with parity/additivity/order/missingness/failure and replay tests.
+6. Keep model contributions distinct from rule reasons and causal claims. All outputs remain
+   experimental; no profile learning or unprotected API/database writes. Durable evaluation
+   provenance/registration/storage remains separate work per ADR-015.
 7. Run checks and update PROJECT_STATUS.md, NEXT_SESSION_PROMPT.md and SESSION_LOG.md.

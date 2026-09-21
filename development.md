@@ -308,3 +308,29 @@ there is no automatic decision or API model loading. Model version is derived fr
 native artifact hash. trained_at remains unknown; no database ModelVersion is fabricated.
 See ADR-014. The retained replay fixture comes from the original synthetic source, not an
 assumption about historical database commit times.
+
+## Phase 9 experimental Risk + Decision
+
+Run from the repository root using the same saved context and reviewed native bundle.
+Rules-only needs no ML installation; model modes use the optional ML group from Phase 8.
+
+```sh
+.venv/bin/python -m backend.adapters.risk \
+  --context ../../work/phase8/first-context.json --strategy rules_only
+.venv/bin/python -m backend.adapters.risk \
+  --context ../../work/phase8/first-context.json --strategy hybrid \
+  --bundle ../../work/phase8/seed17 \
+  --manifest-sha256 52ca9d5e967e39d8153e0a7b2b4ac593d647cb0046d3909dbb199cf05fd5d903
+```
+
+Use `--strategy ml_only` with the same model arguments for ML-only replay. All settings
+are visible through `--help`; examples are `--model-weight 0.5`, `--medium 0.35 --high 0.65
+--critical 0.85`, and five `--rule-weights` in ADR-015 order. Full policies and fingerprints
+accompany outputs. Preserve the original context: present-day recapture can change history.
+
+The first saved Phase 8 context has no prior raw activity: rules-only/hybrid correctly
+return INSUFFICIENT_EVIDENCE, null score/action and partial rule evidence. ML-only can emit
+an uncalibrated score while disclosing missing evidence. This is not a runtime failure.
+Invalid model/policy/artifact inputs instead fail nonzero without a successful report.
+All actions are suggestions, production eligibility remains false, and no data is written.
+See ADR-015 for formulas, missingness semantics and the future atomic persistence design.

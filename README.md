@@ -6,9 +6,9 @@ FraudLens is a research-oriented modular monolith investigating how banking frau
 detection can learn legitimate behavior changes without letting exceptional or
 fraudulent transactions corrupt a customer's normal baseline.
 
-**Status: Phase 8 experimental native inference checkpoint; not a deployable fraud product.**
+**Status: Phase 9 experimental Risk + Decision checkpoint; not a deployable fraud product.**
 Submission/retrieval, scoped service credentials, durable request replay and atomic
-audit/outbox storage are implemented on PostgreSQL. There is no risk evaluation,
+audit/outbox storage are implemented on PostgreSQL. There is no durable risk evaluation or
 HTTP model inference, human login or analyst console yet.
 Profile reads now expose robust short/long statistics, cold-start states and immutable
 revision selection. Profile admission remains closed pending trusted-history workflows.
@@ -21,6 +21,9 @@ from captured features; local rule replay is documented in the development runbo
 Experimental offline model replay now verifies native artifacts and exact feature contracts.
 It remains synthetic-only and does not load a model into HTTP routes. See
 [ADR-014](docs/adr/ADR-014-experimental-native-inference.md).
+Rules-only, ML-only and hybrid offline risk replay now retain complete policy/evidence.
+Missing required rule evidence produces no hybrid/rules-only score or action; all suggested
+actions remain experimental and unexecuted. See [ADR-015](docs/adr/ADR-015-experimental-risk-and-decision.md).
 See [PROJECT_STATUS.md](PROJECT_STATUS.md) for verified progress.
 
 ## Problem and behavioral fraud detection

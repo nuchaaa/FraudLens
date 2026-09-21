@@ -300,3 +300,56 @@ def test_invalid_report_structure(bundle: tuple[Path, str, XGBClassifier], kind:
     (path / "manifest.json").write_bytes(document)
     with pytest.raises(ArtifactError):
         ExperimentalXGBoostModel(path, expected_manifest_sha256=sha256(document))
+
+
+@pytest.mark.parametrize("strategy", ["ml_only", "hybrid"])
+def test_risk_cli_native_model_replay(
+    bundle: tuple[Path, str, XGBClassifier],
+    context: FeatureContext,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+    strategy: str,
+) -> None:
+    from backend.adapters.risk.__main__ import main as risk_main
+    from backend.app.features.engine import extract_features
+
+    path, pin, original = bundle
+    context_path = tmp_path / "risk-context.json"
+    write_context(context_path, context)
+    monkeypatch.setenv("FRAUDLENS_DATABASE_URL", "invalid")
+    monkeypatch.setenv("FRAUDLENS_API_PRINCIPALS", "invalid")
+    args = [
+        "--context",
+        str(context_path),
+        "--strategy",
+        strategy,
+        "--bundle",
+        str(path),
+        "--manifest-sha256",
+        pin,
+    ]
+    assert risk_main(args) == 0
+    result = json.loads(capsys.readouterr().out)
+    expected = float(original.predict_proba(np.asarray([extract_features(context).values]))[0, 1])
+    assert result["prediction"]["uncalibrated_score"] == pytest.approx(expected, abs=1e-7)
+    assert "probability" not in result["prediction"]
+    assert result["production_eligible"] is result["calibrated"] is False
+    assert result["synthetic_model_only"] is True
+    assert result["rule_score"] is None
+    assert result["context_source"] == "declared_offline"
+    assert len(result["context_sha256"]) == 64
+    if strategy == "hybrid":
+        assert result["score"] is result["suggested_action"] is None
+        assert result["status"] == "INSUFFICIENT_EVIDENCE"
+    else:
+        assert result["score"] == result["prediction"]["uncalibrated_score"]
+    assert risk_main(args) == 0
+    replay = json.loads(capsys.readouterr().out)
+    for item in (result, replay):
+        item.pop("evaluated_at")
+        item["prediction"].pop("timestamp")
+    assert result == replay
+    (path / "model.ubj").write_bytes(b"corrupt")
+    assert risk_main(args) == 1
+    assert capsys.readouterr().out == ""

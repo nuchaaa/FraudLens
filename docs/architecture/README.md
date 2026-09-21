@@ -8,13 +8,14 @@ flowchart TB
   Service[Synthetic transaction producer] --> API[FastAPI backend]
   Web --> API
   API --> DB[(PostgreSQL)]
-  Train[Offline training process — planned] --> Artifacts[Controlled model artifacts]
-  Artifacts --> API
+  Train[Offline experiments] --> Artifacts[Controlled model artifacts]
+  Artifacts --> Replay[Experimental offline risk replay]
+  Context[Captured input artifacts] --> Replay
 ```
 
 HTTP exposes liveness, authenticated synthetic customer enrollment and scoped
 transaction submission/retrieval and profile reads. PostgreSQL repositories and an atomic unit of
-work back the intake use cases. React, ML and evaluation integrations remain planned.
+work back the intake use cases. Experimental inference/risk composition runs offline; React and durable HTTP evaluation remain planned.
 
 ## Responsibility map
 
@@ -25,8 +26,8 @@ work back the intake use cases. React, ML and evaluation integrations remain pla
 | features | 29 ordered versioned features, immutable contexts and scoped capture | Pure extractor + artifact replay |
 | fraud | Prediction port and scoped experimental captured-context replay | Native XGBoost adapter; no HTTP inference |
 | rules | Versioned specifications, evidence, reason codes and missing-input outcomes | Pure engine + local replay |
-| risk | Assessment/reason values and aggregation strategies | Domain implemented |
-| decision | Configurable risk-to-action thresholds | Domain implemented |
+| risk | Versioned experimental composition, evidence and missingness | Pure service + offline three-strategy replay |
+| decision | Configurable risk-to-action thresholds | Experimental suggestions; no operational execution |
 | explainability | Human reasons and technical SHAP contributions | Planned |
 | cases | Strict lifecycle and immutable transition history | Domain implemented |
 | feedback | Analyst verdict and prediction provenance | Domain record implemented |
@@ -174,3 +175,12 @@ to independently trusted manifest hashes. The pure application service uses the 
 port and shared features; adapters handle native XGBoost loading. Offline conversion alone
 reads the reviewed legacy pickles. Unknown training times remain unknown; no database
 model registration or automatic transaction/profile lifecycle change is implied.
+
+## Experimental risk composition
+
+[ADR-015](../adr/ADR-015-experimental-risk-and-decision.md) composes existing rule/model
+ports and decision policy over one saved context. Full settings and a canonical fingerprint
+identify authored weights and thresholds. Rules-only/hybrid abstain on unavailable rules;
+ML-only discloses missing rule evidence. No fallback, case creation or operational action.
+Future durable evaluation requires an explicit nullable provenance/result design and atomic
+context/vector/evidence/assessment/audit/outbox/response persistence under scoped idempotency.
