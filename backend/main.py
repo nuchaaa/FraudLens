@@ -10,7 +10,7 @@ from backend.adapters.database.base import create_database_engine
 from backend.adapters.database.uow import create_unit_of_work
 from backend.adapters.evaluation import ExperimentalEvaluationEngine
 from backend.adapters.security import CredentialRegistry
-from backend.api import evaluations, health, learning, profiles, transactions
+from backend.api import console, evaluations, health, learning, profiles, transactions
 from backend.api.dependencies import ApiServices
 from backend.api.errors import install_error_handlers
 from backend.api.limits import BusinessRequestLimits
@@ -68,6 +68,7 @@ def create_app(
     install_error_handlers(app)
     app.include_router(health.router)
     app.include_router(transactions.router)
+    app.include_router(console.router)
     app.include_router(profiles.router)
     app.include_router(evaluations.router)
     app.include_router(learning.router)

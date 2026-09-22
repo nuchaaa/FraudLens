@@ -6,12 +6,13 @@ FraudLens is a research-oriented modular monolith investigating how banking frau
 detection can learn legitimate behavior changes without letting exceptional or
 fraudulent transactions corrupt a customer's normal baseline.
 
-**Status: Phase 13 local outbox delivery checkpoint; not a deployable fraud product.**
+**Status: Phase 14 analyst-console checkpoint; not a deployable fraud product.**
 Submission/retrieval, scoped service credentials, durable request replay and atomic
 audit/outbox storage are implemented on PostgreSQL. Opt-in experimental HTTP evaluation
 now atomically retains its exact captured facts, vector, policy, result, optional native-model
 explanation and response. Scoped analyst cases and immutable feedback history are durable.
-There is no production risk endpoint, human login or analyst console yet.
+There is no production risk endpoint or human login. The local analyst console uses
+operator-pasted, expiring service credentials and must not be exposed remotely.
 Profile reads now expose robust short/long statistics, cold-start states and immutable
 revision selection. Profile admission requires the separately authorized experimental workflow.
 The pure feature engine provides 29 ordered features with explicit missing-history indicators,
@@ -41,6 +42,9 @@ updates and corrections remain unavailable. See
 Phase 13 adds leased outbox delivery to a local deduplicating recording consumer, with
 bounded retries, crash recovery and visible dead letters. It performs no external actions
 and promises no exactly-once external delivery. See [ADR-019](docs/adr/ADR-019-outbox-delivery.md).
+Phase 14 adds a scoped React/TypeScript console over factual PostgreSQL summary/worklist
+projections, retained evaluation explanations, case review and profile reads. See
+[ADR-020](docs/adr/ADR-020-analyst-console-and-scoped-read-model.md).
 See [PROJECT_STATUS.md](PROJECT_STATUS.md) for verified progress.
 
 ## Problem and behavioral fraud detection
@@ -67,7 +71,7 @@ Compromised analyst confirmations are not solved by this initial gate.
 
 ```mermaid
 flowchart LR
-    UI[React console — planned] --> HTTP[FastAPI adapters]
+    UI[React analyst console] --> HTTP[FastAPI adapters]
     HTTP --> UC[Transaction and profile application use cases]
     UC --> D[Pure Python domain modules]
     UC --> P[Repository / ML / event ports]
@@ -84,8 +88,9 @@ to UTC. Customer-local hours use IANA timezones. See
 
 ## Screenshots
 
-No frontend exists yet. Actual analyst-console screenshots will be added in Phase
-18; no mock screenshot is presented as functioning software.
+The functioning console is available locally after authenticated setup. Recruiter-facing
+screenshots will be captured with deterministic synthetic demo data in Phase 16; no mock
+screen is presented as measured production behavior.
 
 ## Demo scenarios
 
@@ -96,11 +101,11 @@ scenarios and a live analyst demonstration are scheduled for Phase 16.
 
 ## Tech stack
 
-Current: Python 3.13, uv, FastAPI/Pydantic, SQLAlchemy 2, Alembic, PostgreSQL
-Compose configuration, pytest, Ruff, mypy and pip-audit.
+Current: Python 3.13, uv, FastAPI/Pydantic, SQLAlchemy 2, Alembic, PostgreSQL,
+React 19, TypeScript, Vite, Vitest, ESLint, Compose, pytest, Ruff, mypy and audits.
 
 Offline ML group: NumPy, scikit-learn and XGBoost.
-Planned: React/TypeScript/Vite and SHAP.
+Native XGBoost TreeSHAP-equivalent contribution support is implemented without a new SHAP dependency.
 
 ## ML methodology and metrics
 
@@ -152,10 +157,10 @@ docker compose up --build -d
 docker compose exec backend alembic upgrade head
 ```
 
-Migrations now create 21 business tables and database history protections, including
+Migrations create 21 business and two outbox-operational tables plus database history protections, including
 immutable profile revisions, evaluation/review records and profile-learning provenance.
-The initial foundation marker is preserved in migration history. Compose currently contains backend and PostgreSQL only; a
-frontend service will be added when the console exists. Use a dedicated local
+The initial foundation marker is preserved in migration history. Compose includes PostgreSQL,
+backend and the same-origin nginx frontend. Use a dedicated local
 database; never point migration/test commands at a real banking database.
 
 ## Testing
@@ -168,6 +173,7 @@ uv run --group ml pytest --cov=backend --cov-report=term-missing
 uv export --locked --format requirements-txt --no-emit-project --no-hashes > /tmp/fraudlens-requirements.txt
 uv run pip-audit --disable-pip --no-deps -r /tmp/fraudlens-requirements.txt
 uv build
+cd frontend && npm ci && npm run lint && npm test && npm run build
 ```
 
 PostgreSQL tests skip explicitly unless `TEST_DATABASE_URL` points to a disposable
@@ -197,8 +203,8 @@ This checkpoint verifies authenticated intake, experimental evaluation/review an
 invariants; it does not establish fraud-detection accuracy or deployment security. Robust
 profile summaries, bounded device/recipient activity features, deterministic rules and a
 synthetic-only reviewed native model exist. Recipient account age and authoritative external
-history are unavailable. Thresholds and scores are uncalibrated. Outbox storage and delivery
-metadata exist, but background dispatch and consumer deduplication remain unimplemented.
+history are unavailable. Thresholds and scores are uncalibrated. Outbox storage, leased local
+delivery and receipt deduplication exist; no external destination or continuous daemon exists.
 Feedback is durable but does not authorize profile learning. See the research protocol for
 baseline comparisons and threats to validity.
 
@@ -213,7 +219,8 @@ baseline comparisons and threats to validity.
    production behavioral validation remains open.
 7. Durable experimental evaluation, cases, feedback and conservative profile learning —
    implemented; weights and corrections remain deferred. Leased local outbox delivery is implemented.
-8. Analyst console, security review, deterministic demos and research experiments.
+8. Local analyst console — implemented; human authentication/security review remains Phase 15.
+9. Deterministic demos and research experiments.
 
 ## Continuation
 

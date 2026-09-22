@@ -12,6 +12,7 @@ from backend.adapters.database.assessments import (
     PostgresRuleRepository,
 )
 from backend.adapters.database.cases import PostgresFraudCaseRepository
+from backend.adapters.database.console import PostgresConsoleRepository
 from backend.adapters.database.evaluations import (
     PostgresEvaluationRepository,
     PostgresEvaluationReviewRepository,
@@ -46,6 +47,7 @@ class PostgresUnitOfWork:
     def __init__(self, engine: Engine) -> None:
         self._session = Session(engine, autoflush=False, expire_on_commit=False, autobegin=False)
         self._entered = False
+        self.console = PostgresConsoleRepository(self._session)
         self.evaluations = PostgresEvaluationRepository(self._session)
         self.reviews = PostgresEvaluationReviewRepository(self._session)
         self.learning = PostgresProfileLearningRepository(self._session)

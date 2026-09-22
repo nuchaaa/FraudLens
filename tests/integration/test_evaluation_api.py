@@ -315,6 +315,62 @@ def test_concurrent_reviewer_version_conflict(api):
     assert len(doc["feedback"]) == 1
 
 
+def test_console_summary_worklist_scope_and_cursor(api, db_engine):
+    client, tx, _ = api
+    evaluated = evaluate(client, tx)
+    opened = case(client, evaluated)
+
+    summary = client.get("/api/v1/console/summary", headers=headers("analyst"))
+    assert summary.status_code == 200
+    assert summary.headers["cache-control"] == "no-store"
+    assert (
+        summary.json()
+        | {
+            "transactions": 1,
+            "evaluated_transactions": 1,
+            "high_risk_transactions": 0,
+            "cases_awaiting_review": 1,
+            "confirmed_fraud_cases": 0,
+            "suspicious_amount": "0.00",
+            "production_model_status": "NO_PRODUCTION_MODEL",
+            "experimental_results_calibrated": False,
+        }
+        == summary.json()
+    )
+
+    other = replace(tx, transaction_id=uuid4(), timestamp=tx.timestamp - timedelta(days=1))
+    with PostgresUnitOfWork(db_engine) as uow:
+        uow.transactions.add(other)
+        uow.commit()
+    first = client.get("/api/v1/console/worklist?limit=1", headers=headers("analyst"))
+    assert first.status_code == 200 and first.headers["cache-control"] == "no-store"
+    first_doc = first.json()
+    assert first_doc["items"][0]["transaction"]["transaction_id"] == str(tx.transaction_id)
+    assert first_doc["items"][0]["evaluation_id"] == evaluated.json()["evaluation_id"]
+    assert first_doc["items"][0]["case_id"] == opened.json()["case_id"]
+    assert first_doc["items"][0]["case_state"] == "OPEN"
+    assert first_doc["items"][0]["calibrated"] is False
+    second = client.get(
+        "/api/v1/console/worklist",
+        params={"limit": 1, "cursor": first_doc["next_cursor"]},
+        headers=headers("analyst"),
+    )
+    assert second.json()["items"][0]["transaction"]["transaction_id"] == str(other.transaction_id)
+    assert second.json()["next_cursor"] is None
+
+    assert client.get("/api/v1/console/worklist", headers=headers("outsider")).json() == {
+        "items": [],
+        "next_cursor": None,
+    }
+    assert client.get("/api/v1/console/summary").status_code == 401
+    assert (
+        client.get(
+            "/api/v1/console/worklist?cursor=not-a-cursor", headers=headers("analyst")
+        ).status_code
+        == 422
+    )
+
+
 @pytest.mark.parametrize(
     "table,column",
     [

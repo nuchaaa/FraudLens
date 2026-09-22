@@ -5,6 +5,7 @@ from uuid import UUID
 
 from backend.app.audit.entities import AuditEvent
 from backend.app.cases.entities import FraudCase
+from backend.app.console.contracts import ConsoleRepository
 from backend.app.evaluation.contracts import EvaluationRecord, ReviewFeedback
 from backend.app.feedback.entities import AnalystDecision
 from backend.app.fraud.ports import ModelVersion
@@ -166,3 +167,5 @@ class UnitOfWork(Protocol):
     ) -> None: ...
     def commit(self) -> None: ...
     def rollback(self) -> None: ...
+    @property
+    def console(self) -> ConsoleRepository: ...

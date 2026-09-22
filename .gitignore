@@ -14,6 +14,7 @@ build/
 !.env.example
 .DS_Store
 node_modules/
+*.tsbuildinfo
 ml/models/*
 !ml/models/README.md
 work/

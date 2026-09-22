@@ -4,7 +4,7 @@
 
 ```mermaid
 flowchart TB
-  Analyst[Synthetic bank analyst] --> Web[React console — planned]
+  Analyst[Synthetic bank analyst] --> Web[Local React console]
   Service[Synthetic transaction producer] --> API[FastAPI backend]
   Web --> API
   API --> DB[(PostgreSQL)]
@@ -17,9 +17,9 @@ flowchart TB
 ```
 
 HTTP exposes liveness, authenticated synthetic customer enrollment, scoped transaction
-submission/retrieval, profile reads and disabled-by-default experimental evaluation/review.
-PostgreSQL repositories and an atomic unit of work back the workflows. React, human login
-and production risk evaluation remain planned.
+submission/retrieval, profile reads, console projections and disabled-by-default experimental
+evaluation/review. PostgreSQL repositories and an atomic unit of work back the workflows.
+The React console is local-only; human login and production risk evaluation remain planned.
 
 ## Responsibility map
 
@@ -37,6 +37,7 @@ and production risk evaluation remain planned.
 | cases | Strict lifecycle and immutable transition history | Scoped experimental review API + database guards |
 | feedback | Analyst verdict and actor provenance | Append-only records; no automatic learning |
 | profile learning | Independent authorization, bootstrap and ordinary update orchestration | Opt-in API + append-only PostgreSQL evidence |
+| console | Scoped summary/worklist read model and analyst presentation | Local React UI + PostgreSQL projection adapter |
 | audit | Append-only action record | Domain + database append-only guards |
 | shared | Validation, ports, event envelope and outbox record | Contracts implemented |
 
@@ -71,6 +72,11 @@ worker through a framework-free DeliveryQueue port. PostgreSQL delivery state us
 SKIP LOCKED claims, database-clock leases and UUID fencing, capped retries and dead letters.
 The sole consumer commits an immutable deduplicated local receipt before acknowledgement.
 No external delivery, fraud action or automatic learning is performed. See ADR-019.
+
+Console queries are read-only through a framework-free `ConsoleRepository` port. The PostgreSQL
+adapter applies customer scope before aggregation/pagination and joins each transaction to the
+latest retained evaluation/case. React consumes those factual projections and existing detail
+routes; it performs no risk calculation. Credentials stay in browser memory only. See ADR-020.
 
 ## Profile semantics
 

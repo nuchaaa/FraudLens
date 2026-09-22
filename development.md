@@ -468,3 +468,46 @@ receipt commit may redeliver the event; the consumer's composite identity dedupl
 The migration backfills queue state for older events without inventing receipts for past
 publication. Downgrade deletes operational leases/receipt history: use it only in disposable
 tests, never as a restart procedure. See ADR-019 for the consumer contract and limitations.
+
+## Phase 14 analyst console
+
+The console requires the backend, PostgreSQL and an expiring analyst/admin credential from
+the “Authenticated synthetic API” section above. Keep the backend terminal running, then:
+
+```sh
+cd frontend
+npm ci
+npm run dev
+```
+
+Open `http://127.0.0.1:5173`, paste the raw short-lived token into the connection screen,
+and use synthetic data only. Vite proxies `/api` to `127.0.0.1:8000`. The credential stays
+only in React memory and clears on refresh; do not put it in source, a URL, browser storage
+or screenshots. The UI has no login/session endpoint and is not approved for remote use.
+
+Authenticated read models:
+
+- `GET /api/v1/console/summary` returns exact scope-filtered counts and UTC event-time semantics.
+- `GET /api/v1/console/worklist?limit=50&cursor=...` returns descending keyset pages joined
+  to the latest retained experimental evaluation and case state.
+
+Both routes return `Cache-Control: no-store`. An empty scope returns empty data. Null risk
+fields mean no evaluation or insufficient evidence. The console labels every result as
+experimental, uncalibrated and production-ineligible and never changes RECEIVED transaction
+status. Review buttons call the existing versioned/idempotent API after a confirmation dialog.
+Profile learning remains an independent admin workflow and is intentionally absent from UI.
+
+For the production frontend bundle and checks:
+
+```sh
+cd frontend
+npm run lint
+npm test
+npm run build
+npm audit --audit-level=high
+```
+
+`docker compose up --build` now serves the console on `127.0.0.1:5173` through nginx and
+the API on `127.0.0.1:8000`. Apply Alembic migrations separately as documented above.
+Docker execution remains unverified on this machine because its engine is unavailable.
+See ADR-020 for metric semantics and remaining authentication/listing limitations.

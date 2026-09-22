@@ -1,11 +1,19 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 13 — Leased local outbox delivery complete.**
-Next work: **Phase 14 — Analyst frontend; production behavioral validation remains open.**
+Current checkpoint: **Phase 14 — Local analyst console complete.**
+Next work: **Phase 15 — Human authentication and security hardening; production behavioral validation remains open.**
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
 ## Completed capabilities
+
+- [x] Phase 14: responsive React 19/TypeScript/Vite local analyst console with six sections.
+- [x] Exact scoped PostgreSQL summary and keyset-paginated transaction/evaluation/case worklist.
+- [x] Retained explanations, profile reads and explicit-confirmation versioned case review.
+- [x] In-memory-only pasted credential; no bundled token, URL/browser storage or external assets.
+- [x] Loading/empty/error states, responsive/accessibility basics, nginx CSP and same-origin proxy.
+- [x] Frontend ESLint/Vitest/type/build/audit, Compose/CI integration, visual browser inspection.
+- [x] ADR-020; no schema migration, model promotion, fabricated metric or dependency change to Python.
 
 - [x] Phase 13: bounded worker through framework-free delivery ports; explicit local operator CLI.
 - [x] PostgreSQL SKIP LOCKED claims, database-clock leases, UUID fencing and crash recovery.
@@ -102,14 +110,16 @@ do not establish legitimacy, score risk or admit transactions.
 - [x] Scope, cold-start, cutoff, currency, DST, revision, rollback, concurrency and upgrade tests.
 - [x] ADR-009 and updated README, architecture, development and continuation files.
 
-## Verification — 2026-09-20–21
+## Verification — 2026-09-20–22
 
-- [x] **479 passed, 0 skipped, 2 upstream warnings; 94% combined backend/ML coverage.**
+- [x] **480 passed, 0 skipped, 2 upstream warnings; 94% combined backend/ML coverage.**
 - [x] Actual PostgreSQL 17.10, including prior-phase regressions.
 - [x] Migration upgrade/downgrade/metadata tests and upgrade with populated legacy profile data.
 - [x] Concurrent reader pins its version before another writer commits; old versions exclude
   backdated later admissions and retain their original timezone/window policy.
-- [x] Ruff lint/format and strict mypy pass (103 backend/ML source files).
+- [x] Ruff lint/format and strict mypy pass (108 backend/ML source files).
+- [x] Frontend ESLint, 2 Vitest tests, TypeScript production build and npm audit pass.
+- [x] Browser visual inspection passed for the responsive connection screen; no external assets.
 - [x] Prior pip-audit found no known vulnerabilities; dependencies/lock unchanged, audit not rerun.
 - [x] Source/wheel builds and Compose configuration pass.
 - [x] Native database upgraded; head is 0007_outbox_delivery, with 23 non-Alembic tables.
@@ -152,6 +162,13 @@ Tests require a disposable *_test database and use a generated schema; the migra
 smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Important files
+
+- frontend/src/{App,pages,api,types,styles}.tsx: local console, read views and review controls.
+- frontend/{package.json,Dockerfile,nginx.conf}: locked toolchain, static serving and same-origin proxy.
+- backend/app/console/{contracts,service}.py: framework-free scoped console read boundary.
+- backend/adapters/database/console.py; backend/api/console.py: exact summary and worklist endpoints.
+- tests/integration/test_evaluation_api.py; frontend/src/App.test.tsx: scope/cursor/UI tests.
+- docs/adr/ADR-020-analyst-console-and-scoped-read-model.md.
 
 - backend/app/shared/delivery.py: queue port, policy, claim and bounded dispatcher.
 - backend/adapters/database/delivery.py: PostgreSQL leases, retries, status and local consumer.
@@ -382,7 +399,8 @@ smoke also upgrades its default schema. Never substitute SQLite.
 - Cold start now has conservative multi-review bootstrap. Low-weight admission,
   compromised/colluding confirmations and corrections/retractions remain research debt.
 - Transactions remain immutable RECEIVED records. Experimental evaluation/review is separate
-  derived append-only state; no production risk API, human login or frontend exists.
+  derived append-only state; no production risk API or human login exists. The local console
+  uses operator-pasted service credentials and is not approved for remote exposure.
 - External outbox destinations/audited redrive, idempotency retention, centralized revocation,
   rate limits, database grants and deployment hardening remain unfinished.
 - Service credentials are configuration snapshots; rotate while retaining principal UUID
@@ -390,15 +408,16 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Exact next tasks
 
-1. Read status/specification/runbook and ADR-017/018/019, then inspect existing API response contracts.
-2. Begin Phase 14 React/TypeScript/Vite analyst console. First inventory endpoint gaps: current APIs
-   focus on individual records; scoped paginated list/read projections may be needed for real screens.
-3. Design local service-credential handling without bundled secrets or persistent browser tokens.
-   Human login remains Phase 15; preserve authentication, scope and experimental opt-in.
-4. Show real retained transaction/evaluation/case/profile data with loading/empty/error states.
-   Keep absent scores and uncalibrated experimental flags explicit; never invent dashboard metrics.
-5. Preserve review/learning separation, explicit confirmation and idempotency for console writes.
-   Intake and verdict alone never authorize learning; suggested actions stay unexecuted.
-6. Keep weights/corrections, external consumers/redrive, deployment hardening and research validation
-   separate. Outbox is at least once with bounded retries, no ordering or external exactly-once promise.
-7. Run relevant frontend and PostgreSQL checks; update all three checkpoint files before stopping.
+1. Read status/specification/runbook and ADR-020/008/017/018 before changing identity boundaries.
+2. Begin Phase 15 with a written threat model and human-session design. Define account lifecycle,
+   Argon2id password storage, secure session/JWT rotation/revocation, CSRF and browser boundaries.
+3. Keep service principals for machine intake and separate human analyst/admin identities. Preserve
+   customer scope, reviewer/admin separation and authorization-first durable idempotency replay.
+4. Add PostgreSQL identity/session schema, least-privilege application workflows, audit events and
+   brute-force/rate-limit policy before replacing the console's pasted-token connection screen.
+5. Test expiry/revocation, role/scope changes, credential rotation, CSRF, concurrent sessions,
+   inactive accounts, separation of duties and secret non-disclosure on PostgreSQL and HTTP.
+6. Do not expose remotely until TLS/proxy headers, runtime database grants, CSP/cookie settings,
+   deployment secrets and security review are complete. Never weaken experimental/profile gates.
+7. Keep deterministic demo seeding (Phase 16), research experiments, corrections/weights and
+   external delivery/redrive separate. Update all three checkpoint files before stopping.

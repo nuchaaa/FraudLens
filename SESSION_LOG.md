@@ -313,3 +313,29 @@
   unverified. No research metrics or production validation added.
 - Updated README, architecture/runbook and all checkpoint files. Next: Phase 14 analyst frontend,
   beginning with real scoped API contract inventory and safe local credential handling.
+
+## 2026-09-22 — Phase 14 local analyst console
+
+- Added ADR-020 and a framework-free console read-model port. PostgreSQL supplies an exact,
+  customer-scoped summary and descending keyset worklist joining immutable transactions to their
+  latest retained experimental evaluation/case. Empty scope returns empty data; reads are no-store.
+- Summary semantics are explicit: UTC transaction event time, latest retained evaluation,
+  HIGH/CRITICAL suspicious amount and retained case feedback. It reports no production model and
+  no calibration instead of inventing model health, scores or predictive metrics.
+- Built a responsive React 19/TypeScript/Vite console with overview, transactions, cases,
+  customers, models and system sections. It renders retained explanations/profile statistics,
+  missing evidence and immutable RECEIVED status. Review writes retain expected-version and fresh
+  idempotency protections behind an explicit confirmation dialog.
+- The raw credential is operator-pasted and held in React memory only; refresh/disconnect clears it.
+  No source/URL/localStorage/sessionStorage secret, default credential, external font or mock data.
+  Human login remains Phase 15 and the console is local-only.
+- Added nginx static serving/same-origin API proxy with restrictive CSP, frontend Docker/Compose
+  service and frontend CI job. Docker runtime remains unverified because the engine is unavailable.
+- Verified 480 backend/ML tests on PostgreSQL, zero skips, 94% coverage and two unchanged upstream
+  warnings. Ruff/format and strict mypy (108 sources), Python package build and Compose config pass.
+  Frontend ESLint, 2 Vitest tests, TypeScript/Vite production build and npm audit pass with zero
+  known vulnerabilities. Responsive connection screen received a real browser visual inspection.
+- Schema remains 0007_outbox_delivery (21 business + 2 operational tables). Python dependencies,
+  model artifacts and predictive metrics are unchanged. Remote CI remains unverified.
+- Next: Phase 15 human authentication and security hardening, beginning with a threat model and
+  session/revocation design before any remote exposure.
