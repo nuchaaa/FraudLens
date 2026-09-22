@@ -511,3 +511,18 @@ npm audit --audit-level=high
 the API on `127.0.0.1:8000`. Apply Alembic migrations separately as documented above.
 Docker execution remains unverified on this machine because its engine is unavailable.
 See ADR-020 for metric semantics and remaining authentication/listing limitations.
+
+## Phase 15 foundation (in progress)
+
+The password adapter and pure human-account/session policy are implemented and tested,
+but no human account provisioning or login endpoint exists yet. Continue using the
+service credential setup above. Run `uv sync --locked --group ml` after updating to
+install the new Argon2 dependency. The focused check is:
+
+```sh
+.venv/bin/pytest tests/unit/test_identity_policy.py tests/unit/test_architecture.py
+```
+
+See `docs/security/threat-model.md` and ADR-021 for the proposed PostgreSQL/session,
+CSRF, provisioning and deployment requirements. Do not treat pure policy tests as
+evidence that HTTP refresh races, database revocation or browser security are complete.

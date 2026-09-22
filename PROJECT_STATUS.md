@@ -1,11 +1,20 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 14 — Local analyst console complete.**
-Next work: **Phase 15 — Human authentication and security hardening; production behavioral validation remains open.**
+Current checkpoint: **Phase 15 in progress — human identity/security foundation tested. Phase 14 remains complete.**
+Next work: **PostgreSQL human accounts/session workflows, HTTP cookies/CSRF and frontend login. Production behavioral validation remains open.**
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
 ## Completed capabilities
+
+- [x] Phase 15 foundation: threat model and proposed ADR-021 human identity/session design.
+- [x] Pure human-account scope and session expiry/rotation/revocation policies.
+- [x] Explicit Argon2id password adapter, bounded Unicode inputs and secret-safe repr.
+- [x] 32 new tests; full regression: 512 passed, zero skipped, 94% combined coverage.
+- [ ] PostgreSQL identity/session/consumed-refresh/throttle persistence and atomic audit.
+- [ ] Provisioning/recovery CLI, login/refresh/logout/session HTTP, cookies and CSRF.
+- [ ] Frontend human login, concurrent HTTP tests, runtime DB grants/deployment hardening.
+- Existing console still uses service credentials. No human authentication is enabled yet.
 
 - [x] Phase 14: responsive React 19/TypeScript/Vite local analyst console with six sections.
 - [x] Exact scoped PostgreSQL summary and keyset-paginated transaction/evaluation/case worklist.
@@ -112,15 +121,16 @@ do not establish legitimacy, score risk or admit transactions.
 
 ## Verification — 2026-09-20–22
 
-- [x] **480 passed, 0 skipped, 2 upstream warnings; 94% combined backend/ML coverage.**
+- [x] **512 passed, 0 skipped, 2 upstream warnings; 94% combined backend/ML coverage.**
 - [x] Actual PostgreSQL 17.10, including prior-phase regressions.
 - [x] Migration upgrade/downgrade/metadata tests and upgrade with populated legacy profile data.
 - [x] Concurrent reader pins its version before another writer commits; old versions exclude
   backdated later admissions and retain their original timezone/window policy.
-- [x] Ruff lint/format and strict mypy pass (108 backend/ML source files).
+- [x] Ruff lint/format and strict mypy pass (111 backend/ML source files).
 - [x] Frontend ESLint, 2 Vitest tests, TypeScript production build and npm audit pass.
 - [x] Browser visual inspection passed for the responsive connection screen; no external assets.
-- [x] Prior pip-audit found no known vulnerabilities; dependencies/lock unchanged, audit not rerun.
+- [x] Phase 15 locked dependency audit: no known vulnerabilities, including the ML/dev groups.
+  Added argon2-cffi 25.1.0 and locked bindings/cffi/pycparser; existing versions unchanged.
 - [x] Source/wheel builds and Compose configuration pass.
 - [x] Native database upgraded; head is 0007_outbox_delivery, with 23 non-Alembic tables.
 - [x] Actual worker CLI subprocess recorded/acknowledged an event and reported status in a disposable schema.
@@ -162,6 +172,10 @@ Tests require a disposable *_test database and use a generated schema; the migra
 smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Important files
+
+- backend/app/identity/policy.py: pure account/session policy; not HTTP authentication.
+- backend/adapters/passwords.py; tests/unit/test_identity_policy.py: Argon2id and policy tests.
+- docs/security/threat-model.md; docs/adr/ADR-021-human-identity-and-sessions.md: design and release gates.
 
 - frontend/src/{App,pages,api,types,styles}.tsx: local console, read views and review controls.
 - frontend/{package.json,Dockerfile,nginx.conf}: locked toolchain, static serving and same-origin proxy.
@@ -408,9 +422,9 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Exact next tasks
 
-1. Read status/specification/runbook and ADR-020/008/017/018 before changing identity boundaries.
-2. Begin Phase 15 with a written threat model and human-session design. Define account lifecycle,
-   Argon2id password storage, secure session/JWT rotation/revocation, CSRF and browser boundaries.
+1. Read status/specification/runbook and ADR-021/threat-model plus ADR-020/008/017/018.
+2. Continue Phase 15 from its tested pure policy and password adapter. Do not redo the foundation.
+   ADR-021 is proposed: HTTP/persistence integration must satisfy its security requirements.
 3. Keep service principals for machine intake and separate human analyst/admin identities. Preserve
    customer scope, reviewer/admin separation and authorization-first durable idempotency replay.
 4. Add PostgreSQL identity/session schema, least-privilege application workflows, audit events and

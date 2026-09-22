@@ -339,3 +339,19 @@
   model artifacts and predictive metrics are unchanged. Remote CI remains unverified.
 - Next: Phase 15 human authentication and security hardening, beginning with a threat model and
   session/revocation design before any remote exposure.
+
+## Phase 15 foundation — 2026-09-22
+
+- Added a threat model and proposed ADR-021 for separate human identities, revocable
+  opaque sessions, refresh reuse detection, cookie/CSRF boundaries, operator recovery,
+  shared throttling and outstanding deployment controls.
+- Implemented framework-free human-account and session lifecycle policy, including
+  exclusive expiry boundaries, absolute lifetime, authorization versions and revocation.
+- Added explicit Argon2id adapter (64 MiB, t=3, p=4), exact bounded Unicode password
+  handling and secret-safe token-container repr. Locked Argon2 and its dependencies.
+- 32 new tests; full PostgreSQL/ML suite: 512 passed, zero skipped, 94% coverage,
+  two unchanged upstream warnings. Ruff/format, strict mypy (111 files), builds passed.
+- Audit of all locked dependency groups found no known vulnerabilities.
+- Phase 15 remains IN PROGRESS. No human HTTP authentication or persistence is enabled;
+  service credential startup and console behavior remain unchanged. Next: atomic
+  PostgreSQL accounts/sessions/throttle, operator provisioning and HTTP/browser wiring.
