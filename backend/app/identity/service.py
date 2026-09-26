@@ -153,6 +153,7 @@ class IdentityService:
         encoded = self._passwords.hash(password) if password is not None else None
         now = datetime.now(UTC)
         with self._uow_factory() as uow:
+            uow.identity.lock_account(account_id)
             current = uow.identity.account(account_id, lock=True)
             if current is None:
                 raise ValueError("account not found")
@@ -198,12 +199,16 @@ class IdentityService:
             valid = self._passwords.verify(encoded, password)
             if not valid or current is None or not current.account.enabled_at(now):
                 raise AuthenticationDenied("invalid credentials")
-            # Account row lock linearizes login with operator revocation.
-            locked = uow.identity.account(current.account.account_id, lock=True)
+            # A shared advisory lock linearizes login with operator revocation
+            # without granting the API UPDATE on human_accounts.
+            uow.identity.lock_account(current.account.account_id)
+            locked = uow.identity.account(current.account.account_id)
+            now = datetime.now(UTC)
             if (
                 locked is None
                 or not locked.account.enabled_at(now)
                 or locked.account != current.account
+                or locked.password_hash != current.password_hash
             ):
                 raise AuthenticationDenied("invalid credentials")
             issued = _new_secrets()

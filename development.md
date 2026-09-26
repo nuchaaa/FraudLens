@@ -554,9 +554,16 @@ Focused check:
 .venv/bin/pytest tests/unit/test_identity_policy.py tests/integration/test_human_auth.py
 ```
 
-See `docs/security/threat-model.md` and ADR-021 for security controls and remaining
-remote-deployment gates, including separate runtime database grants, TLS/proxy setup,
-edge request limits, MFA/recovery review and external security assessment.
+For a **new dedicated PostgreSQL database/schema**, the four-role grant plan and
+role-verification command are documented in
+`docs/security/deployment-gates.md` and ADR-023. The integration test creates and
+drops its own `*_test` database with real separate logins; it does not alter the
+existing public-schema local demo. Production API/worker/operator processes fail
+closed if they connect with owner or unexpected credentials. Do not apply those
+grants to this existing `fraudlens_test` demo schema.
+
+See `docs/security/threat-model.md` and ADR-021 for remaining remote-deployment
+gates: actual TLS/proxy and edge behavior, MFA/recovery assurance and external review.
 
 ## Supplemental sequence evidence
 

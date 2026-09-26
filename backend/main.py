@@ -9,6 +9,7 @@ from sqlalchemy.engine import Engine
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from backend.adapters.database.base import create_database_engine
+from backend.adapters.database.grants import verify_runtime_role
 from backend.adapters.database.uow import create_unit_of_work
 from backend.adapters.evaluation import ExperimentalEvaluationEngine
 from backend.adapters.passwords import Argon2Passwords
@@ -66,26 +67,31 @@ def create_app(
             engine = create_database_engine(config.database_url.get_secret_value())
             database = engine
             factory = partial(create_unit_of_work, database)
-        identity = (
-            IdentityService(
-                factory, Argon2Passwords(), service_principal_ids=credentials.principal_ids
-            )
-            if config.human_auth_enabled and factory is not None
-            else None
-        )
-        if identity is not None:
-            identity.ensure_no_collisions()
-        app.state.services = ApiServices(
-            credentials,
-            factory,
-            config.experimental_enabled,
-            evaluation_engine,
-            identity,
-            config.human_origin,
-            not config.human_local_insecure,
-        )
-        logging.getLogger("fraudlens").info("FraudLens transaction API started")
         try:
+            if config.environment == "production" and uow_factory is None:
+                if engine is None:
+                    raise ValueError("production API requires its own PostgreSQL runtime login")
+                with engine.connect() as connection:
+                    verify_runtime_role(connection, "api")
+            identity = (
+                IdentityService(
+                    factory, Argon2Passwords(), service_principal_ids=credentials.principal_ids
+                )
+                if config.human_auth_enabled and factory is not None
+                else None
+            )
+            if identity is not None:
+                identity.ensure_no_collisions()
+            app.state.services = ApiServices(
+                credentials,
+                factory,
+                config.experimental_enabled,
+                evaluation_engine,
+                identity,
+                config.human_origin,
+                not config.human_local_insecure,
+            )
+            logging.getLogger("fraudlens").info("FraudLens transaction API started")
             yield
         finally:
             if engine is not None:

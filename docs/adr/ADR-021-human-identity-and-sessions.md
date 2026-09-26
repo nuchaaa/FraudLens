@@ -1,7 +1,8 @@
 # ADR-021: Human identities and revocable browser sessions
 
 Status: accepted for the local Phase 15 human-session checkpoint, 2026-09-26.
-Remote deployment and runtime least-privilege verification remain open.
+Local database role grants are separately verified in ADR-023. Actual remote
+deployment verification remains open.
 
 ## Context
 

@@ -6,7 +6,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from functools import partial
-from threading import Barrier, Lock
+from threading import Barrier, Event, Lock, current_thread, main_thread
 from uuid import uuid4
 
 import pytest
@@ -49,6 +49,31 @@ def _login(client: TestClient, login: str = "analyst-one"):
         headers={"Origin": ORIGIN},
         json={"login": login, "password": PASSWORD},
     )
+
+
+def test_password_recovery_during_login_rejects_old_password(db_engine, monkeypatch):
+    identity = IdentityService(partial(create_unit_of_work, db_engine), Argon2Passwords())
+    account_id = identity.provision(
+        "recovery-race", PASSWORD, Role.ADMIN, frozenset(), operator_id=uuid4()
+    )
+    reached_lock, continue_login = Event(), Event()
+    original = PostgresIdentityRepository.lock_account
+
+    def pause_login(self, identifier):
+        if current_thread() is not main_thread():
+            reached_lock.set()
+            assert continue_login.wait(timeout=5)
+        original(self, identifier)
+
+    monkeypatch.setattr(PostgresIdentityRepository, "lock_account", pause_login)
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        attempt = pool.submit(identity.login, "recovery-race", PASSWORD)
+        assert reached_lock.wait(timeout=5)
+        identity.change(account_id, operator_id=uuid4(), password="A different recovery password")
+        continue_login.set()
+        with pytest.raises(AuthenticationDenied):
+            attempt.result(timeout=5)
+    assert identity.login("recovery-race", "A different recovery password")
 
 
 def test_login_scope_csrf_rotation_reuse_and_logout(browser, db_engine):

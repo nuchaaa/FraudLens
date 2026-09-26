@@ -6,6 +6,7 @@ from functools import partial
 from uuid import UUID
 
 from backend.adapters.database.base import create_database_engine
+from backend.adapters.database.grants import verify_runtime_role
 from backend.adapters.database.uow import create_unit_of_work
 from backend.adapters.passwords import Argon2Passwords
 from backend.adapters.security import CredentialRegistry
@@ -41,6 +42,9 @@ def main() -> None:
     )
     engine = create_database_engine(settings.database_url.get_secret_value())
     try:
+        if settings.environment == "production":
+            with engine.connect() as connection:
+                verify_runtime_role(connection, "operator")
         service = IdentityService(
             partial(create_unit_of_work, engine),
             Argon2Passwords(),

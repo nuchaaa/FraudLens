@@ -1,7 +1,7 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 15 in progress — local human identity/session checkpoint and supplemental sequence evidence complete. Phase 14 remains complete.**
-Next work: **Runtime database grants, TLS/proxy and edge controls, MFA/recovery assurance and external security review. Production behavioral validation remains open.**
+Current checkpoint: **Phase 15 in progress — local human sessions and dedicated PostgreSQL role boundary verified. Phase 14 and supplemental sequence evidence remain complete.**
+Next work: **Actual deployment TLS/proxy and edge verification, MFA/recovery implementation and independent security review. Production behavioral validation remains open.**
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
@@ -17,15 +17,22 @@ do not establish legitimacy, score risk or admit transactions.
   CSRF and revocable HttpOnly cookies; machine bearer access remains separate.
 - [x] Console human login with in-memory CSRF, session restoration and serialized refresh;
   pasted service-token screen removed.
+- [x] Dedicated-database grant plan separates migrator, API, worker and operator logins;
+  production processes verify effective privileges and reject owner credentials.
+- [x] PostgreSQL role test proves scoped workflows and denial of DDL, trigger disabling,
+  history mutation, account provisioning, TEMP and cross-role reads.
+- [x] Login/operator changes share an advisory account lock; recovery during login
+  cannot authenticate the old password without API UPDATE on human accounts.
 - [x] Supplemental `sequence-v1-experimental` evidence detects low-and-slow, gradual
   escalation, repeated-new-recipient and cumulative-exposure patterns on one captured context.
 - [x] Sequence evidence requires a verified admitted baseline, retains missing semantics and
   remains outside risk-v1 scoring until a separately validated risk-v2 policy exists.
 - [x] Console distinguishes stored INSUFFICIENT EVIDENCE from no evaluation and renders
   nested rule plus matched sequence reasons; older evaluation envelopes remain compatible.
-- [x] Full regression: 532 passed, zero skipped, 93% combined coverage.
-- [ ] Runtime DB grants, verified TLS/proxy and edge controls, MFA/recovery assurance,
-  Docker/remote CI and external security review remain before remote deployment.
+- [x] Full regression: 534 passed, zero skipped, 92% combined coverage.
+- [ ] Current localhost Compose still uses owner credentials; actual deployment
+  grants, TLS/proxy and edge controls, MFA/recovery, Docker/remote CI and external
+  security review remain before remote exposure.
 - Human authentication is disabled by default and must be explicitly enabled locally.
 
 - [x] Phase 14: responsive React 19/TypeScript/Vite local analyst console with six sections.
@@ -133,18 +140,20 @@ do not establish legitimacy, score risk or admit transactions.
 
 ## Verification — 2026-09-20–26
 
-- [x] **532 passed, 0 skipped, 2 upstream warnings; 93% combined backend/ML coverage.**
+- [x] **534 passed, 0 skipped, 2 upstream warnings; 92% combined backend/ML coverage.**
 - [x] Actual PostgreSQL 17.10, including prior-phase regressions.
 - [x] Migration upgrade/downgrade/metadata tests and upgrade with populated legacy profile data.
 - [x] Concurrent reader pins its version before another writer commits; old versions exclude
   backdated later admissions and retain their original timezone/window policy.
-- [x] Ruff lint and strict mypy pass (121 backend/ML source files); final format/build checks are recorded per session.
+- [x] Ruff lint and strict mypy pass (122 backend/ML source files); final format/build checks are recorded per session.
 - [x] Frontend ESLint, 5 Vitest tests and TypeScript production build pass; prior clean npm audit remains applicable because dependencies are unchanged.
 - [x] Browser visual inspection passed for the responsive connection screen; no external assets.
 - [x] Phase 15 locked dependency audit: no known vulnerabilities, including the ML/dev groups.
   Added argon2-cffi 25.1.0 and locked bindings/cffi/pycparser; existing versions unchanged.
 - [x] Source/wheel builds and Compose configuration pass.
 - [x] Native disposable database upgraded; head is 0008_human_identity, with 27 non-Alembic tables.
+- [x] Separate fresh disposable role-test database migrated and removed, with four real
+  login roles and a production-mode FastAPI/restricted-database HTTP check.
 - [x] Actual worker CLI subprocess recorded/acknowledged an event and reported status in a disposable schema.
 - [x] Actual local Uvicorn/PostgreSQL smoke passed: cold start, populated pinned profile,
   median/MAD/p95, authentication and cutoff validation, plus prior intake smoke checks.
@@ -194,6 +203,10 @@ smoke also upgrades its default schema. Never substitute SQLite.
   console login and PostgreSQL/HTTP security checks.
 - backend/adapters/passwords.py; tests/unit/test_identity_policy.py: Argon2id and policy tests.
 - docs/security/threat-model.md; docs/adr/ADR-021-human-identity-and-sessions.md: local design and release gates.
+- backend/adapters/database/grants.py; tests/integration/test_database_roles.py:
+  dedicated-schema grant plan, production role verification and actual login tests.
+- docs/adr/ADR-023-runtime-database-roles.md; docs/security/deployment-gates.md:
+  role rationale and remaining remote-deployment requirements.
 
 - backend/app/sequence/engine.py: pure deterministic sequence evidence and uncalibrated policy.
 - backend/adapters/sequence/__main__.py: database-free retained-context replay.
@@ -437,7 +450,8 @@ smoke also upgrades its default schema. Never substitute SQLite.
   Do not downgrade a real revision archive: re-upgrade restores current heads only.
 - Revision admission checks use the full PostgreSQL transaction ID and physical xmin;
   writes use the top-level UoW without nested database savepoints. A DB owner can still
-  bypass triggers. Restricted runtime grants remain security work.
+  bypass triggers. The dedicated-schema runtime grant plan is locally verified, while
+  the current Compose owner credential remains a deployment gap.
 - history_source=repository_admissions remains explicit. Legacy revisions disclose
   admission_workflow_verified=false; Phase 12 revisions bind verified policy/decision evidence.
   Customer creation/raw intake do not authorize learning.
@@ -452,7 +466,8 @@ smoke also upgrades its default schema. Never substitute SQLite.
   derived append-only state; no production risk API exists. Local human login is opt-in;
   the console is not approved for remote exposure.
 - External outbox destinations/audited redrive, idempotency retention, service-principal
-  revocation, edge limits, runtime database grants and deployment hardening remain unfinished.
+  revocation, edge limits and deployment hardening remain unfinished. Runtime grants
+  must be applied and verified in the actual topology.
 - Service credentials are configuration snapshots; rotate while retaining principal UUID
   and restart all processes to apply revocation/scope changes. Remote use requires TLS.
 
@@ -460,12 +475,13 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 1. Read status/specification/runbook, ADR-021 and threat model. Do not redo the completed
    local identity/session checkpoint or supplemental sequence evidence.
-2. Implement and test separate migrator, API runtime, worker and operator PostgreSQL roles.
-   Prove the API role cannot DDL, disable history triggers, mutate immutable evidence or
-   provision human accounts. Preserve explicit-commit and authorization-first replay.
-3. Verify HTTPS proxy, Host/Origin/forwarded-header trust, Secure cookies, CSP, edge request
-   limits, secret rotation and operational recovery with actual deployed topology.
-4. Define MFA and verified account recovery policy, then obtain an external security review
-   before remote exposure. Docker runtime and remote CI remain unverified.
+2. Apply the reviewed four-role grant plan in a new dedicated deployment database;
+   never run it against the existing public-schema local demo. Keep migration,
+   operator, API and worker credentials separate. Verify actual startup role checks.
+3. Verify HTTPS proxy, Host/Origin/forwarded-header trust, Secure cookies, CSP, edge
+   request/concurrency/time limits, secret rotation and recovery in the real topology.
+   The TestClient check is not a proxy/TLS test.
+4. Implement MFA and independently verified account recovery before remote exposure,
+   then obtain an external security review. Docker runtime and remote CI remain unverified.
 5. Keep deterministic demo seeding (Phase 16), risk-v2 research, corrections/weights and
    external delivery/redrive separate. Update all three checkpoint files before stopping.

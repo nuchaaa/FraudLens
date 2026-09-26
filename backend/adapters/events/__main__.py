@@ -9,7 +9,9 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from backend.adapters.database.base import create_database_engine
 from backend.adapters.database.delivery import PostgresDeliveryQueue, PostgresRecordingConsumer
+from backend.adapters.database.grants import verify_runtime_role
 from backend.app.shared.delivery import dispatch
+from backend.config import Settings
 
 
 def main() -> None:
@@ -26,6 +28,9 @@ def main() -> None:
         parser.error("FRAUDLENS_DATABASE_URL is required")
     engine = create_database_engine(url)
     try:
+        if Settings().environment == "production":
+            with engine.connect() as connection:
+                verify_runtime_role(connection, "worker")
         queue = PostgresDeliveryQueue(engine)
         result = (
             asdict(dispatch(queue, PostgresRecordingConsumer(engine), limit=args.limit))

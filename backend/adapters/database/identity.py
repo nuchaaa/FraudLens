@@ -4,7 +4,7 @@ import hashlib
 from datetime import datetime, timedelta
 from uuid import UUID
 
-from sqlalchemy import delete, select, update
+from sqlalchemy import delete, select, text, update
 from sqlalchemy.dialects.postgresql import insert
 
 from backend.adapters.database.models import (
@@ -55,6 +55,11 @@ def _session(row: HumanSessionRow) -> SessionSecrets:
 
 
 class PostgresIdentityRepository(Repository):
+    def lock_account(self, account_id: UUID) -> None:
+        digest = hashlib.sha256(b"fraudlens-human-account-v1:" + account_id.bytes).digest()
+        lock_id = int.from_bytes(digest[:8], "big", signed=True)
+        self.session.execute(text("SELECT pg_advisory_xact_lock(:key)"), {"key": lock_id})
+
     def account_by_login(self, login: str) -> AccountCredentials | None:
         row = self.session.scalar(select(HumanAccountRow).where(HumanAccountRow.login == login))
         return _account(row) if row else None
@@ -62,7 +67,7 @@ class PostgresIdentityRepository(Repository):
     def account(self, account_id: UUID, *, lock: bool = False) -> AccountCredentials | None:
         query = select(HumanAccountRow).where(HumanAccountRow.account_id == account_id)
         row = self.session.scalar(
-            (query.with_for_update() if lock else query).execution_options(populate_existing=lock)
+            (query.with_for_update() if lock else query).execution_options(populate_existing=True)
         )
         return _account(row) if row else None
 

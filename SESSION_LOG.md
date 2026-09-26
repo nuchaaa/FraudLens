@@ -408,3 +408,35 @@
   remain unverified. Phase 15 remains IN PROGRESS: restricted runtime DB roles, verified
   TLS/proxy and edge controls, MFA/recovery assurance and external review are required
   before remote exposure. No research metrics or production model claims were added.
+
+## 2026-09-26 — Phase 15 dedicated PostgreSQL role boundary
+
+- Added a reviewed grant plan for a dedicated non-public PostgreSQL schema: separate
+  migration owner, API, outbox worker and identity operator login roles. It revokes
+  PUBLIC database/schema/table privileges, denies TEMP and schema creation, applies
+  explicit table grants and fails on unknown tables or unexpected effective grants.
+  Production entry points verify their actual role before serving or operating.
+- The first real-role test exposed that `SELECT FOR UPDATE` on `human_accounts` needs
+  UPDATE permission. Login and operator changes now share a transaction-scoped
+  account advisory lock; login rereads current policy and password hash after it.
+  A recovery raced against an old-password login now rejects that login. The API
+  retains SELECT-only account access; the operator can only revoke session rows.
+- A PostgreSQL integration test creates a separate disposable *_test database, runs
+  all migrations as a distinct owner, applies grants, connects with three separate
+  runtime passwords, proves positive API/worker/operator workflows and denies DDL,
+  trigger disabling, immutable-history changes, account provisioning, TEMP and
+  cross-role reads. It then drops only that database and its four temporary roles.
+  Production-mode FastAPI startup/login, Host rejection and Secure cookies also
+  passed under the restricted API login.
+- The final privilege audit added column-level and Alembic-version-table checks;
+  regression tests reject unexpected PUBLIC grants even when table-level checks
+  alone would miss them.
+- Full PostgreSQL/ML suite: 534 passed, zero skipped, 92% combined coverage and two
+  unchanged upstream warnings. Ruff/format, strict mypy (122 source files), Alembic
+  check, source/wheel build and Compose configuration passed. Frontend source and
+  dependencies did not change; the prior ESLint, five Vitest tests and build remain
+  applicable. No schema/dependency/model change or new predictive metric occurred.
+- Added ADR-023 and a deployment-gates runbook. The current localhost Compose file
+  still connects as schema owner and was not promoted. Real TLS/proxy behavior,
+  edge limits, MFA and verified recovery, secret operations, Docker runtime,
+  remote CI and independent security review remain unverified. Phase 15 stays open.

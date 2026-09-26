@@ -1,6 +1,6 @@
 # Phase 15 threat model
 
-Status: local human-session checkpoint. Human login is opt-in and locally tested. This is
+Status: local human-session and database-role checkpoints. Human login is opt-in and locally tested. This is
 an engineering threat model, not a completed security audit or deployment approval.
 
 ## Assets and boundaries
@@ -29,13 +29,15 @@ customer scope or profile-admission authority.
 | Feedback laundering into trusted profiles | Preserve independent admin and reviewer identity, scopes and gate | Existing PostgreSQL learning and review regressions with human principals |
 | Authorization/revocation race | Document auth linearization; current policy before replay | In-flight boundary and subsequent-request denial |
 | Host/proxy spoofing | Explicit origins/hosts and trusted proxies, verified TLS | Forged forwarded headers do not alter origin/IP trust |
-| DB compromise or excessive runtime permissions | Separate migrator/runtime/worker/operator grants | Test runtime cannot DDL, disable triggers, mutate history or provision users |
+| DB compromise or excessive runtime permissions | Dedicated schema and separate migrator/API/worker/operator logins; exact effective grants | Fresh database role test denies DDL, trigger changes, history mutation and account provisioning; real deployment remains unverified |
 | Recovery/admin compromise | Operator-assisted verified recovery, immutable audit, revoke sessions | Reset/disable failures roll back; role changes recorded |
 | Logging disclosure | Fixed errors, SecretStr/repr exclusion, no request body logging | Password/token absence from responses, exception logs and audit |
 
 ## Open release gates
 
-- Separate runtime DB grants with actual role-based verification.
+- Dedicated role grants are implemented and locally verified, but the current Compose
+  configuration still connects as owner. Apply and verify grants in the actual
+  deployment before remote exposure; see ADR-023 and deployment-gates.md.
 - Verified TLS/proxy configuration, edge rate/concurrency/time limits and operational
   secret management; Docker runtime and remote CI remain unverified.
 - External security review and MFA/recovery requirements before any remote exposure.

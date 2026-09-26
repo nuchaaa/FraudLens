@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from backend.config import Settings
@@ -18,9 +19,10 @@ def test_http_liveness_and_docs() -> None:
 
 
 def test_production_hides_documentation() -> None:
-    with TestClient(create_app(Settings(environment="production", _env_file=None))) as client:
-        assert client.get("/docs").status_code == 404
-        assert client.get("/openapi.json").status_code == 404
+    app = create_app(Settings(environment="production", database_url=None, _env_file=None))
+    assert app.docs_url is None and app.openapi_url is None
+    with pytest.raises(ValueError, match="PostgreSQL runtime login"), TestClient(app):
+        pass
 
 
 def test_database_secret_not_exposed() -> None:

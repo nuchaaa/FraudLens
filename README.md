@@ -204,9 +204,11 @@ mode hides API documentation. PostgreSQL triggers reject edits/deletes to histor
 records, and repository writes participate in one explicit database transaction.
 Business routes use expiring hashed service credentials or current, revocable human
 sessions with role/customer scope checks, bounded request bodies and sanitized errors.
-Browser writes require exact configured Origin and session CSRF. Restricted runtime
-database grants, verified TLS/proxy settings, edge concurrency limits, MFA/recovery
-review and external security assessment remain open. Keep this synthetic demo on localhost.
+Browser writes require exact configured Origin and session CSRF. A four-role
+PostgreSQL grant plan is tested on a disposable dedicated database; the current
+localhost Compose stack still uses owner credentials. Verified TLS/proxy settings,
+edge concurrency limits, MFA/recovery review and external security assessment remain
+open. Keep this synthetic demo on localhost.
 A privileged database administrator can disable triggers; these guards are not
 cryptographic tamper evidence.
 
