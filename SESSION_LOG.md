@@ -355,3 +355,29 @@
 - Phase 15 remains IN PROGRESS. No human HTTP authentication or persistence is enabled;
   service credential startup and console behavior remain unchanged. Next: atomic
   PostgreSQL accounts/sessions/throttle, operator provisioning and HTTP/browser wiring.
+
+## 2026-09-26 — Supplemental sequence evidence checkpoint
+
+- Added pure `sequence-v1-experimental` evidence over the retained strict FeatureContext.
+  Four candidate-inclusive 24-hour signals cover cumulative baseline-sized transfers,
+  gradual amount escalation, repeated new recipients and cumulative exposure.
+- The authored low-and-slow regression matches sequence evidence while rules-v1
+  AMOUNT_ANOMALY remains NOT_MATCHED. A verified learning-created profile, five admitted
+  observations and prior raw activity are mandatory; absent facts yield NOT_EVALUATED.
+- Retained evidence includes exact Decimal counts/amounts/ratios, missing indicators,
+  the complete uncalibrated policy and its SHA256. A database-free CLI replays saved context.
+- New experimental evaluation envelopes retain sequence evidence atomically. Existing
+  behavior-v1, rules-v1, native artifacts, risk-v1 scores/actions and old exact idempotent
+  responses are unchanged. A future risk-v2 requires separately validated calibration.
+- Fixed the console to distinguish stored INSUFFICIENT EVIDENCE from no evaluation and to
+  render the actual nested rule reason contract plus matched sequence reasons. Older stored
+  envelopes without sequence evidence remain compatible.
+- Documented the layered detector architecture and unavailable graph/device/network inputs.
+  No IP, location, login lifecycle, cross-customer graph, anomaly model or metric was invented.
+- Final PostgreSQL/ML regression: 522 passed, zero skipped, 95% combined coverage and two
+  unchanged upstream warnings. Ruff/format, strict mypy (115 sources), Python build, Compose
+  configuration, frontend ESLint, 3 Vitest tests and TypeScript/Vite build passed. Schema and
+  dependencies are unchanged; the prior clean dependency audit remains applicable.
+- Phase 15 remains IN PROGRESS. Next core work is PostgreSQL human identity/session/throttle
+  persistence and audited HTTP/browser integration. Detector follow-up is a separately
+  versioned dataset protocol and risk-v2 validation, not an arbitrary score weight.

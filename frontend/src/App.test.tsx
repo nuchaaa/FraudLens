@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 
@@ -16,7 +16,10 @@ const summary = {
   experimental_results_calibrated: false,
 };
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
 
 describe("analyst console", () => {
   it("keeps the credential in memory and renders truthful summary data", async () => {
@@ -42,5 +45,33 @@ describe("analyst console", () => {
     fireEvent.change(screen.getByLabelText("Bearer credential"), { target: { value: "bad-token" } });
     fireEvent.click(screen.getByRole("button", { name: "Open analyst console" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("valid bearer credential required");
+  });
+
+  it("distinguishes a retained insufficient-evidence evaluation from no evaluation", async () => {
+    const item = {
+      transaction: {
+        transaction_id: "00000000-0000-4000-8000-000000000010",
+        customer_id: "00000000-0000-4000-8000-000000000011",
+        recipient_id: "00000000-0000-4000-8000-000000000012",
+        amount: "25000.00", currency: "KZT", timestamp: "2026-09-22T10:00:00Z",
+        channel: "MOBILE", device_id: "synthetic", status: "RECEIVED",
+      },
+      evaluation_id: "00000000-0000-4000-8000-000000000013",
+      evaluation_created_at: "2026-09-22T10:01:00Z",
+      evaluation_status: "INSUFFICIENT_EVIDENCE",
+      strategy: "rules_only", score: null, risk_level: null, suggested_action: null,
+      case_id: null, case_state: null,
+    };
+    vi.stubGlobal("fetch", vi.fn(async (request: RequestInfo | URL) => {
+      const url = String(request);
+      return new Response(JSON.stringify(url.includes("summary") ? summary : { items: [item], next_cursor: null }), {
+        status: 200, headers: { "Content-Type": "application/json" },
+      });
+    }));
+    render(<App />);
+    fireEvent.change(screen.getByLabelText("Bearer credential"), { target: { value: "token" } });
+    fireEvent.click(screen.getByRole("button", { name: "Open analyst console" }));
+    expect(await screen.findByText("INSUFFICIENT EVIDENCE")).toBeInTheDocument();
+    expect(screen.queryByText("NOT EVALUATED")).not.toBeInTheDocument();
   });
 });

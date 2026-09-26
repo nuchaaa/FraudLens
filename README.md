@@ -6,7 +6,7 @@ FraudLens is a research-oriented modular monolith investigating how banking frau
 detection can learn legitimate behavior changes without letting exceptional or
 fraudulent transactions corrupt a customer's normal baseline.
 
-**Status: Phase 14 analyst-console checkpoint; not a deployable fraud product.**
+**Status: Phase 15 security foundation plus supplemental sequence-evidence checkpoint; not a deployable fraud product.**
 Submission/retrieval, scoped service credentials, durable request replay and atomic
 audit/outbox storage are implemented on PostgreSQL. Opt-in experimental HTTP evaluation
 now atomically retains its exact captured facts, vector, policy, result, optional native-model
@@ -45,6 +45,11 @@ and promises no exactly-once external delivery. See [ADR-019](docs/adr/ADR-019-o
 Phase 14 adds a scoped React/TypeScript console over factual PostgreSQL summary/worklist
 projections, retained evaluation explanations, case review and profile reads. See
 [ADR-020](docs/adr/ADR-020-analyst-console-and-scoped-read-model.md).
+The supplemental sequence engine now retains four deterministic 24-hour patterns, including
+low-and-slow transfers that can evade a single-amount anomaly. It requires verified admitted
+history, produces explicit unavailable outcomes and does not change the uncalibrated risk-v1
+score. See [ADR-022](docs/adr/ADR-022-supplemental-sequence-evidence.md) and the
+[detector layers](docs/architecture/detector-layers.md).
 See [PROJECT_STATUS.md](PROJECT_STATUS.md) for verified progress.
 
 ## Problem and behavioral fraud detection
@@ -62,9 +67,8 @@ median, MAD, nearest-rank p95, and short/long windows. A profile-update gate rej
 confirmed fraud, quarantines unverified activity, and keeps extreme legitimate
 events outside the normal baseline. Ordinary confirmed transactions can enter it.
 
-The current 10× median gate and five-observation minimum are **uncalibrated
-research assumptions**. Low-weight updates, bootstrap enrollment, suspicious
-sequence detection, provenance enforcement and retractions remain future work.
+The current 10× median gate, five-observation minimum and sequence thresholds are
+**uncalibrated research assumptions**. Low-weight updates and retractions remain future work.
 Compromised analyst confirmations are not solved by this initial gate.
 
 ## Architecture
@@ -77,6 +81,7 @@ flowchart LR
     UC --> P[Repository / ML / event ports]
     P --> DB[SQLAlchemy + PostgreSQL repositories]
     P --> ML[Experimental native model adapter — offline replay + opt-in evaluation]
+    UC --> SQ[Supplemental deterministic sequence evidence]
     P --> EV[In-process event adapter]
     DB --> OB[Durable outbox — leased local recording worker]
 ```
@@ -202,7 +207,8 @@ cryptographic tamper evidence.
 This checkpoint verifies authenticated intake, experimental evaluation/review and domain
 invariants; it does not establish fraud-detection accuracy or deployment security. Robust
 profile summaries, bounded device/recipient activity features, deterministic rules and a
-synthetic-only reviewed native model exist. Recipient account age and authoritative external
+synthetic-only reviewed native model exist. Supplemental sequence evidence identifies several
+24-hour low-and-slow patterns but is not part of risk-v1 scoring. Recipient account age and authoritative external
 history are unavailable. Thresholds and scores are uncalibrated. Outbox storage, leased local
 delivery and receipt deduplication exist; no external destination or continuous daemon exists.
 Feedback is durable but does not authorize profile learning. See the research protocol for

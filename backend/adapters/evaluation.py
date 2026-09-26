@@ -11,6 +11,7 @@ from backend.app.explainability.contracts import ExplainableFraudModel
 from backend.app.explainability.service import RiskExplanation, explain_risk
 from backend.app.features.context import FeatureContext
 from backend.app.risk.service import ExperimentalRiskResult, RiskPolicy, Strategy, evaluate_risk
+from backend.app.sequence.engine import SequenceResult, evaluate_sequence
 
 
 class ExperimentalEvaluationEngine:
@@ -47,6 +48,7 @@ class ExperimentalEvaluationEngine:
                 raise EvaluationUnavailable("experimental model failed") from None
             raise
         risk = json.loads(TypeAdapter(ExperimentalRiskResult).dump_json(result))
+        sequence = json.loads(TypeAdapter(SequenceResult).dump_json(evaluate_sequence(context)))
         if risk["prediction"] is not None:
             risk["prediction"]["uncalibrated_score"] = risk["prediction"].pop("probability")
         artifact = ContextArtifact.model_validate_json(encode_context(context))
@@ -55,6 +57,9 @@ class ExperimentalEvaluationEngine:
                 "context_artifact": artifact.model_dump(),
                 "context_sha256": artifact.sha256,
                 "risk": risk,
+                # Supplemental evidence is retained but deliberately excluded from
+                # risk-v1 scoring until a separately versioned policy is evaluated.
+                "sequence_evidence": sequence,
                 "explanation": json.loads(TypeAdapter(RiskExplanation).dump_json(explanation)),
                 "model_manifest_json": self.manifest_json
                 if strategy != Strategy.RULES_ONLY

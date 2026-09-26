@@ -1,6 +1,6 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 15 in progress — human identity/security foundation tested. Phase 14 remains complete.**
+Current checkpoint: **Phase 15 in progress — human identity/security foundation tested; supplemental sequence evidence checkpoint complete. Phase 14 remains complete.**
 Next work: **PostgreSQL human accounts/session workflows, HTTP cookies/CSRF and frontend login. Production behavioral validation remains open.**
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
@@ -10,7 +10,13 @@ do not establish legitimacy, score risk or admit transactions.
 - [x] Phase 15 foundation: threat model and proposed ADR-021 human identity/session design.
 - [x] Pure human-account scope and session expiry/rotation/revocation policies.
 - [x] Explicit Argon2id password adapter, bounded Unicode inputs and secret-safe repr.
-- [x] 32 new tests; full regression: 512 passed, zero skipped, 94% combined coverage.
+- [x] Supplemental `sequence-v1-experimental` evidence detects low-and-slow, gradual
+  escalation, repeated-new-recipient and cumulative-exposure patterns on one captured context.
+- [x] Sequence evidence requires a verified admitted baseline, retains missing semantics and
+  remains outside risk-v1 scoring until a separately validated risk-v2 policy exists.
+- [x] Console distinguishes stored INSUFFICIENT EVIDENCE from no evaluation and renders
+  nested rule plus matched sequence reasons; older evaluation envelopes remain compatible.
+- [x] Full regression: 522 passed, zero skipped, 95% combined coverage.
 - [ ] PostgreSQL identity/session/consumed-refresh/throttle persistence and atomic audit.
 - [ ] Provisioning/recovery CLI, login/refresh/logout/session HTTP, cookies and CSRF.
 - [ ] Frontend human login, concurrent HTTP tests, runtime DB grants/deployment hardening.
@@ -119,15 +125,15 @@ do not establish legitimacy, score risk or admit transactions.
 - [x] Scope, cold-start, cutoff, currency, DST, revision, rollback, concurrency and upgrade tests.
 - [x] ADR-009 and updated README, architecture, development and continuation files.
 
-## Verification — 2026-09-20–22
+## Verification — 2026-09-20–26
 
-- [x] **512 passed, 0 skipped, 2 upstream warnings; 94% combined backend/ML coverage.**
+- [x] **522 passed, 0 skipped, 2 upstream warnings; 95% combined backend/ML coverage.**
 - [x] Actual PostgreSQL 17.10, including prior-phase regressions.
 - [x] Migration upgrade/downgrade/metadata tests and upgrade with populated legacy profile data.
 - [x] Concurrent reader pins its version before another writer commits; old versions exclude
   backdated later admissions and retain their original timezone/window policy.
-- [x] Ruff lint/format and strict mypy pass (111 backend/ML source files).
-- [x] Frontend ESLint, 2 Vitest tests, TypeScript production build and npm audit pass.
+- [x] Ruff lint and strict mypy pass (115 backend/ML source files); final format/build checks are recorded per session.
+- [x] Frontend ESLint, 3 Vitest tests and TypeScript production build pass; prior clean npm audit remains applicable because dependencies are unchanged.
 - [x] Browser visual inspection passed for the responsive connection screen; no external assets.
 - [x] Phase 15 locked dependency audit: no known vulnerabilities, including the ML/dev groups.
   Added argon2-cffi 25.1.0 and locked bindings/cffi/pycparser; existing versions unchanged.
@@ -176,6 +182,11 @@ smoke also upgrades its default schema. Never substitute SQLite.
 - backend/app/identity/policy.py: pure account/session policy; not HTTP authentication.
 - backend/adapters/passwords.py; tests/unit/test_identity_policy.py: Argon2id and policy tests.
 - docs/security/threat-model.md; docs/adr/ADR-021-human-identity-and-sessions.md: design and release gates.
+
+- backend/app/sequence/engine.py: pure deterministic sequence evidence and uncalibrated policy.
+- backend/adapters/sequence/__main__.py: database-free retained-context replay.
+- docs/adr/ADR-022-supplemental-sequence-evidence.md; docs/architecture/detector-layers.md.
+- tests/unit/test_sequence_engine.py: low-and-slow, boundary, missingness and replay coverage.
 
 - frontend/src/{App,pages,api,types,styles}.tsx: local console, read views and review controls.
 - frontend/{package.json,Dockerfile,nginx.conf}: locked toolchain, static serving and same-origin proxy.
@@ -377,6 +388,19 @@ smoke also upgrades its default schema. Never substitute SQLite.
   The rule engine itself produces no score; Phase 9 composes a separate heuristic index.
   No calibrated probability, automatic action or durable assessment is produced.
 - Blacklist checks are deferred until an explicit authoritative versioned input exists.
+
+- sequence-v1-experimental evaluates four candidate-inclusive 24-hour patterns over the
+  retained strict prior context: low-value cumulative sequence, gradual escalation,
+  repeated new recipient and cumulative exposure. It requires a verified profile workflow,
+  at least five admitted observations and raw prior activity; otherwise every signal is
+  NOT_EVALUATED. Its thresholds are authored and uncalibrated.
+- Sequence evidence is added only to new experimental evaluation envelopes. It does not
+  change behavior-v1, rules-v1, the reviewed native model, risk-v1 scores or actions. Older
+  exact idempotent responses remain byte-for-byte replayable. Risk-v2 needs a frozen dataset,
+  validation-only calibration and false-positive/operator-burden measurement.
+- No authoritative IP, location, login/beneficiary lifecycle or cross-customer graph facts
+  exist. Device/network/graph/anomaly layers must remain unavailable until versioned sources
+  and point-in-time contracts are implemented; identifiers are not evidence of shared control.
 
 - Feature version behavior-v1 fixes 29 names/order, policy and imputation. Baseline minimum
   is five; absolute amount deviation divides by max(MAD, 0.01) with explicit floor flags.

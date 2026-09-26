@@ -107,6 +107,9 @@ def test_durable_absent_provenance_replay_and_scope(api, db_engine):
     assert doc["risk"]["status"] == "INSUFFICIENT_EVIDENCE"
     assert doc["risk"]["score"] is doc["risk"]["prediction"] is doc["model_manifest_json"] is None
     assert doc["risk"]["profile_version"] is None
+    assert doc["sequence_evidence"]["sequence_version"] == "sequence-v1-experimental"
+    assert doc["sequence_evidence"]["thresholds_calibrated"] is False
+    assert {item["status"] for item in doc["sequence_evidence"]["outcomes"]} == {"NOT_EVALUATED"}
     assert doc["explanation"]["model"] is None
     assert doc["context_artifact"]["sha256"] == doc["context_sha256"]
     assert doc["actor_id"] == entries[1]["principal_id"]

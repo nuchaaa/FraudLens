@@ -526,3 +526,17 @@ install the new Argon2 dependency. The focused check is:
 See `docs/security/threat-model.md` and ADR-021 for the proposed PostgreSQL/session,
 CSRF, provisioning and deployment requirements. Do not treat pure policy tests as
 evidence that HTTP refresh races, database revocation or browser security are complete.
+
+## Supplemental sequence evidence
+
+New experimental evaluations retain `sequence-v1-experimental` evidence beside risk-v1.
+It detects authored 24-hour cumulative low-value, gradual escalation, repeated new-recipient
+and total-exposure patterns. It does not change the risk-v1 score or suggested action.
+Replay any existing captured context without database access:
+
+```sh
+.venv/bin/python -m backend.adapters.sequence /private/tmp/fraudlens-feature-context.json
+```
+
+Thresholds are uncalibrated and require a verified profile plus prior raw activity. Older
+stored evaluations remain unchanged and contain no sequence field. See ADR-022.

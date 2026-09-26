@@ -81,7 +81,22 @@ export type EvaluationDocument = {
     unavailable_rules: string[];
     policy: { strategy: string; [key: string]: unknown };
     prediction: { model_version: string; uncalibrated_score: number } | null;
-    rules: { outcomes: Array<{ code: string; status: string; message: string; evidence: unknown }> };
+    rules: { outcomes: Array<{
+      code: string;
+      status: string;
+      missing_indicators: string[];
+      reason: { code: string; message: string } | null;
+    }> };
+  };
+  sequence_evidence?: {
+    sequence_version: string;
+    thresholds_calibrated: false;
+    outcomes: Array<{
+      code: string;
+      status: string;
+      missing_indicators: string[];
+      reason: { code: string; message: string } | null;
+    }>;
   };
   explanation: {
     readable: Array<{ code?: string; message?: string; [key: string]: unknown }>;
