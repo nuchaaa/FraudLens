@@ -4,6 +4,16 @@ FraudLens remains a localhost research system. The role matrix is locally tested
 but the current Compose topology still uses one database owner credential. Do not
 expose it remotely or claim production fraud-detection performance.
 
+A separate `frontend/Dockerfile.production` now contains a candidate HTTPS edge;
+the existing `frontend/Dockerfile` and Compose file remain local HTTP. The edge
+requires `FRAUDLENS_PUBLIC_HOST` and read-only certificate/key files at
+`/run/secrets/tls.crt` and `/run/secrets/tls.key`, and expects the backend only on
+its private Docker network as `backend:8000`. Map external ports 80/443 to its
+internal 8080/8443 only in a reviewed topology; do not publish backend port 8000.
+The backend image ignores forwarded headers. The local nginx/TLS smoke and exact
+limits are recorded in [ADR-024](../adr/ADR-024-local-https-edge-checkpoint.md).
+The candidate image itself has not run because Docker Desktop cannot start here.
+
 ## Database setup for a dedicated deployment
 
 Use a new dedicated PostgreSQL 17 database. Create four distinct login roles with
@@ -55,20 +65,22 @@ This is a deployment procedure, not a command to run on the current demo databas
 
 ## Controls still requiring deployed verification
 
-- Put the browser and API behind a reviewed HTTPS same-origin reverse proxy.
-  Configure only trusted proxy addresses; reject caller-supplied Host and forwarded
-  identity/IP values. Verify exact Origin, Secure `__Host-` cookies, HSTS and CSP
-  on the real hostname and TLS termination path.
-- Apply edge request size, concurrency, timeout and rate limits before Argon2 work.
-  Test them under load within an agreed resource budget. PostgreSQL login throttles
-  remain a second layer, not a perimeter.
+- Verify the candidate HTTPS edge on the actual hostname, certificate, container
+  network and production database roles. The local self-signed smoke verified
+  Origin, Host, Secure cookies, HSTS/CSP and sanitized forwarded headers, but did
+  not exercise the deployed topology. Do not place another proxy in front without
+  a new trust and client-IP design.
+- Load-test edge request size, concurrency, timeout and rate limits before Argon2
+  work within an agreed resource budget. The authored local 413/429 smoke is not
+  a capacity test. Current nginx timeouts are idle intervals, not total deadlines;
+  design and verify an end-to-end request deadline. PostgreSQL login throttles
+  remain a second layer.
 - Store and rotate database passwords, API service credentials and TLS keys through
   operational secret management. Verify backup/restore, account/session revocation,
   monitoring and incident response without changing immutable evidence.
-- Require independently verified recovery and multifactor authentication for human
-  analysts and admins before remote access. The local getpass CLI has neither
-  identity verification nor MFA. Admin recovery needs a second authorized operator
-  and an auditable out-of-band record; no email reset route exists.
+- Implement [phishing-resistant MFA and independently verified recovery](mfa-and-recovery-requirements.md)
+  for human analysts and admins before remote access. The local getpass CLI has
+  neither identity verification nor MFA; no email reset route exists.
 - Obtain an independent security assessment, run the real Docker topology and remote
   CI, and validate fraud performance on suitable point-in-time behavioral data.
 

@@ -1,7 +1,7 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 15 in progress — local human sessions and dedicated PostgreSQL role boundary verified. Phase 14 and supplemental sequence evidence remain complete.**
-Next work: **Actual deployment TLS/proxy and edge verification, MFA/recovery implementation and independent security review. Production behavioral validation remains open.**
+Current checkpoint: **Phase 15 in progress — local human sessions, dedicated PostgreSQL role boundary and native HTTPS-edge smoke verified. Phase 14 and supplemental sequence evidence remain complete.**
+Next work: **Container/deployed topology verification, MFA/recovery implementation and independent security review. Production behavioral validation remains open.**
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
@@ -23,6 +23,10 @@ do not establish legitimacy, score risk or admit transactions.
   history mutation, account provisioning, TEMP and cross-role reads.
 - [x] Login/operator changes share an advisory account lock; recovery during login
   cannot authenticate the old password without API UPDATE on human accounts.
+- [x] Separate HTTPS nginx candidate with explicit host/certificate startup checks,
+  sanitized forwarded headers, HSTS/CSP and authored size/rate/concurrency/time limits.
+- [x] Native local TLS/Nginx/FastAPI/PostgreSQL smoke verified Host/Origin, Secure
+  cookies, 413/429, redirect and header replacement with disposable assets.
 - [x] Supplemental `sequence-v1-experimental` evidence detects low-and-slow, gradual
   escalation, repeated-new-recipient and cumulative-exposure patterns on one captured context.
 - [x] Sequence evidence requires a verified admitted baseline, retains missing semantics and
@@ -30,9 +34,9 @@ do not establish legitimacy, score risk or admit transactions.
 - [x] Console distinguishes stored INSUFFICIENT EVIDENCE from no evaluation and renders
   nested rule plus matched sequence reasons; older evaluation envelopes remain compatible.
 - [x] Full regression: 534 passed, zero skipped, 92% combined coverage.
-- [ ] Current localhost Compose still uses owner credentials; actual deployment
-  grants, TLS/proxy and edge controls, MFA/recovery, Docker/remote CI and external
-  security review remain before remote exposure.
+- [ ] Current localhost Compose still uses owner credentials; combined production
+  roles/TLS/container topology, load limits, MFA/recovery, Docker/remote CI and
+  independent security review remain before remote exposure.
 - Human authentication is disabled by default and must be explicitly enabled locally.
 
 - [x] Phase 14: responsive React 19/TypeScript/Vite local analyst console with six sections.
@@ -154,11 +158,19 @@ do not establish legitimacy, score risk or admit transactions.
 - [x] Native disposable database upgraded; head is 0008_human_identity, with 27 non-Alembic tables.
 - [x] Separate fresh disposable role-test database migrated and removed, with four real
   login roles and a production-mode FastAPI/restricted-database HTTP check.
+- [x] Homebrew nginx 1.31.4 rendered-configuration syntax check and local self-signed
+  TLS smoke with a separate disposable PostgreSQL database. Verified HTTPS frontend,
+  Host 421, Origin 403, `__Host-` Secure/HttpOnly cookies, session, 413, 429 and 308.
+  An echo upstream confirmed forged forwarded identity/IP/protocol headers are replaced.
+  Temporary certificate, cookies, processes and database were removed.
+- [x] Production-edge shell startup rejected malformed host and missing certificate;
+  the image itself could not run because Docker Desktop is not launchable here.
 - [x] Actual worker CLI subprocess recorded/acknowledged an event and reported status in a disposable schema.
 - [x] Actual local Uvicorn/PostgreSQL smoke passed: cold start, populated pinned profile,
   median/MAD/p95, authentication and cutoff validation, plus prior intake smoke checks.
   Temporary HTTP server and smoke schema were cleaned up.
-- [ ] Docker image execution remains unverified; Docker engine unavailable.
+- [ ] Docker image execution remains unverified; Docker Desktop installation has no
+  launchable executable and the engine socket is absent.
 - [ ] Remote CI has not been pushed/run.
 
 No known failing tests. The unchanged warnings concern Starlette's httpx TestClient
@@ -207,6 +219,10 @@ smoke also upgrades its default schema. Never substitute SQLite.
   dedicated-schema grant plan, production role verification and actual login tests.
 - docs/adr/ADR-023-runtime-database-roles.md; docs/security/deployment-gates.md:
   role rationale and remaining remote-deployment requirements.
+- frontend/Dockerfile.production, nginx.production.conf.template,
+  nginx-api-proxy.conf and start-production.sh: separate candidate HTTPS edge.
+- docs/adr/ADR-024-local-https-edge-checkpoint.md and
+  docs/security/mfa-and-recovery-requirements.md: local evidence and open human gates.
 
 - backend/app/sequence/engine.py: pure deterministic sequence evidence and uncalibrated policy.
 - backend/adapters/sequence/__main__.py: database-free retained-context replay.
@@ -477,11 +493,14 @@ smoke also upgrades its default schema. Never substitute SQLite.
    local identity/session checkpoint or supplemental sequence evidence.
 2. Apply the reviewed four-role grant plan in a new dedicated deployment database;
    never run it against the existing public-schema local demo. Keep migration,
-   operator, API and worker credentials separate. Verify actual startup role checks.
-3. Verify HTTPS proxy, Host/Origin/forwarded-header trust, Secure cookies, CSP, edge
-   request/concurrency/time limits, secret rotation and recovery in the real topology.
-   The TestClient check is not a proxy/TLS test.
-4. Implement MFA and independently verified account recovery before remote exposure,
-   then obtain an external security review. Docker runtime and remote CI remain unverified.
+   operator, API and worker credentials separate. Verify startup checks together
+   with the candidate HTTPS edge in the actual container/network topology.
+3. Load-test Host/Origin/forwarded-header trust, Secure cookies, CSP and edge
+   request/concurrency/time limits on the real hostname; verify secret rotation,
+   backup/restore and operational recovery. The native local TLS smoke is not a
+   deployed-container or capacity test.
+4. Implement the defined phishing-resistant MFA and independently verified account
+   recovery requirements before remote exposure, then obtain an external security
+   review. Docker runtime and remote CI remain unverified.
 5. Keep deterministic demo seeding (Phase 16), risk-v2 research, corrections/weights and
    external delivery/redrive separate. Update all three checkpoint files before stopping.

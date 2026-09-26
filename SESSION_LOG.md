@@ -440,3 +440,32 @@
   still connects as schema owner and was not promoted. Real TLS/proxy behavior,
   edge limits, MFA and verified recovery, secret operations, Docker runtime,
   remote CI and independent security review remain unverified. Phase 15 stays open.
+
+## 2026-09-26 — Phase 15 native HTTPS-edge checkpoint
+
+- Added a separate candidate production frontend image and nginx configuration. It
+  requires a validated DNS hostname and mounted TLS certificate/key, rejects unknown
+  SNI/Host, sets HSTS/CSP, strips or replaces forwarded client headers, and includes
+  explicit request-body, rate, concurrency and timeout bounds. The backend container
+  now disables Uvicorn proxy-header trust; development nginx also sanitizes headers.
+- Installed Homebrew nginx 1.31.4 to test the rendered configuration. `nginx -t`
+  passed. A real self-signed local Nginx → Uvicorn → disposable PostgreSQL smoke
+  verified HTTPS frontend and CSP/HSTS, Host 421, Origin 403, valid login/session
+  with Secure/HttpOnly `__Host-` cookies, body 413, repeated-login 429 and known-host
+  HTTP 308 redirect. A separate echo upstream confirmed that spoofed Forwarded,
+  forwarded-host, client-IP and protocol headers were removed or replaced.
+- The smoke used test-mode application settings and a one-day local certificate.
+  Temporary database, certificate/key, cookies and processes were removed. It did
+  not combine the proxy with the four-role production database topology and did not
+  test an external hostname, CA certificate or load budget. Docker Desktop could
+  not launch because this installation lacks an executable; the engine socket is
+  absent. Thus the candidate container image remains unrun.
+- Documented phishing-resistant WebAuthn and two-operator, out-of-band verified
+  recovery requirements. These controls are not implemented; local login remains
+  unapproved for remote exposure. Added ADR-024 and updated deployment gates.
+- Full PostgreSQL/ML regression: 534 passed, zero skipped, 92% coverage and two
+  unchanged upstream warnings. Ruff/format, strict mypy (122 sources), Alembic
+  check, Python build, Compose configuration, frontend ESLint, five Vitest tests
+  and TypeScript/Vite build passed. No schema, dependency, model or predictive
+  metric changed. Phase 15 remains IN PROGRESS pending deployed topology,
+  MFA/recovery implementation, operations and independent security review.

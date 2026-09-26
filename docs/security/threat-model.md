@@ -1,6 +1,6 @@
 # Phase 15 threat model
 
-Status: local human-session and database-role checkpoints. Human login is opt-in and locally tested. This is
+Status: local human-session, database-role and HTTPS-edge checkpoints. Human login is opt-in and locally tested. This is
 an engineering threat model, not a completed security audit or deployment approval.
 
 ## Assets and boundaries
@@ -38,9 +38,11 @@ customer scope or profile-admission authority.
 - Dedicated role grants are implemented and locally verified, but the current Compose
   configuration still connects as owner. Apply and verify grants in the actual
   deployment before remote exposure; see ADR-023 and deployment-gates.md.
-- Verified TLS/proxy configuration, edge rate/concurrency/time limits and operational
-  secret management; Docker runtime and remote CI remain unverified.
-- External security review and MFA/recovery requirements before any remote exposure.
+- The self-signed local nginx smoke verified TLS/Host/Origin/cookies/CSP, header
+  replacement and basic 413/429 behavior. The candidate container edge has not run;
+  actual deployment TLS, load limits and operational secret management remain open.
+- External security review and implementation of the defined
+  [MFA/recovery requirements](mfa-and-recovery-requirements.md) before remote exposure.
   The locked dependency audit after adding Argon2 found no known vulnerabilities.
 
 No control here proves resistance to colluding authorized reviewers or production

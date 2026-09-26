@@ -1,0 +1,15 @@
+FROM node:24-alpine AS build
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM nginx:1.29-alpine
+COPY nginx.production.conf.template /etc/nginx/fraudlens-production.conf.template
+COPY nginx-api-proxy.conf /etc/nginx/fraudlens-api-proxy.conf.template
+COPY start-production.sh /usr/local/bin/fraudlens-start-production
+COPY --from=build /app/dist /usr/share/nginx/html
+RUN chmod 0555 /usr/local/bin/fraudlens-start-production
+EXPOSE 8080 8443
+CMD ["/usr/local/bin/fraudlens-start-production"]

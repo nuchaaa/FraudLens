@@ -48,7 +48,9 @@ projections, retained evaluation explanations, case review and profile reads. Se
 Phase 15 now provides operator-provisioned human accounts, revocable browser sessions,
 shared PostgreSQL login throttling and an audited local login/refresh/logout flow. See
 [ADR-021](docs/adr/ADR-021-human-identity-and-sessions.md) and [development.md](development.md)
-for setup. Deployment security work remains open.
+for setup. A separate HTTPS edge candidate passed a local self-signed nginx smoke;
+see [ADR-024](docs/adr/ADR-024-local-https-edge-checkpoint.md). Deployment security,
+MFA and verified recovery remain open.
 The supplemental sequence engine now retains four deterministic 24-hour patterns, including
 low-and-slow transfers that can evade a single-amount anomaly. It requires verified admitted
 history, produces explicit unavailable outcomes and does not change the uncalibrated risk-v1

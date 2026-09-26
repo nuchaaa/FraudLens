@@ -563,7 +563,12 @@ closed if they connect with owner or unexpected credentials. Do not apply those
 grants to this existing `fraudlens_test` demo schema.
 
 See `docs/security/threat-model.md` and ADR-021 for remaining remote-deployment
-gates: actual TLS/proxy and edge behavior, MFA/recovery assurance and external review.
+gates. A separate candidate HTTPS nginx image and a real local self-signed TLS
+smoke are documented in ADR-024. The existing Compose setup stays on loopback HTTP
+and still uses database-owner credentials; it must not be exposed remotely.
+The candidate image expects a reviewed DNS hostname, mounted certificate/key and
+a private `backend:8000` upstream. Its actual Docker/TLS deployment, MFA,
+verified recovery and external assessment remain open.
 
 ## Supplemental sequence evidence
 
