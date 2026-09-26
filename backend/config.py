@@ -16,3 +16,6 @@ class Settings(BaseSettings):
     experimental_enabled: bool = False
     experimental_model_bundle: Path | None = None
     experimental_manifest_sha256: str | None = None
+    human_auth_enabled: bool = False
+    human_origin: str | None = None
+    human_local_insecure: bool = False

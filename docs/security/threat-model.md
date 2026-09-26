@@ -1,6 +1,6 @@
 # Phase 15 threat model
 
-Status: design/foundation checkpoint. Human login is not yet implemented. This is
+Status: local human-session checkpoint. Human login is opt-in and locally tested. This is
 an engineering threat model, not a completed security audit or deployment approval.
 
 ## Assets and boundaries
@@ -16,7 +16,7 @@ authorization/use cases → PostgreSQL; operator CLI → identity store; offline
 artifacts → independently pinned loader. Human login must not expand model trust,
 customer scope or profile-admission authority.
 
-| Threat | Required control | Verification before enabling sessions |
+| Threat | Required control | Verification before remote exposure |
 | --- | --- | --- |
 | Password guessing and resource exhaustion | Argon2id, bounded inputs, shared throttle reservations, edge concurrency/time limits | Unknown/known users, concurrent attempts, restart persistence, memory budget |
 | Credential stuffing/account enumeration | Generic errors, dummy verification, no public account search/reset | Equal public response shapes; never echo secrets |
@@ -35,16 +35,11 @@ customer scope or profile-admission authority.
 
 ## Open release gates
 
-- PostgreSQL identity/session/throttle schema and atomic adapters.
-- Human HTTP login/session/refresh/logout and cookie/CSRF integration.
-- Operator provisioning, recovery, disable and policy-change commands with audit.
-- Frontend login/refresh/logout and private-data clearing.
-- PostgreSQL concurrency, HTTP security and browser tests.
 - Separate runtime DB grants with actual role-based verification.
 - Verified TLS/proxy configuration, edge rate/concurrency/time limits and operational
   secret management; Docker runtime and remote CI remain unverified.
-- Dependency audit after adding Argon2; external security review and MFA/recovery
-  requirements before any remote exposure.
+- External security review and MFA/recovery requirements before any remote exposure.
+  The locked dependency audit after adding Argon2 found no known vulnerabilities.
 
 No control here proves resistance to colluding authorized reviewers or production
 fraud-detection accuracy. Models and adaptive workflows remain experimental.

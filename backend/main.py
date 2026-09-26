@@ -2,18 +2,22 @@ import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from functools import partial
+from urllib.parse import urlsplit
 
 from fastapi import FastAPI
 from sqlalchemy.engine import Engine
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from backend.adapters.database.base import create_database_engine
 from backend.adapters.database.uow import create_unit_of_work
 from backend.adapters.evaluation import ExperimentalEvaluationEngine
+from backend.adapters.passwords import Argon2Passwords
 from backend.adapters.security import CredentialRegistry
-from backend.api import console, evaluations, health, learning, profiles, transactions
+from backend.api import auth, console, evaluations, health, learning, profiles, transactions
 from backend.api.dependencies import ApiServices
 from backend.api.errors import install_error_handlers
 from backend.api.limits import BusinessRequestLimits
+from backend.app.identity.service import IdentityService
 from backend.app.transaction.service import UnitOfWorkFactory
 from backend.config import Settings
 from backend.logging_config import configure_logging
@@ -28,6 +32,26 @@ def create_app(
     credentials = CredentialRegistry(
         config.api_principals.get_secret_value() if config.api_principals else None
     )
+    trusted_host: str | None = None
+    if config.human_auth_enabled:
+        origin = urlsplit(config.human_origin or "")
+        if (
+            origin.scheme not in ("http", "https")
+            or not origin.hostname
+            or origin.username
+            or origin.password
+            or origin.path
+            or origin.query
+            or origin.fragment
+            or config.human_origin != f"{origin.scheme}://{origin.netloc}"
+            or (origin.scheme == "http" and origin.hostname not in ("127.0.0.1", "localhost"))
+        ):
+            raise ValueError("human authentication requires an explicit trusted origin")
+        trusted_host = origin.hostname
+        if config.environment == "production" and (
+            origin.scheme != "https" or config.human_local_insecure
+        ):
+            raise ValueError("production human sessions require HTTPS and Secure cookies")
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -42,8 +66,23 @@ def create_app(
             engine = create_database_engine(config.database_url.get_secret_value())
             database = engine
             factory = partial(create_unit_of_work, database)
+        identity = (
+            IdentityService(
+                factory, Argon2Passwords(), service_principal_ids=credentials.principal_ids
+            )
+            if config.human_auth_enabled and factory is not None
+            else None
+        )
+        if identity is not None:
+            identity.ensure_no_collisions()
         app.state.services = ApiServices(
-            credentials, factory, config.experimental_enabled, evaluation_engine
+            credentials,
+            factory,
+            config.experimental_enabled,
+            evaluation_engine,
+            identity,
+            config.human_origin,
+            not config.human_local_insecure,
         )
         logging.getLogger("fraudlens").info("FraudLens transaction API started")
         try:
@@ -65,8 +104,11 @@ def create_app(
         openapi_url=None if config.environment == "production" else "/openapi.json",
     )
     app.add_middleware(BusinessRequestLimits)
+    if trusted_host is not None:
+        app.add_middleware(TrustedHostMiddleware, allowed_hosts=[trusted_host])
     install_error_handlers(app)
     app.include_router(health.router)
+    app.include_router(auth.router)
     app.include_router(transactions.router)
     app.include_router(console.router)
     app.include_router(profiles.router)

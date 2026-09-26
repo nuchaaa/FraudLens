@@ -46,3 +46,7 @@ class CredentialRegistry:
         if match is None or match.expires_at <= current:
             return None
         return Principal(match.principal_id, match.roles, match.customer_ids)
+
+    @property
+    def principal_ids(self) -> frozenset[UUID]:
+        return frozenset(item.principal_id for item in self._credentials)

@@ -23,6 +23,7 @@ from backend.adapters.database.history import (
     PostgresOutboxRepository,
 )
 from backend.adapters.database.idempotency import PostgresIdempotencyRepository
+from backend.adapters.database.identity import PostgresIdentityRepository
 from backend.adapters.database.learning import PostgresProfileLearningRepository
 from backend.adapters.database.profiles import (
     PostgresCustomerProfileRepository,
@@ -63,6 +64,7 @@ class PostgresUnitOfWork:
         self.audit = PostgresAuditRepository(self._session)
         self.outbox = PostgresOutboxRepository(self._session)
         self.idempotency = PostgresIdempotencyRepository(self._session)
+        self.identity = PostgresIdentityRepository(self._session)
 
     def __enter__(self) -> Self:
         if self._entered:

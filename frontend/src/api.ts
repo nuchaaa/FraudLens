@@ -7,44 +7,110 @@ import type {
   Worklist,
 } from "./types";
 
+export type HumanSession = {
+  account_id: string;
+  role: "analyst" | "admin";
+  customer_ids: string[];
+  csrf: string;
+};
+
 export class ApiError extends Error {
-  constructor(
-    message: string,
-    readonly status: number,
-  ) {
+  constructor(message: string, readonly status: number) {
     super(message);
   }
 }
 
-export class FraudLensApi {
-  constructor(private readonly token: string) {}
+async function checked<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    let detail = `Request failed (${response.status})`;
+    try {
+      const body = (await response.json()) as { detail?: unknown };
+      if (typeof body.detail === "string") detail = body.detail;
+    } catch {
+      // Reverse-proxy failures may not contain JSON.
+    }
+    throw new ApiError(detail, response.status);
+  }
+  return (await response.json()) as T;
+}
 
-  private async request<T>(path: string, init: RequestInit = {}): Promise<T> {
+async function renew(csrf: string): Promise<HumanSession> {
+  return checked<HumanSession>(await fetch("/api/v1/auth/refresh", {
+    method: "POST",
+    credentials: "same-origin",
+    cache: "no-store",
+    headers: { "X-CSRF-Token": csrf },
+  }));
+}
+
+export async function restoreSession(): Promise<HumanSession | null> {
+  const response = await fetch("/api/v1/auth/session", {
+    credentials: "same-origin", cache: "no-store",
+  });
+  if (response.status === 401 || response.status === 503) return null;
+  const value = await checked<HumanSession | { refresh_required: true; csrf: string }>(response);
+  if ("refresh_required" in value) {
+    try { return await renew(value.csrf); } catch { return null; }
+  }
+  return value;
+}
+
+export async function loginSession(login: string, password: string): Promise<HumanSession> {
+  return checked<HumanSession>(await fetch("/api/v1/auth/login", {
+    method: "POST",
+    credentials: "same-origin",
+    cache: "no-store",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ login, password }),
+  }));
+}
+
+export class FraudLensApi {
+  private refreshing: Promise<void> | null = null;
+
+  constructor(private csrf: string, private readonly expired: () => void) {}
+
+  private async request<T>(path: string, init: RequestInit = {}, retry = true): Promise<T> {
+    const unsafe = init.method && !["GET", "HEAD"].includes(init.method.toUpperCase());
     const response = await fetch(path, {
       ...init,
+      credentials: "same-origin",
       cache: "no-store",
       headers: {
-        Authorization: `Bearer ${this.token}`,
         "Content-Type": "application/json",
+        ...(unsafe ? { "X-CSRF-Token": this.csrf } : {}),
         ...init.headers,
       },
     });
-    if (!response.ok) {
-      let detail = `Request failed (${response.status})`;
+    if (response.status === 401 && retry) {
       try {
-        const body = (await response.json()) as { detail?: unknown };
-        if (typeof body.detail === "string") detail = body.detail;
+        if (!this.refreshing) {
+          this.refreshing = renew(this.csrf).then((session) => { this.csrf = session.csrf; });
+        }
+        await this.refreshing;
+        this.refreshing = null;
+        return this.request<T>(path, init, false);
       } catch {
-        // A non-JSON reverse-proxy error is represented by its status only.
+        this.refreshing = null;
+        this.expired();
       }
-      throw new ApiError(detail, response.status);
     }
-    return (await response.json()) as T;
+    if (response.status === 401) this.expired();
+    return checked<T>(response);
   }
 
-  summary(): Promise<Summary> {
-    return this.request("/api/v1/console/summary");
+  async logout(): Promise<void> {
+    try {
+      await checked<{ logged_out: boolean }>(await fetch("/api/v1/auth/logout", {
+        method: "POST", credentials: "same-origin", cache: "no-store",
+        headers: { "X-CSRF-Token": this.csrf },
+      }));
+    } finally {
+      this.expired();
+    }
   }
+
+  summary(): Promise<Summary> { return this.request("/api/v1/console/summary"); }
 
   worklist(cursor?: string): Promise<Worklist> {
     const query = cursor ? `?limit=50&cursor=${encodeURIComponent(cursor)}` : "?limit=50";

@@ -381,3 +381,30 @@
 - Phase 15 remains IN PROGRESS. Next core work is PostgreSQL human identity/session/throttle
   persistence and audited HTTP/browser integration. Detector follow-up is a separately
   versioned dataset protocol and risk-v2 validation, not an arbitrary score weight.
+
+## 2026-09-26 — Phase 15 local human sessions
+
+- Added migration 0008_human_identity with PostgreSQL human accounts, session families,
+  consumed refresh tokens and bounded shared login throttling. Account and refresh history
+  guards retain immutable evidence until the token family's absolute expiry.
+- Implemented typed identity repository, framework-free identity workflows and explicit-commit
+  UoW integration. Operator CLI uses getpass for provision/recovery, disable/enable and policy
+  changes; account/session/audit writes commit or roll back together. Human and machine
+  principal UUID collisions are rejected.
+- Added opt-in FastAPI login/session/refresh/logout, short-lived opaque access cookies,
+  refresh rotation/reuse family revocation, current account authorization checks, exact
+  Origin and CSRF checks. Human cookies and machine bearer credentials cannot be mixed;
+  existing customer scope and authorization-before-idempotency remain intact.
+- Replaced the console's pasted bearer form with human login, session restore and serialized
+  refresh. Access/refresh secrets remain HttpOnly cookies; local CSRF stays in tab memory.
+  Human auth defaults disabled. Local HTTP is explicitly configured and not remote-ready.
+- PostgreSQL/HTTP tests exercise rotation races, reuse, revocation, throttling, rollback,
+  role/scope changes, origin/CSRF, cookie flags, audit and a real CLI subprocess. Full suite:
+  532 passed, zero skipped, 93% combined backend/ML coverage, two unchanged upstream warnings.
+  Ruff/format, strict mypy (121 files), Alembic check, Python build, Compose configuration,
+  frontend ESLint, 5 Vitest tests and TypeScript/Vite build passed. The locked dependency
+  audit after Argon2 remained clean; no dependency changes in this checkpoint.
+- Schema head is 0008_human_identity, 27 non-Alembic tables. Docker runtime and remote CI
+  remain unverified. Phase 15 remains IN PROGRESS: restricted runtime DB roles, verified
+  TLS/proxy and edge controls, MFA/recovery assurance and external review are required
+  before remote exposure. No research metrics or production model claims were added.

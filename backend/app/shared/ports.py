@@ -17,6 +17,7 @@ from backend.app.transaction.entities import Transaction
 from backend.app.transaction.idempotency import IdempotencyRecord
 
 if TYPE_CHECKING:
+    from backend.app.identity.ports import IdentityRepository
     from backend.app.profile.learning import LearningDecision
 
 
@@ -157,6 +158,8 @@ class UnitOfWork(Protocol):
     def outbox(self) -> OutboxRepository: ...
     @property
     def idempotency(self) -> IdempotencyRepository: ...
+    @property
+    def identity(self) -> "IdentityRepository": ...
 
     def __enter__(self) -> Self: ...
     def __exit__(

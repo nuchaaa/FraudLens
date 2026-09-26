@@ -1,31 +1,37 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 15 in progress — human identity/security foundation tested; supplemental sequence evidence checkpoint complete. Phase 14 remains complete.**
-Next work: **PostgreSQL human accounts/session workflows, HTTP cookies/CSRF and frontend login. Production behavioral validation remains open.**
+Current checkpoint: **Phase 15 in progress — local human identity/session checkpoint and supplemental sequence evidence complete. Phase 14 remains complete.**
+Next work: **Runtime database grants, TLS/proxy and edge controls, MFA/recovery assurance and external security review. Production behavioral validation remains open.**
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
 ## Completed capabilities
 
-- [x] Phase 15 foundation: threat model and proposed ADR-021 human identity/session design.
+- [x] Phase 15 foundation: threat model and accepted local ADR-021 human identity/session design.
 - [x] Pure human-account scope and session expiry/rotation/revocation policies.
 - [x] Explicit Argon2id password adapter, bounded Unicode inputs and secret-safe repr.
+- [x] PostgreSQL account, session, consumed-refresh and bounded shared-throttle persistence
+  in migration 0008; explicit-commit UoW and atomic account/session audit.
+- [x] Audited getpass operator CLI for provision, recovery, disable, enable and policy change.
+- [x] Opt-in human login/session/refresh/logout HTTP, current account checks, exact Origin,
+  CSRF and revocable HttpOnly cookies; machine bearer access remains separate.
+- [x] Console human login with in-memory CSRF, session restoration and serialized refresh;
+  pasted service-token screen removed.
 - [x] Supplemental `sequence-v1-experimental` evidence detects low-and-slow, gradual
   escalation, repeated-new-recipient and cumulative-exposure patterns on one captured context.
 - [x] Sequence evidence requires a verified admitted baseline, retains missing semantics and
   remains outside risk-v1 scoring until a separately validated risk-v2 policy exists.
 - [x] Console distinguishes stored INSUFFICIENT EVIDENCE from no evaluation and renders
   nested rule plus matched sequence reasons; older evaluation envelopes remain compatible.
-- [x] Full regression: 522 passed, zero skipped, 95% combined coverage.
-- [ ] PostgreSQL identity/session/consumed-refresh/throttle persistence and atomic audit.
-- [ ] Provisioning/recovery CLI, login/refresh/logout/session HTTP, cookies and CSRF.
-- [ ] Frontend human login, concurrent HTTP tests, runtime DB grants/deployment hardening.
-- Existing console still uses service credentials. No human authentication is enabled yet.
+- [x] Full regression: 532 passed, zero skipped, 93% combined coverage.
+- [ ] Runtime DB grants, verified TLS/proxy and edge controls, MFA/recovery assurance,
+  Docker/remote CI and external security review remain before remote deployment.
+- Human authentication is disabled by default and must be explicitly enabled locally.
 
 - [x] Phase 14: responsive React 19/TypeScript/Vite local analyst console with six sections.
 - [x] Exact scoped PostgreSQL summary and keyset-paginated transaction/evaluation/case worklist.
 - [x] Retained explanations, profile reads and explicit-confirmation versioned case review.
-- [x] In-memory-only pasted credential; no bundled token, URL/browser storage or external assets.
+- [x] Initial in-memory-only pasted credential checkpoint, subsequently replaced by Phase 15 login.
 - [x] Loading/empty/error states, responsive/accessibility basics, nginx CSP and same-origin proxy.
 - [x] Frontend ESLint/Vitest/type/build/audit, Compose/CI integration, visual browser inspection.
 - [x] ADR-020; no schema migration, model promotion, fabricated metric or dependency change to Python.
@@ -127,18 +133,18 @@ do not establish legitimacy, score risk or admit transactions.
 
 ## Verification — 2026-09-20–26
 
-- [x] **522 passed, 0 skipped, 2 upstream warnings; 95% combined backend/ML coverage.**
+- [x] **532 passed, 0 skipped, 2 upstream warnings; 93% combined backend/ML coverage.**
 - [x] Actual PostgreSQL 17.10, including prior-phase regressions.
 - [x] Migration upgrade/downgrade/metadata tests and upgrade with populated legacy profile data.
 - [x] Concurrent reader pins its version before another writer commits; old versions exclude
   backdated later admissions and retain their original timezone/window policy.
-- [x] Ruff lint and strict mypy pass (115 backend/ML source files); final format/build checks are recorded per session.
-- [x] Frontend ESLint, 3 Vitest tests and TypeScript production build pass; prior clean npm audit remains applicable because dependencies are unchanged.
+- [x] Ruff lint and strict mypy pass (121 backend/ML source files); final format/build checks are recorded per session.
+- [x] Frontend ESLint, 5 Vitest tests and TypeScript production build pass; prior clean npm audit remains applicable because dependencies are unchanged.
 - [x] Browser visual inspection passed for the responsive connection screen; no external assets.
 - [x] Phase 15 locked dependency audit: no known vulnerabilities, including the ML/dev groups.
   Added argon2-cffi 25.1.0 and locked bindings/cffi/pycparser; existing versions unchanged.
 - [x] Source/wheel builds and Compose configuration pass.
-- [x] Native database upgraded; head is 0007_outbox_delivery, with 23 non-Alembic tables.
+- [x] Native disposable database upgraded; head is 0008_human_identity, with 27 non-Alembic tables.
 - [x] Actual worker CLI subprocess recorded/acknowledged an event and reported status in a disposable schema.
 - [x] Actual local Uvicorn/PostgreSQL smoke passed: cold start, populated pinned profile,
   median/MAD/p95, authentication and cutoff validation, plus prior intake smoke checks.
@@ -170,18 +176,24 @@ UV_CACHE_DIR=../../work/uv-cache ../../work/bootstrap/bin/uv build --offline
 ```
 
 Install `uv sync --locked --group ml` for the full test suite.
-See development.md for restart/stop and expiring credential setup. Business endpoints
-fail closed without FRAUDLENS_API_PRINCIPALS. No actual API token is committed or left
-configured. Run .venv/bin/uvicorn backend.main:app --reload --host 127.0.0.1 after setup.
+See development.md for restart/stop, local human provisioning and service credential setup.
+Business endpoints fail closed without a configured machine principal or enabled, current
+human session. No actual API token is committed or left configured. Run
+.venv/bin/uvicorn backend.main:app --reload --host 127.0.0.1 after setup.
 Sandboxed PostgreSQL access may need approved execution outside the sandbox.
 Tests require a disposable *_test database and use a generated schema; the migration
 smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Important files
 
-- backend/app/identity/policy.py: pure account/session policy; not HTTP authentication.
+- backend/app/identity/{policy,service,ports}.py: pure policy and identity workflows.
+- backend/adapters/database/identity.py; backend/adapters/identity/__main__.py:
+  PostgreSQL repository and operator CLI.
+- backend/api/auth.py; backend/api/dependencies.py: opt-in browser auth and shared scopes.
+- frontend/src/App.tsx, Connect.tsx and api.ts; tests/integration/test_human_auth.py:
+  console login and PostgreSQL/HTTP security checks.
 - backend/adapters/passwords.py; tests/unit/test_identity_policy.py: Argon2id and policy tests.
-- docs/security/threat-model.md; docs/adr/ADR-021-human-identity-and-sessions.md: design and release gates.
+- docs/security/threat-model.md; docs/adr/ADR-021-human-identity-and-sessions.md: local design and release gates.
 
 - backend/app/sequence/engine.py: pure deterministic sequence evidence and uncalibrated policy.
 - backend/adapters/sequence/__main__.py: database-free retained-context replay.
@@ -437,25 +449,23 @@ smoke also upgrades its default schema. Never substitute SQLite.
 - Cold start now has conservative multi-review bootstrap. Low-weight admission,
   compromised/colluding confirmations and corrections/retractions remain research debt.
 - Transactions remain immutable RECEIVED records. Experimental evaluation/review is separate
-  derived append-only state; no production risk API or human login exists. The local console
-  uses operator-pasted service credentials and is not approved for remote exposure.
-- External outbox destinations/audited redrive, idempotency retention, centralized revocation,
-  rate limits, database grants and deployment hardening remain unfinished.
+  derived append-only state; no production risk API exists. Local human login is opt-in;
+  the console is not approved for remote exposure.
+- External outbox destinations/audited redrive, idempotency retention, service-principal
+  revocation, edge limits, runtime database grants and deployment hardening remain unfinished.
 - Service credentials are configuration snapshots; rotate while retaining principal UUID
   and restart all processes to apply revocation/scope changes. Remote use requires TLS.
 
 ## Exact next tasks
 
-1. Read status/specification/runbook and ADR-021/threat-model plus ADR-020/008/017/018.
-2. Continue Phase 15 from its tested pure policy and password adapter. Do not redo the foundation.
-   ADR-021 is proposed: HTTP/persistence integration must satisfy its security requirements.
-3. Keep service principals for machine intake and separate human analyst/admin identities. Preserve
-   customer scope, reviewer/admin separation and authorization-first durable idempotency replay.
-4. Add PostgreSQL identity/session schema, least-privilege application workflows, audit events and
-   brute-force/rate-limit policy before replacing the console's pasted-token connection screen.
-5. Test expiry/revocation, role/scope changes, credential rotation, CSRF, concurrent sessions,
-   inactive accounts, separation of duties and secret non-disclosure on PostgreSQL and HTTP.
-6. Do not expose remotely until TLS/proxy headers, runtime database grants, CSP/cookie settings,
-   deployment secrets and security review are complete. Never weaken experimental/profile gates.
-7. Keep deterministic demo seeding (Phase 16), research experiments, corrections/weights and
+1. Read status/specification/runbook, ADR-021 and threat model. Do not redo the completed
+   local identity/session checkpoint or supplemental sequence evidence.
+2. Implement and test separate migrator, API runtime, worker and operator PostgreSQL roles.
+   Prove the API role cannot DDL, disable history triggers, mutate immutable evidence or
+   provision human accounts. Preserve explicit-commit and authorization-first replay.
+3. Verify HTTPS proxy, Host/Origin/forwarded-header trust, Secure cookies, CSP, edge request
+   limits, secret rotation and operational recovery with actual deployed topology.
+4. Define MFA and verified account recovery policy, then obtain an external security review
+   before remote exposure. Docker runtime and remote CI remain unverified.
+5. Keep deterministic demo seeding (Phase 16), risk-v2 research, corrections/weights and
    external delivery/redrive separate. Update all three checkpoint files before stopping.

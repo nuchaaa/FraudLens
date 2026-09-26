@@ -15,9 +15,10 @@ from sqlalchemy import (
     Numeric,
     String,
     UniqueConstraint,
+    Uuid,
     text,
 )
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from backend.adapters.database.base import Base
@@ -463,3 +464,66 @@ class ProfileLearningEvidenceRow(Base):
     feedback_id: Mapped[UUID] = mapped_column(ForeignKey("evaluation_feedback.feedback_id"))
     transaction_id: Mapped[UUID] = mapped_column(ForeignKey("transactions.transaction_id"))
     reviewer_id: Mapped[UUID]
+
+
+class HumanAccountRow(Base):
+    __tablename__ = "human_accounts"
+    account_id: Mapped[UUID] = mapped_column(primary_key=True)
+    login: Mapped[str] = mapped_column(String(64), unique=True)
+    password_hash: Mapped[str] = mapped_column(String(255))
+    role: Mapped[str] = mapped_column(String(20))
+    customer_ids: Mapped[list[UUID]] = mapped_column(ARRAY(Uuid(as_uuid=True)), default=list)
+    active: Mapped[bool] = mapped_column(Boolean)
+    authorization_version: Mapped[int]
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    __table_args__ = (
+        CheckConstraint("login ~ '^[a-z][a-z0-9._-]{2,63}$'", name="login"),
+        CheckConstraint("role IN ('analyst','admin')", name="role"),
+        CheckConstraint("role <> 'admin' OR cardinality(customer_ids)=0", name="admin_scope"),
+        CheckConstraint("authorization_version > 0", name="authorization_version"),
+    )
+
+
+class HumanSessionRow(Base):
+    __tablename__ = "human_sessions"
+    family_id: Mapped[UUID] = mapped_column(primary_key=True)
+    account_id: Mapped[UUID] = mapped_column(ForeignKey("human_accounts.account_id"), index=True)
+    authorization_version: Mapped[int]
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    rotated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    access_expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    idle_expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    absolute_expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    generation: Mapped[int]
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    access_sha256: Mapped[str] = mapped_column(String(64), unique=True)
+    refresh_sha256: Mapped[str] = mapped_column(String(64), unique=True)
+    csrf_sha256: Mapped[str] = mapped_column(String(64))
+    __table_args__ = (
+        CheckConstraint("generation > 0 AND authorization_version > 0", name="versions"),
+        CheckConstraint(
+            "length(access_sha256)=64 AND length(refresh_sha256)=64 AND length(csrf_sha256)=64",
+            name="digests",
+        ),
+        Index("ix_human_sessions_refresh", "refresh_sha256"),
+    )
+
+
+class ConsumedRefreshRow(Base):
+    __tablename__ = "human_consumed_refresh"
+    refresh_sha256: Mapped[str] = mapped_column(String(64), primary_key=True)
+    family_id: Mapped[UUID] = mapped_column(ForeignKey("human_sessions.family_id"), index=True)
+    csrf_sha256: Mapped[str] = mapped_column(String(64))
+    consumed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    __table_args__ = (Index("ix_human_consumed_refresh_expires", "expires_at"),)
+
+
+class LoginThrottleRow(Base):
+    __tablename__ = "human_login_throttle"
+    bucket: Mapped[str] = mapped_column(String(12), primary_key=True)
+    window_started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    attempts: Mapped[int]
+    __table_args__ = (CheckConstraint("attempts >= 0", name="attempts"),)

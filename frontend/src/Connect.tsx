@@ -1,21 +1,21 @@
 import { type FormEvent, useState } from "react";
-import { FraudLensApi } from "./api";
+import { loginSession, type HumanSession } from "./api";
 import { Mark } from "./components";
 
-export function Connect({ onConnect }: { onConnect: (token: string) => void }) {
-  const [token, setToken] = useState("");
+export function Connect({ onConnect }: { onConnect: (session: HumanSession) => void }) {
+  const [login, setLogin] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    const candidate = token.trim();
-    if (!candidate) return setError("Enter a short-lived local API credential.");
+    if (!login || !password) return setError("Enter your login and password.");
     setBusy(true);
     setError("");
     try {
-      await new FraudLensApi(candidate).summary();
-      onConnect(candidate);
+      onConnect(await loginSession(login, password));
+      setPassword("");
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Connection failed");
     } finally {
@@ -38,13 +38,15 @@ export function Connect({ onConnect }: { onConnect: (token: string) => void }) {
       </section>
       <form className="connect-card" onSubmit={submit}>
         <div className="eyebrow">LOCAL RESEARCH CONSOLE</div>
-        <h2>Connect to your workspace</h2>
-        <p>Use an expiring analyst or admin service credential from <code>development.md</code>.</p>
-        <label htmlFor="token">Bearer credential</label>
-        <input id="token" type="password" autoComplete="off" value={token} onChange={(e) => setToken(e.target.value)} placeholder="Paste token" />
+        <h2>Sign in to your workspace</h2>
+        <p>Use a locally provisioned analyst or admin account.</p>
+        <label htmlFor="login">Login</label>
+        <input id="login" autoComplete="username" value={login} onChange={(e) => setLogin(e.target.value)} placeholder="Account name" />
+        <label htmlFor="password">Password</label>
+        <input id="password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
         {error && <div className="form-error" role="alert">{error}</div>}
-        <button className="primary" disabled={busy}>{busy ? "Checking…" : "Open analyst console"}</button>
-        <div className="privacy-note"><span aria-hidden="true">◉</span><span>Held only in this tab’s memory. Refreshing clears it.</span></div>
+        <button className="primary" disabled={busy}>{busy ? "Signing in…" : "Open analyst console"}</button>
+        <div className="privacy-note"><span aria-hidden="true">◉</span><span>Browser session cookies are HttpOnly; no tokens are saved in browser storage.</span></div>
       </form>
     </main>
   );

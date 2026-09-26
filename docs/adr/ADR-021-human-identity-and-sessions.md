@@ -1,7 +1,7 @@
 # ADR-021: Human identities and revocable browser sessions
 
-Status: proposed for Phase 15; foundation implementation only. No HTTP session
-authentication is enabled by this ADR.
+Status: accepted for the local Phase 15 human-session checkpoint, 2026-09-26.
+Remote deployment and runtime least-privilege verification remain open.
 
 ## Context
 
@@ -43,7 +43,7 @@ Already authorized in-flight work may finish; revocation governs subsequent
 authentication, not cancellation of a transaction already executing. Reviewers and
 learning authorizers remain distinct UUIDs; no role or UI flow bypasses learning.
 
-## Browser and HTTP contract (not implemented yet)
+## Browser and HTTP contract
 
 - POST `/api/v1/auth/login`, `/refresh`, `/logout`; GET `/session`.
 - Access/refresh cookies: host-only, HttpOnly, SameSite=Strict, Path=/, Secure by
@@ -58,6 +58,9 @@ learning authorizers remain distinct UUIDs; no role or UI flow bypasses learning
   the server validates it against the generation's digest before returning it.
   This permits reload without storing plaintext CSRF in PostgreSQL. Consumed refresh
   records retain the corresponding CSRF digest for authenticated reuse detection.
+  If access has expired but a current refresh cookie remains, GET session returns only
+  the validated CSRF and `refresh_required=true`; the browser must then rotate before
+  requesting business data.
 - Reject mixed bearer/cookie credentials. An invalid Authorization header must never
   fall back to a cookie. Machine bearer requests retain existing authorization.
 - Do not enable CORS for arbitrary origins; do not derive trust from Host,
@@ -66,7 +69,7 @@ learning authorizers remain distinct UUIDs; no role or UI flow bypasses learning
 - Logout revokes the family and clears all cookies with matching attributes.
   The frontend must clear retained customer data when authentication expires.
 
-## Persistence, provisioning and abuse controls (not implemented yet)
+## Persistence, provisioning and abuse controls
 
 Add accounts, session families/generations and shared login-limit state through an
 additive migration. Account and family locks serialize changes and rotation. A
@@ -81,12 +84,23 @@ Recovery resets the password and revokes all sessions after out-of-band identity
 verification; this project cannot claim that a local CLI verifies a person's identity.
 
 Use shared PostgreSQL counters and atomic reservations before expensive hashing:
-per-account identifier and overall login budgets, with bounded windows and generic
+256 hashed identifier buckets plus an overall login budget, with bounded windows and generic
 failure responses. Unknown users use a fixed dummy Argon2id verification. Return
 the same failure for unknown, inactive, expired, locked or incorrect accounts.
 No permanent lockout and no automatic reset token emailed by this application.
 Rate-limit state must survive processes/restarts and remain bounded. A reverse
 proxy must separately bound connection time, bodies and expensive-request concurrency.
+
+The implemented local policy allows ten attempts per hashed identifier bucket and
+100 attempts overall per minute. Buckets can collide and therefore conservatively
+throttle unrelated logins. This is an authored safeguard, not a measured operating
+point. Consumed refresh digests remain immutable until the eight-hour family expiry;
+up to 100 expired rows are pruned during each login. The database rejects early deletion.
+The browser keeps CSRF only in tab memory and serializes refresh requests in that tab.
+
+Runtime database grants, TLS/proxy verification, edge limits, MFA and operator recovery
+assurance are not supplied by this local implementation. The CLI accepts an asserted
+operator UUID; actual operator identity must be controlled by the local OS procedure.
 
 ## Alternatives and consequences
 

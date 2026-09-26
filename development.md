@@ -137,7 +137,7 @@ Rotate by replacing the digest while retaining the principal UUID and restarting
 every API process. This keeps its durable idempotency namespace. Remove an entry,
 reduce its scope or let it expire to deny future requests, including replay; restart
 is required for configuration changes. Never reuse principal UUIDs for new identities.
-Credentials are service keys, not user passwords; interactive login remains Phase 15.
+Credentials are service keys, not user passwords; local human login is documented in Phase 15 below.
 
 HTTP behavior: missing/invalid/expired token → 401, denied submission → 403,
 missing or inaccessible transaction → 404, changed key body or duplicate ID → 409,
@@ -395,8 +395,8 @@ the same. All four new business tables reject UPDATE, DELETE and TRUNCATE.
 
 Every result remains uncalibrated, experimental and production-ineligible. Suggested actions
 are not executed. Feedback does not admit observations, update profiles, alter immutable
-transactions or train models. Do not enable these routes for remote or production use; there
-is no human authentication or production authorization design. The local outbox recorder
+transactions or train models. Do not enable these routes for remote or production use; local
+human authentication is available, but deployment authorization and hardening remain open. The local outbox recorder
 executes no operational action. See
 ADR-017 for the persistence and trust boundary.
 
@@ -480,10 +480,10 @@ npm ci
 npm run dev
 ```
 
-Open `http://127.0.0.1:5173`, paste the raw short-lived token into the connection screen,
-and use synthetic data only. Vite proxies `/api` to `127.0.0.1:8000`. The credential stays
-only in React memory and clears on refresh; do not put it in source, a URL, browser storage
-or screenshots. The UI has no login/session endpoint and is not approved for remote use.
+Open `http://127.0.0.1:5173` and sign in with a locally provisioned human account.
+Vite proxies `/api` to `127.0.0.1:8000`. Browser access/refresh/CSRF values are
+HttpOnly cookies; the CSRF value returned by the session endpoint stays in tab memory.
+Customer data clears on logout or session expiry. The console is local only.
 
 Authenticated read models:
 
@@ -510,22 +510,53 @@ npm audit --audit-level=high
 `docker compose up --build` now serves the console on `127.0.0.1:5173` through nginx and
 the API on `127.0.0.1:8000`. Apply Alembic migrations separately as documented above.
 Docker execution remains unverified on this machine because its engine is unavailable.
-See ADR-020 for metric semantics and remaining authentication/listing limitations.
+See ADR-020 for metric semantics and ADR-021 for local human session boundaries.
 
-## Phase 15 foundation (in progress)
+## Phase 15 local human sessions (completed local checkpoint)
 
-The password adapter and pure human-account/session policy are implemented and tested,
-but no human account provisioning or login endpoint exists yet. Continue using the
-service credential setup above. Run `uv sync --locked --group ml` after updating to
-install the new Argon2 dependency. The focused check is:
+Apply migration `0008_human_identity` before enabling login. With the local PostgreSQL
+URL exported as `FRAUDLENS_DATABASE_URL`, provision an account from a terminal:
 
 ```sh
-.venv/bin/pytest tests/unit/test_identity_policy.py tests/unit/test_architecture.py
+.venv/bin/alembic upgrade head
+.venv/bin/python -m backend.adapters.identity provision \
+  --operator-id 00000000-0000-4000-8000-000000000001 \
+  --login local-admin --role admin
 ```
 
-See `docs/security/threat-model.md` and ADR-021 for the proposed PostgreSQL/session,
-CSRF, provisioning and deployment requirements. Do not treat pure policy tests as
-evidence that HTTP refresh races, database revocation or browser security are complete.
+Use a distinct actual local operator UUID for `--operator-id`; it is an asserted audit
+identity, not an online identity check. The CLI prompts twice with `getpass` and never
+accepts a password argument. An analyst needs one or more `--customer-id UUID` options;
+an admin has unrestricted synthetic customer scope and takes no customer IDs. Local
+recovery/disable/policy commands use `recover`, `disable`, `enable` or `set-policy` with
+`--account-id UUID --operator-id UUID`; recovery requires out-of-band identity checks.
+
+Then start the backend in the same terminal with:
+
+```sh
+export FRAUDLENS_HUMAN_AUTH_ENABLED=true
+export FRAUDLENS_HUMAN_ORIGIN=http://127.0.0.1:5173
+export FRAUDLENS_HUMAN_LOCAL_INSECURE=true
+.venv/bin/uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+Start `npm run dev` in `frontend/` separately. Local HTTP uses unprefixed non-Secure
+cookies. A production environment rejects that mode and requires an explicit HTTPS
+origin; this local setup is not approved for remote exposure. Machine intake still
+uses separate expiring bearer credentials. Human sessions have five-minute access,
+30-minute refresh idle and eight-hour absolute expiry. Concurrent refresh reuse
+revokes the family. Business cookie writes require exact Origin and `X-CSRF-Token`.
+The browser serializes refreshes in one tab; competing tabs may require login again.
+
+Focused check:
+
+```sh
+.venv/bin/pytest tests/unit/test_identity_policy.py tests/integration/test_human_auth.py
+```
+
+See `docs/security/threat-model.md` and ADR-021 for security controls and remaining
+remote-deployment gates, including separate runtime database grants, TLS/proxy setup,
+edge request limits, MFA/recovery review and external security assessment.
 
 ## Supplemental sequence evidence
 

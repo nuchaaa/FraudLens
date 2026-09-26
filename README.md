@@ -6,13 +6,13 @@ FraudLens is a research-oriented modular monolith investigating how banking frau
 detection can learn legitimate behavior changes without letting exceptional or
 fraudulent transactions corrupt a customer's normal baseline.
 
-**Status: Phase 15 security foundation plus supplemental sequence-evidence checkpoint; not a deployable fraud product.**
+**Status: Phase 15 local human sessions plus supplemental sequence evidence; not a deployable fraud product.**
 Submission/retrieval, scoped service credentials, durable request replay and atomic
 audit/outbox storage are implemented on PostgreSQL. Opt-in experimental HTTP evaluation
 now atomically retains its exact captured facts, vector, policy, result, optional native-model
 explanation and response. Scoped analyst cases and immutable feedback history are durable.
-There is no production risk endpoint or human login. The local analyst console uses
-operator-pasted, expiring service credentials and must not be exposed remotely.
+There is no production risk endpoint. The local analyst console uses opt-in,
+PostgreSQL-backed human sessions and must not be exposed remotely.
 Profile reads now expose robust short/long statistics, cold-start states and immutable
 revision selection. Profile admission requires the separately authorized experimental workflow.
 The pure feature engine provides 29 ordered features with explicit missing-history indicators,
@@ -45,6 +45,10 @@ and promises no exactly-once external delivery. See [ADR-019](docs/adr/ADR-019-o
 Phase 14 adds a scoped React/TypeScript console over factual PostgreSQL summary/worklist
 projections, retained evaluation explanations, case review and profile reads. See
 [ADR-020](docs/adr/ADR-020-analyst-console-and-scoped-read-model.md).
+Phase 15 now provides operator-provisioned human accounts, revocable browser sessions,
+shared PostgreSQL login throttling and an audited local login/refresh/logout flow. See
+[ADR-021](docs/adr/ADR-021-human-identity-and-sessions.md) and [development.md](development.md)
+for setup. Deployment security work remains open.
 The supplemental sequence engine now retains four deterministic 24-hour patterns, including
 low-and-slow transfers that can evade a single-amount anomaly. It requires verified admitted
 history, produces explicit unavailable outcomes and does not change the uncalibrated risk-v1
@@ -129,13 +133,16 @@ See [research protocol](docs/research/protocol.md).
 
 - `GET /health/live`: process liveness, version and implementation stage.
 - `GET /docs`: development OpenAPI explorer.
+- `POST /api/v1/auth/login`, `/refresh`, `/logout`; `GET /api/v1/auth/session`:
+  opt-in human browser session lifecycle.
 - `POST /api/v1/customers`: admin-only synthetic customer enrollment; no profile admission.
 - `POST /api/v1/transactions`: scoped service/admin intake with required Idempotency-Key.
 - `GET /api/v1/transactions/{transaction_id}`: scoped service/analyst or admin retrieval.
 - `GET /api/v1/customers/{customer_id}/profiles/{currency}`: scoped behavior summary;
   explicit historical cutoffs require a pinned profile version.
 
-All business routes require an expiring bearer service credential. Intake returns
+Business routes require an authorized human session or expiring bearer service credential.
+Machine intake remains bearer-only by role. Intake returns
 201 and RECEIVED status; matching retries return the exact stored response, changed
 bodies or duplicate transaction IDs return 409. Amounts are decimal strings and
 timestamps require a timezone. No risk prediction is fabricated. See the
@@ -162,8 +169,8 @@ docker compose up --build -d
 docker compose exec backend alembic upgrade head
 ```
 
-Migrations create 21 business and two outbox-operational tables plus database history protections, including
-immutable profile revisions, evaluation/review records and profile-learning provenance.
+Migrations create 21 fraud business tables, two outbox-operational tables and four human
+identity/session/throttle tables plus database history protections.
 The initial foundation marker is preserved in migration history. Compose includes PostgreSQL,
 backend and the same-origin nginx frontend. Use a dedicated local
 database; never point migration/test commands at a real banking database.
@@ -195,10 +202,11 @@ database configuration uses environment variables and redacts secrets in setting
 Docker runs the backend without root and binds host ports to localhost. Production
 mode hides API documentation. PostgreSQL triggers reject edits/deletes to historical
 records, and repository writes participate in one explicit database transaction.
-Business routes now use expiring hashed random service credentials, role/customer
-scope checks, bounded request bodies and sanitized errors. Human authentication,
-restricted runtime database grants, distributed rate limits and secure deployment
-review remain future work. Keep this synthetic demo on localhost; remote use needs TLS.
+Business routes use expiring hashed service credentials or current, revocable human
+sessions with role/customer scope checks, bounded request bodies and sanitized errors.
+Browser writes require exact configured Origin and session CSRF. Restricted runtime
+database grants, verified TLS/proxy settings, edge concurrency limits, MFA/recovery
+review and external security assessment remain open. Keep this synthetic demo on localhost.
 A privileged database administrator can disable triggers; these guards are not
 cryptographic tamper evidence.
 
@@ -208,8 +216,8 @@ This checkpoint verifies authenticated intake, experimental evaluation/review an
 invariants; it does not establish fraud-detection accuracy or deployment security. Robust
 profile summaries, bounded device/recipient activity features, deterministic rules and a
 synthetic-only reviewed native model exist. Supplemental sequence evidence identifies several
-24-hour low-and-slow patterns but is not part of risk-v1 scoring. Recipient account age and authoritative external
-history are unavailable. Thresholds and scores are uncalibrated. Outbox storage, leased local
+24-hour low-and-slow patterns but is not part of risk-v1 scoring. Recipient account age
+and authoritative external history are unavailable. Thresholds and scores are uncalibrated. Outbox storage, leased local
 delivery and receipt deduplication exist; no external destination or continuous daemon exists.
 Feedback is durable but does not authorize profile learning. See the research protocol for
 baseline comparisons and threats to validity.
@@ -225,7 +233,7 @@ baseline comparisons and threats to validity.
    production behavioral validation remains open.
 7. Durable experimental evaluation, cases, feedback and conservative profile learning —
    implemented; weights and corrections remain deferred. Leased local outbox delivery is implemented.
-8. Local analyst console — implemented; human authentication/security review remains Phase 15.
+8. Local analyst console and opt-in human sessions — implemented; deployment security review remains Phase 15.
 9. Deterministic demos and research experiments.
 
 ## Continuation

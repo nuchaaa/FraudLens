@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { FraudLensApi } from "./api";
+import { FraudLensApi, restoreSession, type HumanSession } from "./api";
 import { Mark } from "./components";
 import { Connect } from "./Connect";
 import { Customers, Models, Overview, System, Transactions } from "./pages";
@@ -17,13 +17,22 @@ const navigation: Array<[Page, string, string]> = [
 ];
 
 export function App() {
-  const [token, setToken] = useState<string | null>(null);
-  if (!token) return <Connect onConnect={setToken} />;
-  return <Console token={token} disconnect={() => setToken(null)} />;
+  const [session, setSession] = useState<HumanSession | null>(null);
+  const [booting, setBooting] = useState(true);
+  useEffect(() => {
+    let active = true;
+    restoreSession().then((value) => { if (active) setSession(value); })
+      .catch(() => { if (active) setSession(null); })
+      .finally(() => { if (active) setBooting(false); });
+    return () => { active = false; };
+  }, []);
+  if (booting) return <main className="connect-page"><p>Checking session…</p></main>;
+  if (!session) return <Connect onConnect={setSession} />;
+  return <Console session={session} disconnect={() => setSession(null)} />;
 }
 
-function Console({ token, disconnect }: { token: string; disconnect: () => void }) {
-  const api = useMemo(() => new FraudLensApi(token), [token]);
+function Console({ session, disconnect }: { session: HumanSession; disconnect: () => void }) {
+  const api = useMemo(() => new FraudLensApi(session.csrf, disconnect), [session.csrf, disconnect]);
   const [page, setPage] = useState<Page>("overview");
   const [summary, setSummary] = useState<Summary | null>(null);
   const [items, setItems] = useState<WorklistItem[]>([]);
@@ -78,8 +87,8 @@ function Console({ token, disconnect }: { token: string; disconnect: () => void 
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <div className="scope-card"><span className="live-dot" /><div><strong>Local API</strong><small>Scoped credential</small></div></div>
-          <button className="disconnect" onClick={disconnect}>Clear credential</button>
+          <div className="scope-card"><span className="live-dot" /><div><strong>{session.role}</strong><small>Scoped human session</small></div></div>
+          <button className="disconnect" onClick={() => void api.logout()}>Sign out</button>
         </div>
       </aside>
       <main className="workspace">
