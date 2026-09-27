@@ -1,5 +1,5 @@
 import { type FormEvent, useState } from "react";
-import { loginSession, type HumanSession } from "./api";
+import { loginSession, loginWithSecurityKey, type HumanSession } from "./api";
 import { Mark } from "./components";
 
 export function Connect({ onConnect }: { onConnect: (session: HumanSession) => void }) {
@@ -18,6 +18,20 @@ export function Connect({ onConnect }: { onConnect: (session: HumanSession) => v
       setPassword("");
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Connection failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function securityKey() {
+    if (!login || !password) return setError("Enter your login and password.");
+    setBusy(true);
+    setError("");
+    try {
+      onConnect(await loginWithSecurityKey(login, password));
+      setPassword("");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Security-key sign-in failed");
     } finally {
       setBusy(false);
     }
@@ -46,6 +60,7 @@ export function Connect({ onConnect }: { onConnect: (session: HumanSession) => v
         <input id="password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
         {error && <div className="form-error" role="alert">{error}</div>}
         <button className="primary" disabled={busy}>{busy ? "Signing in…" : "Open analyst console"}</button>
+        <button className="secondary security-key-button" type="button" disabled={busy} onClick={() => void securityKey()}>Sign in with security key</button>
         <div className="privacy-note"><span aria-hidden="true">◉</span><span>Browser session cookies are HttpOnly; no tokens are saved in browser storage.</span></div>
       </form>
     </main>

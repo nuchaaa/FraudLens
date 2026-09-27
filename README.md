@@ -6,7 +6,7 @@ FraudLens is a research-oriented modular monolith investigating how banking frau
 detection can learn legitimate behavior changes without letting exceptional or
 fraudulent transactions corrupt a customer's normal baseline.
 
-**Status: Phase 15 local human sessions plus supplemental sequence evidence; not a deployable fraud product.**
+**Status: Phase 15 local human sessions and WebAuthn checkpoint plus supplemental sequence evidence; not a deployable fraud product.**
 Submission/retrieval, scoped service credentials, durable request replay and atomic
 audit/outbox storage are implemented on PostgreSQL. Opt-in experimental HTTP evaluation
 now atomically retains its exact captured facts, vector, policy, result, optional native-model
@@ -49,8 +49,14 @@ Phase 15 now provides operator-provisioned human accounts, revocable browser ses
 shared PostgreSQL login throttling and an audited local login/refresh/logout flow. See
 [ADR-021](docs/adr/ADR-021-human-identity-and-sessions.md) and [development.md](development.md)
 for setup. A separate HTTPS edge candidate passed a local self-signed nginx smoke;
-see [ADR-024](docs/adr/ADR-024-local-https-edge-checkpoint.md). Deployment security,
-MFA and verified recovery remain open.
+see [ADR-024](docs/adr/ADR-024-local-https-edge-checkpoint.md). A local analyst
+can enroll security keys, sign in with password plus WebAuthn assertion, and
+remove a key using another enrolled key; see
+[ADR-026](docs/adr/ADR-026-local-webauthn-ceremonies.md) and
+[ADR-027](docs/adr/ADR-027-local-factor-lifecycle-and-challenge-retention.md).
+Production human authentication still fails closed under
+[ADR-025](docs/adr/ADR-025-remote-human-authentication-gate.md). Admin approval,
+verified recovery and deployment security remain open.
 The supplemental sequence engine now retains four deterministic 24-hour patterns, including
 low-and-slow transfers that can evade a single-amount anomaly. It requires verified admitted
 history, produces explicit unavailable outcomes and does not change the uncalibrated risk-v1
@@ -100,15 +106,18 @@ to UTC. Customer-local hours use IANA timezones. See
 ## Screenshots
 
 The functioning console is available locally after authenticated setup. Recruiter-facing
-screenshots will be captured with deterministic synthetic demo data in Phase 16; no mock
+screenshots can use the Phase 16 deterministic synthetic transaction fixture; no mock
 screen is presented as measured production behavior.
 
 ## Demo scenarios
 
 Domain regression tests cover normal confirmed activity, a quarantined ₸8M
 purchase, preserved baseline for a subsequent ₸500k transfer, gradual confirmed
-spending changes, and an unverified escalating sequence. Full seeded banking
-scenarios and a live analyst demonstration are scheduled for Phase 16.
+spending changes, and an unverified escalating sequence. The first Phase 16
+fixture seeds 62 synthetic transaction facts for stories A–E into a disposable
+PostgreSQL test database. It does not create trusted profiles, verdicts, risk
+evaluations or measured outcomes; the full reviewed demonstration remains open.
+See the [local five-story guide](docs/demo/README.md).
 
 ## Tech stack
 
@@ -209,8 +218,9 @@ sessions with role/customer scope checks, bounded request bodies and sanitized e
 Browser writes require exact configured Origin and session CSRF. A four-role
 PostgreSQL grant plan is tested on a disposable dedicated database; the current
 localhost Compose stack still uses owner credentials. Verified TLS/proxy settings,
-edge concurrency limits, MFA/recovery review and external security assessment remain
-open. Keep this synthetic demo on localhost.
+edge concurrency limits, full MFA lifecycle/recovery and external security
+assessment remain open. Production mode rejects human authentication pending
+those controls. Keep this synthetic demo on localhost.
 A privileged database administrator can disable triggers; these guards are not
 cryptographic tamper evidence.
 

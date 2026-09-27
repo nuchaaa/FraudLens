@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { FraudLensApi, restoreSession, type HumanSession } from "./api";
 import { Mark } from "./components";
 import { Connect } from "./Connect";
+import { SecurityKeyEnrollment } from "./SecurityKeyEnrollment";
 import { Customers, Models, Overview, System, Transactions } from "./pages";
 import type { Summary, WorklistItem } from "./types";
 
@@ -100,7 +101,7 @@ function Console({ session, disconnect }: { session: HumanSession; disconnect: (
         {(page === "transactions" || page === "cases") && <Transactions api={api} title={page === "cases" ? "Fraud cases" : "Transaction worklist"} items={shownItems} loading={loading} error={error} cursor={cursor} more={more} casesOnly={page === "cases"} refreshed={() => setRefreshKey((v) => v + 1)} />}
         {page === "customers" && <Customers api={api} />}
         {page === "models" && <Models items={items} />}
-        {page === "system" && <System summary={summary} />}
+        {page === "system" && <><System summary={summary} />{session.role === "analyst" && <SecurityKeyEnrollment api={api} />}</>}
       </main>
     </div>
   );

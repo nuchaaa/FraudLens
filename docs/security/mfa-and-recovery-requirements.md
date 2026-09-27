@@ -1,8 +1,15 @@
 # Remote human-authentication requirements
 
-Status: requirements only. No MFA or independently verified recovery is implemented.
+Status: local analyst WebAuthn login, first/additional-factor enrollment and
+different-key removal are implemented as engineering checkpoints (ADR-026/027).
+Independently verified recovery, admin approvals and remote factor lifecycle
+are not implemented. ADR-028 adds a non-executing, pure approval-claim policy;
+it does not authenticate operators or verify institutional proof.
 The local password/session flow must stay on localhost until these requirements are
-implemented, tested and independently assessed.
+implemented, tested and independently assessed. Production human auth still fails
+closed under ADR-025.
+ADR-025 adds a fail-closed production human-auth gate and local-operator CLI guard;
+these guards do not themselves implement MFA or verified recovery.
 
 ## MFA enrollment and login
 

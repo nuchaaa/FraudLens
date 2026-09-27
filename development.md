@@ -59,6 +59,39 @@ testing and has not yet been runtime-verified in this workspace.
 
 ## Current application
 
+### Deterministic synthetic demo fixture
+
+Preview the fixed Phase 16 transaction plan without a database:
+
+```sh
+.venv/bin/python -m backend.adapters.demo
+.venv/bin/python -m backend.adapters.demo --manifest
+.venv/bin/python -m backend.adapters.demo --progress  # requires TEST_DATABASE_URL
+.venv/bin/python -m backend.adapters.demo --walkthrough  # concise read-only guide
+.venv/bin/python -m backend.adapters.demo --apply-stage BASELINE  # staged facts only
+```
+
+To apply it, set `TEST_DATABASE_URL` to a **disposable local Unix-socket PostgreSQL
+database named `*_test`** and run `.venv/bin/python -m backend.adapters.demo --apply`.
+The command refuses production mode and TCP URLs. It inserts four synthetic
+customers and 62 transactions through the existing audited/idempotent services;
+running it again replays the same transactions. The printed fixture actor UUID is
+synthetic, not an authenticated person. No profiles, analyst labels, risk results
+or fraud claims are seeded. Read [ADR-029](docs/adr/ADR-029-disposable-synthetic-demo-seed.md)
+before using this in a demonstration.
+The [five-story guide](docs/demo/README.md) describes the optional manual,
+authorized review path and its missing-evidence boundaries.
+`--progress` is a read-only, repeatable-transaction snapshot of fixture facts,
+evaluations, cases, feedback, learning decisions and profile revisions. It uses
+the same disposable-database guard and never creates reviews or admissions.
+`--walkthrough` renders the five authored stories from that same retained
+evidence, with explicit next human steps and no inferred legitimacy or fraud.
+`--apply-stage` offers a separate guided insertion sequence. It uses the same
+manifest IDs and requires the earlier facts plus independent stored evidence
+before later stages. See the demo guide and ADR-032. It never scripts a review;
+the existing bulk `--apply` remains a facts-only shortcut and does not prove
+point-in-time availability.
+
 ```sh
 .venv/bin/uvicorn backend.main:app --reload --host 127.0.0.1
 ```
@@ -530,6 +563,9 @@ accepts a password argument. An analyst needs one or more `--customer-id UUID` o
 an admin has unrestricted synthetic customer scope and takes no customer IDs. Local
 recovery/disable/policy commands use `recover`, `disable`, `enable` or `set-policy` with
 `--account-id UUID --operator-id UUID`; recovery requires out-of-band identity checks.
+The local operator CLI now refuses `FRAUDLENS_ENVIRONMENT=production` and a
+restricted dedicated runtime schema. Its asserted operator UUID and local recovery
+are not verified identity or an approved remote recovery process.
 
 Then start the backend in the same terminal with:
 
@@ -541,8 +577,10 @@ export FRAUDLENS_HUMAN_LOCAL_INSECURE=true
 ```
 
 Start `npm run dev` in `frontend/` separately. Local HTTP uses unprefixed non-Secure
-cookies. A production environment rejects that mode and requires an explicit HTTPS
-origin; this local setup is not approved for remote exposure. Machine intake still
+cookies. Production mode rejects **all human authentication** until phishing-resistant
+MFA and verified recovery are implemented and reviewed, including when an HTTPS
+origin and Secure cookies are configured. This local setup is not approved for
+remote exposure. Machine intake still
 uses separate expiring bearer credentials. Human sessions have five-minute access,
 30-minute refresh idle and eight-hour absolute expiry. Concurrent refresh reuse
 revokes the family. Business cookie writes require exact Origin and `X-CSRF-Token`.
@@ -558,8 +596,9 @@ For a **new dedicated PostgreSQL database/schema**, the four-role grant plan and
 role-verification command are documented in
 `docs/security/deployment-gates.md` and ADR-023. The integration test creates and
 drops its own `*_test` database with real separate logins; it does not alter the
-existing public-schema local demo. Production API/worker/operator processes fail
-closed if they connect with owner or unexpected credentials. Do not apply those
+existing public-schema local demo. Production API/worker processes fail closed
+if they connect with owner or unexpected credentials. The local identity CLI
+rejects production mode and restricted dedicated schemas. Do not apply those
 grants to this existing `fraudlens_test` demo schema.
 
 See `docs/security/threat-model.md` and ADR-021 for remaining remote-deployment
@@ -569,6 +608,22 @@ and still uses database-owner credentials; it must not be exposed remotely.
 The candidate image expects a reviewed DNS hostname, mounted certificate/key and
 a private `backend:8000` upstream. Its actual Docker/TLS deployment, MFA,
 verified recovery and external assessment remain open.
+ADR-025 documents the production human-auth fail-closed gate. ADR-026 records
+local analyst first-factor WebAuthn enrollment and password-plus-assertion login.
+After applying migration head `0011_factor_removal_retention`, a locally signed-in analyst can
+open **System → Security keys**, enter the current password and enroll the first
+key. Adding another requires a fresh password and an assertion from an existing
+key before the browser registers the new one. Removing a key requires the password
+and an assertion from a *different* active key; the last key cannot be removed.
+Every successful factor change revokes all sessions. On the sign-in page, use
+**Sign in with security key** with the password and authenticator. Password-only
+sign-in is denied once a factor is enrolled. Local owner-connected challenge
+rows expire after two minutes and can be lazily pruned after another day, while
+immutable audit references remain. Admin factor changes, independently verified
+recovery and remote human access remain unavailable. If the only key is lost,
+this console cannot recover the account; provision a new local demo account
+through the owner-only CLI. Browser WebAuthn requires an appropriate secure
+context; the local 127.0.0.1 origin is for development. See ADR-026/027.
 
 ## Supplemental sequence evidence
 

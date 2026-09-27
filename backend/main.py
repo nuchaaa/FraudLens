@@ -14,6 +14,7 @@ from backend.adapters.database.uow import create_unit_of_work
 from backend.adapters.evaluation import ExperimentalEvaluationEngine
 from backend.adapters.passwords import Argon2Passwords
 from backend.adapters.security import CredentialRegistry
+from backend.adapters.webauthn import PyWebAuthnVerifier
 from backend.api import auth, console, evaluations, health, learning, profiles, transactions
 from backend.api.dependencies import ApiServices
 from backend.api.errors import install_error_handlers
@@ -35,6 +36,10 @@ def create_app(
     )
     trusted_host: str | None = None
     if config.human_auth_enabled:
+        # Local WebAuthn is incomplete: factor lifecycle and verified recovery
+        # remain absent. Do not expose human sessions through production mode.
+        if config.environment == "production":
+            raise ValueError("production human authentication requires verified MFA and recovery")
         origin = urlsplit(config.human_origin or "")
         if (
             origin.scheme not in ("http", "https")
@@ -49,10 +54,6 @@ def create_app(
         ):
             raise ValueError("human authentication requires an explicit trusted origin")
         trusted_host = origin.hostname
-        if config.environment == "production" and (
-            origin.scheme != "https" or config.human_local_insecure
-        ):
-            raise ValueError("production human sessions require HTTPS and Secure cookies")
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -75,7 +76,11 @@ def create_app(
                     verify_runtime_role(connection, "api")
             identity = (
                 IdentityService(
-                    factory, Argon2Passwords(), service_principal_ids=credentials.principal_ids
+                    factory,
+                    Argon2Passwords(),
+                    service_principal_ids=credentials.principal_ids,
+                    webauthn=PyWebAuthnVerifier(),
+                    origin=config.human_origin,
                 )
                 if config.human_auth_enabled and factory is not None
                 else None

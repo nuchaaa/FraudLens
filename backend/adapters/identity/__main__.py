@@ -5,8 +5,9 @@ import getpass
 from functools import partial
 from uuid import UUID
 
+from sqlalchemy import text
+
 from backend.adapters.database.base import create_database_engine
-from backend.adapters.database.grants import verify_runtime_role
 from backend.adapters.database.uow import create_unit_of_work
 from backend.adapters.passwords import Argon2Passwords
 from backend.adapters.security import CredentialRegistry
@@ -35,6 +36,10 @@ def main() -> None:
     parser.add_argument("--customer-id", type=UUID, action="append")
     args = parser.parse_args()
     settings = Settings()
+    if settings.environment == "production":
+        parser.error(
+            "local operator CLI is unavailable in production until verified recovery exists"
+        )
     if settings.database_url is None:
         parser.error("FRAUDLENS_DATABASE_URL is required")
     registry = CredentialRegistry(
@@ -42,9 +47,13 @@ def main() -> None:
     )
     engine = create_database_engine(settings.database_url.get_secret_value())
     try:
-        if settings.environment == "production":
-            with engine.connect() as connection:
-                verify_runtime_role(connection, "operator")
+        with engine.connect() as connection:
+            schema = connection.scalar(text("SELECT current_schema()"))
+            can_create = connection.scalar(
+                text("SELECT has_schema_privilege(current_user, current_schema(), 'CREATE')")
+            )
+            if schema != "public" and not can_create:
+                parser.error("local operator CLI is unavailable on a dedicated runtime schema")
         service = IdentityService(
             partial(create_unit_of_work, engine),
             Argon2Passwords(),

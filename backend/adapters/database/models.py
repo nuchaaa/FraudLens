@@ -6,12 +6,14 @@ from typing import Any
 from uuid import UUID
 
 from sqlalchemy import (
+    BigInteger,
     Boolean,
     CheckConstraint,
     DateTime,
     ForeignKey,
     ForeignKeyConstraint,
     Index,
+    LargeBinary,
     Numeric,
     String,
     UniqueConstraint,
@@ -527,3 +529,65 @@ class LoginThrottleRow(Base):
     window_started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     attempts: Mapped[int]
     __table_args__ = (CheckConstraint("attempts >= 0", name="attempts"),)
+
+
+class HumanAuthenticatorRow(Base):
+    __tablename__ = "human_authenticators"
+    credential_id: Mapped[bytes] = mapped_column(LargeBinary, primary_key=True)
+    account_id: Mapped[UUID] = mapped_column(ForeignKey("human_accounts.account_id"), index=True)
+    public_key: Mapped[bytes] = mapped_column(LargeBinary)
+    sign_count: Mapped[int] = mapped_column(BigInteger)
+    device_type: Mapped[str] = mapped_column(String(30))
+    backed_up: Mapped[bool] = mapped_column(Boolean)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    __table_args__ = (
+        CheckConstraint(
+            "octet_length(credential_id) BETWEEN 1 AND 1024 "
+            "AND octet_length(public_key) BETWEEN 1 AND 4096",
+            name="material",
+        ),
+        CheckConstraint("sign_count >= 0", name="sign_count"),
+        CheckConstraint(
+            "(last_used_at IS NULL OR last_used_at >= created_at) "
+            "AND (revoked_at IS NULL OR revoked_at >= created_at)",
+            name="chronology",
+        ),
+    )
+
+
+class HumanMfaChallengeRow(Base):
+    __tablename__ = "human_mfa_challenges"
+    challenge_id: Mapped[UUID] = mapped_column(primary_key=True)
+    account_id: Mapped[UUID] = mapped_column(ForeignKey("human_accounts.account_id"), index=True)
+    ceremony: Mapped[str] = mapped_column(String(25))
+    challenge: Mapped[bytes] = mapped_column(LargeBinary, unique=True)
+    rp_id: Mapped[str] = mapped_column(String(253))
+    origin: Mapped[str] = mapped_column(String(300))
+    authorization_version: Mapped[int]
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    consumed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    session_family_id: Mapped[UUID | None] = mapped_column(ForeignKey("human_sessions.family_id"))
+    target_credential_id: Mapped[bytes | None] = mapped_column(
+        LargeBinary, ForeignKey("human_authenticators.credential_id")
+    )
+    __table_args__ = (
+        Index("ix_human_mfa_challenges_expires", "expires_at", "challenge_id"),
+        CheckConstraint(
+            "ceremony IN ('LOGIN', 'FIRST_ENROLLMENT', "
+            "'ADD_FACTOR_PROOF', 'ADD_FACTOR_REGISTER', 'REMOVE_FACTOR_PROOF') "
+            "AND (ceremony NOT IN ('ADD_FACTOR_PROOF', 'ADD_FACTOR_REGISTER', "
+            "'REMOVE_FACTOR_PROOF') OR session_family_id IS NOT NULL) "
+            "AND ((ceremony = 'REMOVE_FACTOR_PROOF') = "
+            "(target_credential_id IS NOT NULL))",
+            name="ceremony",
+        ),
+        CheckConstraint("octet_length(challenge) = 32", name="challenge_length"),
+        CheckConstraint(
+            "authorization_version > 0 AND expires_at > created_at "
+            "AND (consumed_at IS NULL OR consumed_at >= created_at)",
+            name="chronology",
+        ),
+    )

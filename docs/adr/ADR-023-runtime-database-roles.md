@@ -2,6 +2,8 @@
 
 Status: accepted for a locally verified Phase 15 database boundary, 2026-09-26.
 This does not approve remote deployment.
+ADR-025 later bars the local identity CLI from production and restricted runtime
+schemas until authenticated operator actions and recovery are implemented.
 
 ## Context
 

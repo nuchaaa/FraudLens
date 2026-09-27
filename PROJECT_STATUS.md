@@ -1,11 +1,61 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 15 in progress — local human sessions, dedicated PostgreSQL role boundary and native HTTPS-edge smoke verified. Phase 14 and supplemental sequence evidence remain complete.**
-Next work: **Container/deployed topology verification, MFA/recovery implementation and independent security review. Production behavioral validation remains open.**
+Current checkpoint: **Phase 16 in progress — deterministic synthetic facts, read-only evidence ledger, guided walkthrough and staged disposable intake; Phase 15 remote-human-security gate remains open and production human auth fails closed. Phases 0–14 and supplemental sequence evidence remain complete.**
+Next work: **Complete the five-story demonstration only when genuinely authorized local reviewers supply case evidence. Do not invent reviews or admissions. Remote deployment still requires institutional recovery proof/notification, authenticated admins, real four-role/TLS topology and independent security review. Production behavioral validation remains open.**
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
 ## Completed capabilities
+
+- [x] Phase 16 first checkpoint: versioned `demo-scenarios-v1` fixture with four
+  synthetic customers and 62 deterministic KZT transaction facts spanning the
+  five specified stories; B/C share a customer and prior history. Local CLI
+  previews the full manifest and SHA-256 without a database. Explicit `--apply`
+  requires a Unix-socket `*_test` PostgreSQL database and refuses production.
+  Existing enrollment/submission services retain audit, outbox and idempotency;
+  exact rerun creates no duplicate transaction/audit/outbox rows.
+- [ ] Fixture stories are authored intent, not verified labels or measured risk.
+  It creates no trusted profiles, admissions, evaluations, cases or feedback.
+  `docs/demo/README.md` now gives a manual authorized review path and explicit
+  missing-evidence cautions; executing that path and validating resulting safe
+  admissions remain Phase 16 work.
+- [x] Phase 16 second checkpoint: `--progress` reads fixture fact matches, retained
+  evaluations and captured profile versions, case/feedback state, learning decisions,
+  and immutable profile revision counts/medians/admitted IDs in one repeatable-read,
+  read-only PostgreSQL transaction. It uses the same local `*_test`/Unix-socket and
+  non-production guard as `--apply`; mismatched fixture facts suppress evidence
+  attribution. No verdict or admission is generated. ADR-030
+  and the five-story guide specify what would constitute recorded evidence for each
+  story and where historical availability remains unproven. The working public
+  demo database still has no seeded fixture: `--progress` reported 62 ABSENT facts.
+- [x] Phase 16 third checkpoint: `--walkthrough` renders the same guarded,
+  read-only PostgreSQL snapshot as a concise A–E presenter guide. It names the
+  14 candidate transfers, recorded experimental risk status/captured version,
+  case/feedback/learning counts, current profile version, event-time-compatible
+  revisions with an availability warning, and the next manual step. It checks
+  manifest identity and never infers a verdict, admission, B/C baseline
+  preservation or D adaptation. ADR-031 and the demo guide document this.
+  A live read-only smoke on the working test DB showed 62 ABSENT fixture facts
+  and no profile revisions, so all five stories remain pending there.
+- [x] Phase 16 fourth checkpoint: `--apply-stage` partitions the unchanged
+  manifest into BASELINE, A, B, C, D1–D5 and E1–E6. It uses the existing
+  audited/idempotent transaction service and the same Unix-socket `*_test`
+  guard. New candidate stages require matching prior facts; B/C/D/E require a
+  verified prior KZT profile, C requires a retained B evaluation and separate
+  learning decision, later D steps require prior ACCEPT evidence, and later E
+  steps require a prior evaluation. Missing evidence stops the stage; no review,
+  admission or evaluation is generated. Exact replay is idempotent but does not
+  prove original stage chronology. Bulk `--apply` remains facts-only. ADR-032
+  records that this local sequence does not reconstruct bank arrival time.
+- [x] Latest full regression: 576 passed, zero skipped, 90% combined coverage on
+  disposable PostgreSQL; Ruff/format, strict mypy (131 source files), existing
+  Alembic migration/schema tests and offline source/wheel build passed. The
+  unchanged frontend last passed ESLint/nine Vitest tests/build at the prior
+  checkpoint. Two upstream deprecation warnings remain. Docker engine and
+  remote CI unverified. No dependencies or migrations changed this checkpoint.
+- [ ] No institutional proof issuer, independent notification process or two
+  authenticated remote admins has been provided. Phase 15 remote recovery and
+  production human auth remain blocked as external release gates, not simulated.
 
 - [x] Phase 15 foundation: threat model and accepted local ADR-021 human identity/session design.
 - [x] Pure human-account scope and session expiry/rotation/revocation policies.
@@ -18,7 +68,8 @@ do not establish legitimacy, score risk or admit transactions.
 - [x] Console human login with in-memory CSRF, session restoration and serialized refresh;
   pasted service-token screen removed.
 - [x] Dedicated-database grant plan separates migrator, API, worker and operator logins;
-  production processes verify effective privileges and reject owner credentials.
+  production API/worker verify effective privileges and reject owner credentials.
+  The local operator CLI is now barred from production and restricted runtime schemas.
 - [x] PostgreSQL role test proves scoped workflows and denial of DDL, trigger disabling,
   history mutation, account provisioning, TEMP and cross-role reads.
 - [x] Login/operator changes share an advisory account lock; recovery during login
@@ -27,13 +78,45 @@ do not establish legitimacy, score risk or admit transactions.
   sanitized forwarded headers, HSTS/CSP and authored size/rate/concurrency/time limits.
 - [x] Native local TLS/Nginx/FastAPI/PostgreSQL smoke verified Host/Origin, Secure
   cookies, 413/429, redirect and header replacement with disposable assets.
+- [x] Production FastAPI now rejects human auth until verified MFA/recovery exists;
+  password-only local sessions cannot be served in production mode. The local
+  operator CLI rejects production mode and restricted dedicated runtime schemas.
+- [x] ADR-025 records the fail-closed boundary and proposed WebAuthn/recovery
+  ceremonies. ADR-026 records the local subset; verified recovery is absent.
+- [x] Migration 0009 adds public-key authenticator material and durable two-minute,
+  one-use, account/ceremony/origin/RP/version-bound challenges. Password-plus-assertion
+  local login issues no session before signature verification; replay, counter and
+  disabled-account paths were tested on PostgreSQL. First-factor enrollment is
+  local analyst-only, requires current session plus fresh password, revokes sessions
+  and increments authorization version. Console security-key flows use browser API.
+- [x] Migrations 0010/0011 add session-bound additional-factor proof and different-key
+  removal for local analysts. Fresh password plus existing-key assertion is
+  required; the last key cannot be removed. Changes atomically revoke all
+  sessions, advance authorization version and append audit. PostgreSQL tests
+  cover key separation, session binding, replay, rollback and concurrency.
+- [x] Expired challenge rows become deletable after one further day; a trigger
+  rejects early deletion and TRUNCATE. A new challenge lazily prunes at most
+  100 old rows. Immutable audit references remain; idle stores need maintenance.
+- [ ] Admin approval, supervised remote bootstrap, independently verified
+  two-operator recovery and physical-browser ceremony remain open.
+- [x] ADR-028 and pure recovery policy require a frozen, version-pinned subject,
+  bounded proof reference/digest, and two distinct fresh admin approval claims
+  bound to the same case, purpose, proof and exact action digest. Current operator
+  account snapshots must still be active admins at their approval versions;
+  approval-carried role/active flags are not trusted. There is no caller, persistence,
+  recovery-specific freeze binding, proof verifier, notification adapter or reset
+  path; UUIDs/digests alone are
+  not accepted as authentication. Production gate remains closed.
+- [ ] Restricted API role has credential-presence SELECT only; it cannot write
+  challenges/factors. Production human authentication remains disabled.
 - [x] Supplemental `sequence-v1-experimental` evidence detects low-and-slow, gradual
   escalation, repeated-new-recipient and cumulative-exposure patterns on one captured context.
 - [x] Sequence evidence requires a verified admitted baseline, retains missing semantics and
   remains outside risk-v1 scoring until a separately validated risk-v2 policy exists.
 - [x] Console distinguishes stored INSUFFICIENT EVIDENCE from no evaluation and renders
   nested rule plus matched sequence reasons; older evaluation envelopes remain compatible.
-- [x] Full regression: 534 passed, zero skipped, 92% combined coverage.
+- [x] Locked dependency audit found no known vulnerabilities at the previous
+  unchanged-dependency checkpoint. No dependency or lockfile change this turn.
 - [ ] Current localhost Compose still uses owner credentials; combined production
   roles/TLS/container topology, load limits, MFA/recovery, Docker/remote CI and
   independent security review remain before remote exposure.
@@ -142,20 +225,23 @@ do not establish legitimacy, score risk or admit transactions.
 - [x] Scope, cold-start, cutoff, currency, DST, revision, rollback, concurrency and upgrade tests.
 - [x] ADR-009 and updated README, architecture, development and continuation files.
 
-## Verification — 2026-09-20–26
+## Verification — 2026-09-20–27
 
-- [x] **534 passed, 0 skipped, 2 upstream warnings; 92% combined backend/ML coverage.**
+- [x] Latest full run: **576 passed,
+  0 skipped, 2 upstream warnings; 90% combined backend/ML coverage.**
 - [x] Actual PostgreSQL 17.10, including prior-phase regressions.
 - [x] Migration upgrade/downgrade/metadata tests and upgrade with populated legacy profile data.
 - [x] Concurrent reader pins its version before another writer commits; old versions exclude
   backdated later admissions and retain their original timezone/window policy.
-- [x] Ruff lint and strict mypy pass (122 backend/ML source files); final format/build checks are recorded per session.
-- [x] Frontend ESLint, 5 Vitest tests and TypeScript production build pass; prior clean npm audit remains applicable because dependencies are unchanged.
+- [x] Ruff lint/format and strict mypy pass (131 backend/ML source files).
+- [x] Frontend ESLint, 9 Vitest tests and TypeScript production build pass;
+  frontend dependencies are unchanged.
 - [x] Browser visual inspection passed for the responsive connection screen; no external assets.
-- [x] Phase 15 locked dependency audit: no known vulnerabilities, including the ML/dev groups.
-  Added argon2-cffi 25.1.0 and locked bindings/cffi/pycparser; existing versions unchanged.
+- [x] Updated Phase 15 locked dependency audit: no known vulnerabilities,
+  including the ML/dev groups and new `webauthn==3.0.1` dependency.
 - [x] Source/wheel builds and Compose configuration pass.
-- [x] Native disposable database upgraded; head is 0008_human_identity, with 27 non-Alembic tables.
+- [x] Native disposable database upgraded; head is `0011_factor_removal_retention`,
+  with 29 non-Alembic tables.
 - [x] Separate fresh disposable role-test database migrated and removed, with four real
   login roles and a production-mode FastAPI/restricted-database HTTP check.
 - [x] Homebrew nginx 1.31.4 rendered-configuration syntax check and local self-signed
@@ -206,6 +292,13 @@ Tests require a disposable *_test database and use a generated schema; the migra
 smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Important files
+
+- backend/app/demo/{scenarios,stages}.py: deterministic five-story transaction
+  manifest and unchanged-fact stage partition.
+- backend/adapters/demo/{__main__,progress,walkthrough}.py: guarded bulk/staged
+  local seed, read-only evidence inventory and human-readable presenter guide.
+- tests/{unit/test_demo_scenarios,integration/test_demo_seed}.py;
+  docs/demo/README.md and ADR-029/030/031/032: fixture, evidence, guide and stage contracts.
 
 - backend/app/identity/{policy,service,ports}.py: pure policy and identity workflows.
 - backend/adapters/database/identity.py; backend/adapters/identity/__main__.py:
@@ -489,18 +582,20 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Exact next tasks
 
-1. Read status/specification/runbook, ADR-021 and threat model. Do not redo the completed
-   local identity/session checkpoint or supplemental sequence evidence.
-2. Apply the reviewed four-role grant plan in a new dedicated deployment database;
-   never run it against the existing public-schema local demo. Keep migration,
-   operator, API and worker credentials separate. Verify startup checks together
-   with the candidate HTTPS edge in the actual container/network topology.
-3. Load-test Host/Origin/forwarded-header trust, Secure cookies, CSP and edge
-   request/concurrency/time limits on the real hostname; verify secret rotation,
-   backup/restore and operational recovery. The native local TLS smoke is not a
-   deployed-container or capacity test.
-4. Implement the defined phishing-resistant MFA and independently verified account
-   recovery requirements before remote exposure, then obtain an external security
-   review. Docker runtime and remote CI remain unverified.
-5. Keep deterministic demo seeding (Phase 16), risk-v2 research, corrections/weights and
-   external delivery/redrive separate. Update all three checkpoint files before stopping.
+1. Use the Phase 16 read-only evidence ledger and `--walkthrough` during an
+   actual local analyst session. The author must not script review verdicts or
+   treat fixture narrative as ground truth. Obtain independent authorized
+   reviewer inputs before any bootstrap/case-learning action; if absent, keep
+   B/C baseline preservation and D adaptation marked NOT DEMONSTRATED.
+2. Once such real inputs exist, pin versions before each evaluation and verify
+   B's gate decision, B/C revision/median preservation, and D's ordered accepted
+   revision progression against retained PostgreSQL evidence. Cold and insufficient
+   cases must stay explicit. Do not report research metrics from authored stories.
+3. Keep Phase 15 remote recovery and production human auth closed until an
+   institution supplies a real proof issuer/process, independently verified
+   notification and two authenticated admins. Then implement atomic PostgreSQL
+   cases/approvals, supervised bootstrap and recovery; no asserted CLI UUIDs.
+4. Real four-role/TLS deployment, physical browser ceremony, load/operational
+   tests and independent security review remain external release gates. Never
+   run role grants on the public-schema demo or touch production data. Update
+   all three checkpoint files before stopping.

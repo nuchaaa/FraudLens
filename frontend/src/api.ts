@@ -6,6 +6,7 @@ import type {
   Transaction,
   Worklist,
 } from "./types";
+import { authenticateCredential, registerCredential } from "./webauthn";
 
 export type HumanSession = {
   account_id: string;
@@ -65,6 +66,26 @@ export async function loginSession(login: string, password: string): Promise<Hum
   }));
 }
 
+type Ceremony = { challenge_id: string; public_key: Record<string, unknown> };
+export type SecurityKey = {
+  credential_id: string; created_at: string; last_used_at: string | null;
+  device_type: string; backed_up: boolean;
+};
+
+export async function loginWithSecurityKey(login: string, password: string): Promise<HumanSession> {
+  const ceremony = await checked<Ceremony>(await fetch("/api/v1/auth/mfa/login/options", {
+    method: "POST", credentials: "same-origin", cache: "no-store",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ login, password }),
+  }));
+  const credential = await authenticateCredential(ceremony);
+  return checked<HumanSession>(await fetch("/api/v1/auth/mfa/login/verify", {
+    method: "POST", credentials: "same-origin", cache: "no-store",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ challenge_id: ceremony.challenge_id, credential }),
+  }));
+}
+
 export class FraudLensApi {
   private refreshing: Promise<void> | null = null;
 
@@ -108,6 +129,52 @@ export class FraudLensApi {
     } finally {
       this.expired();
     }
+  }
+
+  async enrollFirstSecurityKey(password: string): Promise<void> {
+    const ceremony = await this.request<Ceremony>("/api/v1/auth/mfa/first-factor/options", {
+      method: "POST", body: JSON.stringify({ password }),
+    });
+    const credential = await registerCredential(ceremony);
+    await this.request<{ enrolled: boolean }>("/api/v1/auth/mfa/first-factor/verify", {
+      method: "POST",
+      body: JSON.stringify({ challenge_id: ceremony.challenge_id, credential }),
+    }, false);
+    this.expired();
+  }
+
+  async enrollAnotherSecurityKey(password: string): Promise<void> {
+    const proof = await this.request<Ceremony>("/api/v1/auth/mfa/add-factor/options", {
+      method: "POST", body: JSON.stringify({ password }),
+    });
+    const assertion = await authenticateCredential(proof);
+    const registration = await this.request<Ceremony>("/api/v1/auth/mfa/add-factor/proof", {
+      method: "POST",
+      body: JSON.stringify({ challenge_id: proof.challenge_id, credential: assertion }),
+    });
+    const credential = await registerCredential(registration);
+    await this.request<{ enrolled: boolean }>("/api/v1/auth/mfa/add-factor/verify", {
+      method: "POST",
+      body: JSON.stringify({ challenge_id: registration.challenge_id, credential }),
+    }, false);
+    this.expired();
+  }
+
+  async securityKeys(): Promise<SecurityKey[]> {
+    const result = await this.request<{ items: SecurityKey[] }>("/api/v1/auth/mfa/factors");
+    return result.items;
+  }
+
+  async removeSecurityKey(password: string, credentialId: string): Promise<void> {
+    const proof = await this.request<Ceremony>("/api/v1/auth/mfa/remove-factor/options", {
+      method: "POST", body: JSON.stringify({ password, credential_id: credentialId }),
+    });
+    const assertion = await authenticateCredential(proof);
+    await this.request<{ removed: boolean }>("/api/v1/auth/mfa/remove-factor/verify", {
+      method: "POST",
+      body: JSON.stringify({ challenge_id: proof.challenge_id, credential: assertion }),
+    }, false);
+    this.expired();
   }
 
   summary(): Promise<Summary> { return this.request("/api/v1/console/summary"); }

@@ -2,6 +2,8 @@
 
 import os
 import secrets
+import subprocess
+import sys
 from datetime import UTC, datetime
 from decimal import Decimal
 from functools import partial
@@ -137,6 +139,30 @@ def test_dedicated_login_roles_can_work_but_cannot_cross_boundaries(monkeypatch)
                 verify_runtime_role(connection, "operator")
             with migrator_engine.connect() as connection, pytest.raises(ValueError):
                 verify_runtime_role(connection, "api")
+            cli = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "backend.adapters.identity",
+                    "disable",
+                    "--operator-id",
+                    str(uuid4()),
+                    "--account-id",
+                    str(uuid4()),
+                ],
+                env={
+                    **os.environ,
+                    "FRAUDLENS_ENVIRONMENT": "development",
+                    "FRAUDLENS_DATABASE_URL": operator_engine.url.render_as_string(
+                        hide_password=False
+                    ),
+                },
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            assert cli.returncode != 0
+            assert "unavailable on a dedicated runtime schema" in cli.stderr
 
             identity_operator = IdentityService(
                 partial(create_unit_of_work, operator_engine), Argon2Passwords()
@@ -153,14 +179,29 @@ def test_dedicated_login_roles_can_work_but_cannot_cross_boundaries(monkeypatch)
                 Settings(
                     environment="production",
                     database_url=api_engine.url.render_as_string(hide_password=False),
-                    human_auth_enabled=True,
-                    human_origin=origin,
                     _env_file=None,
                 )
             )
             with TestClient(app, base_url=origin) as client:
                 assert client.get("/health/live").status_code == 200
                 assert client.get("/docs").status_code == 404
+                rejected = client.post(
+                    "/api/v1/auth/login",
+                    json={"login": "role-admin", "password": "Test only long passphrase"},
+                )
+                assert rejected.status_code == 503
+                assert not rejected.headers.get_list("set-cookie")
+                assert client.get("/api/v1/auth/session").status_code == 503
+            local_app = create_app(
+                Settings(
+                    environment="test",
+                    human_auth_enabled=True,
+                    human_origin=origin,
+                    _env_file=None,
+                ),
+                uow_factory=partial(create_unit_of_work, api_engine),
+            )
+            with TestClient(local_app, base_url=origin) as client:
                 assert (
                     client.get("/health/live", headers={"Host": "evil.example"}).status_code == 400
                 )

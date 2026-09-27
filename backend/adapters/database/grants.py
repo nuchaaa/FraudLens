@@ -47,11 +47,18 @@ _TABLES = frozenset(
         "human_sessions",
         "human_consumed_refresh",
         "human_login_throttle",
+        "human_authenticators",
+        "human_mfa_challenges",
     }
 )
 _ALL_TABLES = _TABLES | {"alembic_version"}
 
-_API_READ = _TABLES - {"outbox_delivery", "consumer_receipts"}
+_API_READ = _TABLES - {
+    "outbox_delivery",
+    "consumer_receipts",
+    # Password login must check factor presence. Ceremony writes remain ungranted.
+    "human_mfa_challenges",
+}
 _API_INSERT = {
     "customers",
     "transactions",

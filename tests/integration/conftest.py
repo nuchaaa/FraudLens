@@ -45,3 +45,27 @@ def db_engine() -> Iterator[Engine]:
         with admin.begin() as connection:
             connection.execute(text(f'DROP SCHEMA "{schema}" CASCADE'))
         admin.dispose()
+
+
+@pytest.fixture
+def isolated_db_engine(db_engine: Engine) -> Iterator[Engine]:
+    """Fresh migrated schema for tests that require an empty transaction history."""
+    schema = "fraudlens_stage_" + uuid4().hex
+    with db_engine.begin() as connection:
+        connection.execute(text(f'CREATE SCHEMA "{schema}"'))
+    scoped_url = db_engine.url.update_query_dict({"options": f"-csearch_path={schema}"})
+    engine = create_database_engine(scoped_url.render_as_string(hide_password=False))
+    previous = os.environ.get("FRAUDLENS_DATABASE_URL")
+    try:
+        os.environ["FRAUDLENS_DATABASE_URL"] = engine.url.render_as_string(hide_password=False)
+        config = Config(str(Path(__file__).resolve().parents[2] / "alembic.ini"))
+        command.upgrade(config, "head")
+        yield engine
+    finally:
+        if previous is None:
+            os.environ.pop("FRAUDLENS_DATABASE_URL", None)
+        else:
+            os.environ["FRAUDLENS_DATABASE_URL"] = previous
+        engine.dispose()
+        with db_engine.begin() as connection:
+            connection.execute(text(f'DROP SCHEMA "{schema}" CASCADE'))

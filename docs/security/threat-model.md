@@ -43,7 +43,10 @@ customer scope or profile-admission authority.
   actual deployment TLS, load limits and operational secret management remain open.
 - External security review and implementation of the defined
   [MFA/recovery requirements](mfa-and-recovery-requirements.md) before remote exposure.
-  The locked dependency audit after adding Argon2 found no known vulnerabilities.
+  The updated locked dependency audit after adding WebAuthn found no known vulnerabilities.
+  ADR-025 now blocks production human-auth startup and unverified operator CLI use;
+  ADR-026/027 add local analyst WebAuthn and different-key factor changes only.
+  Admin approval and independently verified recovery remain unimplemented.
 
 No control here proves resistance to colluding authorized reviewers or production
 fraud-detection accuracy. Models and adaptive workflows remain experimental.

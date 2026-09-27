@@ -80,7 +80,14 @@ This is a deployment procedure, not a command to run on the current demo databas
   monitoring and incident response without changing immutable evidence.
 - Implement [phishing-resistant MFA and independently verified recovery](mfa-and-recovery-requirements.md)
   for human analysts and admins before remote access. The local getpass CLI has
-  neither identity verification nor MFA; no email reset route exists.
+  neither identity verification nor MFA; no email reset route exists. Production
+  application construction now rejects human-auth enablement, and the local
+  operator CLI rejects production mode and restricted dedicated runtime schemas
+  (ADR-025). HTTPS alone does not bypass this gate.
+  Local analyst WebAuthn login and factor self-management are incomplete
+  checkpoints (ADR-026/027); supervised remote bootstrap, admin approval and
+  verified recovery remain absent. The dedicated API role cannot write factor
+  challenges.
 - Obtain an independent security assessment, run the real Docker topology and remote
   CI, and validate fraud performance on suitable point-in-time behavioral data.
 

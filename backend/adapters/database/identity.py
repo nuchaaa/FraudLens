@@ -10,12 +10,21 @@ from sqlalchemy.dialects.postgresql import insert
 from backend.adapters.database.models import (
     ConsumedRefreshRow,
     HumanAccountRow,
+    HumanAuthenticatorRow,
+    HumanMfaChallengeRow,
     HumanSessionRow,
     LoginThrottleRow,
 )
 from backend.adapters.database.repository_base import Repository
 from backend.app.identity.policy import HumanAccount, SessionFamily
-from backend.app.identity.ports import AccountCredentials, ConsumedRefresh, SessionSecrets
+from backend.app.identity.ports import (
+    AccountCredentials,
+    ConsumedRefresh,
+    MfaCeremony,
+    MfaChallenge,
+    MfaCredential,
+    SessionSecrets,
+)
 from backend.app.shared.security import Role
 
 
@@ -51,6 +60,37 @@ def _session(row: HumanSessionRow) -> SessionSecrets:
         row.access_sha256,
         row.refresh_sha256,
         row.csrf_sha256,
+    )
+
+
+def _credential(row: HumanAuthenticatorRow) -> MfaCredential:
+    return MfaCredential(
+        bytes(row.credential_id),
+        row.account_id,
+        bytes(row.public_key),
+        row.sign_count,
+        row.device_type,
+        row.backed_up,
+        row.created_at,
+        row.last_used_at,
+        row.revoked_at,
+    )
+
+
+def _challenge(row: HumanMfaChallengeRow) -> MfaChallenge:
+    return MfaChallenge(
+        row.challenge_id,
+        row.account_id,
+        MfaCeremony(row.ceremony),
+        bytes(row.challenge),
+        row.rp_id,
+        row.origin,
+        row.authorization_version,
+        row.created_at,
+        row.expires_at,
+        row.consumed_at,
+        row.session_family_id,
+        bytes(row.target_credential_id) if row.target_credential_id is not None else None,
     )
 
 
@@ -227,4 +267,111 @@ class PostgresIdentityRepository(Repository):
             update(HumanSessionRow)
             .where(HumanSessionRow.account_id == account_id, HumanSessionRow.revoked_at.is_(None))
             .values(revoked_at=now)
+        )
+
+    def active_credentials(self, account_id: UUID) -> tuple[MfaCredential, ...]:
+        rows = self.session.scalars(
+            select(HumanAuthenticatorRow)
+            .where(
+                HumanAuthenticatorRow.account_id == account_id,
+                HumanAuthenticatorRow.revoked_at.is_(None),
+            )
+            .order_by(HumanAuthenticatorRow.created_at, HumanAuthenticatorRow.credential_id)
+        )
+        return tuple(_credential(row) for row in rows)
+
+    def credential(self, credential_id: bytes, *, lock: bool = False) -> MfaCredential | None:
+        query = select(HumanAuthenticatorRow).where(
+            HumanAuthenticatorRow.credential_id == credential_id
+        )
+        row = self.session.scalar(
+            (query.with_for_update() if lock else query).execution_options(populate_existing=True)
+        )
+        return _credential(row) if row else None
+
+    def add_credential(self, credential: MfaCredential) -> None:
+        self.session.add(
+            HumanAuthenticatorRow(
+                credential_id=credential.credential_id,
+                account_id=credential.account_id,
+                public_key=credential.public_key,
+                sign_count=credential.sign_count,
+                device_type=credential.device_type,
+                backed_up=credential.backed_up,
+                created_at=credential.created_at,
+                last_used_at=credential.last_used_at,
+                revoked_at=credential.revoked_at,
+            )
+        )
+        self.session.flush()
+
+    def use_credential(self, credential_id: bytes, sign_count: int, now: datetime) -> None:
+        self.session.execute(
+            update(HumanAuthenticatorRow)
+            .where(
+                HumanAuthenticatorRow.credential_id == credential_id,
+                HumanAuthenticatorRow.revoked_at.is_(None),
+            )
+            .values(sign_count=sign_count, last_used_at=now)
+        )
+
+    def revoke_credential(self, credential_id: bytes, now: datetime) -> None:
+        self.session.execute(
+            update(HumanAuthenticatorRow)
+            .where(
+                HumanAuthenticatorRow.credential_id == credential_id,
+                HumanAuthenticatorRow.revoked_at.is_(None),
+            )
+            .values(revoked_at=now)
+        )
+
+    def add_challenge(self, challenge: MfaChallenge) -> None:
+        self.prune_mfa_challenges()
+        self.session.add(
+            HumanMfaChallengeRow(
+                challenge_id=challenge.challenge_id,
+                account_id=challenge.account_id,
+                ceremony=challenge.ceremony.value,
+                challenge=challenge.challenge,
+                rp_id=challenge.rp_id,
+                origin=challenge.origin,
+                authorization_version=challenge.authorization_version,
+                created_at=challenge.created_at,
+                expires_at=challenge.expires_at,
+                consumed_at=challenge.consumed_at,
+                session_family_id=challenge.session_family_id,
+                target_credential_id=challenge.target_credential_id,
+            )
+        )
+        self.session.flush()
+
+    def challenge(self, challenge_id: UUID, *, lock: bool = False) -> MfaChallenge | None:
+        query = select(HumanMfaChallengeRow).where(
+            HumanMfaChallengeRow.challenge_id == challenge_id
+        )
+        row = self.session.scalar(
+            (query.with_for_update() if lock else query).execution_options(populate_existing=True)
+        )
+        return _challenge(row) if row else None
+
+    def consume_challenge(self, challenge_id: UUID, now: datetime) -> None:
+        self.session.execute(
+            update(HumanMfaChallengeRow)
+            .where(
+                HumanMfaChallengeRow.challenge_id == challenge_id,
+                HumanMfaChallengeRow.consumed_at.is_(None),
+            )
+            .values(consumed_at=now)
+        )
+
+    def prune_mfa_challenges(self) -> None:
+        self.session.execute(
+            text("""
+            DELETE FROM human_mfa_challenges WHERE challenge_id IN (
+                SELECT challenge_id FROM human_mfa_challenges
+                WHERE expires_at < statement_timestamp() - INTERVAL '1 day'
+                ORDER BY expires_at, challenge_id
+                LIMIT 100 FOR UPDATE SKIP LOCKED
+            )
+        """)
         )

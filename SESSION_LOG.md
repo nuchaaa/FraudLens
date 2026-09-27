@@ -469,3 +469,260 @@
   and TypeScript/Vite build passed. No schema, dependency, model or predictive
   metric changed. Phase 15 remains IN PROGRESS pending deployed topology,
   MFA/recovery implementation, operations and independent security review.
+
+## 2026-09-27 — Phase 15 fail-closed remote human-auth checkpoint
+
+- Found that production mode could still issue password-only human sessions even
+  with the prior HTTPS/Secure-cookie requirement. Application construction now
+  rejects production human-auth enablement until WebAuthn and verified recovery
+  are implemented. Production with human auth disabled retains its restricted-role
+  API startup and returns 503 from a valid human-login request.
+- The getpass identity CLI now refuses production mode before opening a database.
+  It also refuses a non-public dedicated runtime schema where the connected role
+  cannot CREATE, including if the process is mislabeled development. Local owner
+  and disposable test-schema CLI workflows remain intact; this is not operator
+  authentication or protection against a privileged database owner.
+- Added ADR-025 with the fail-closed decision and proposed durable WebAuthn
+  challenge/assertion and two-operator recovery flow. Updated runbooks and threat
+  model. No MFA, recovery protocol, migration or dependency was implemented here.
+- Full PostgreSQL/ML regression: 535 passed, zero skipped, 92% combined coverage
+  with the same two upstream warnings. Ruff/format and strict mypy (122 sources)
+  passed. Alembic check, offline source/wheel builds, Compose configuration with
+  a placeholder password, frontend ESLint, five Vitest tests and TypeScript/Vite
+  build passed. Dependencies were unchanged and the prior locked audit was not rerun.
+  Docker engine, combined role/TLS deployment and independent assessment remain
+  unavailable. Production behavioral validation is still open.
+
+## 2026-09-27 — Phase 15 local WebAuthn ceremony checkpoint
+
+- Added migration `0009_human_webauthn` with authenticator public material/counters
+  and immutable, two-minute, one-use PostgreSQL challenges. The verified WebAuthn
+  adapter binds account/authorization version, ceremony, RP ID, exact Origin,
+  credential ID, signature, user presence/verification and sign counter.
+- Local analyst first-factor enrollment requires an active session, CSRF and fresh
+  password. It revokes all sessions and increments authorization version. Admin
+  bootstrap is denied. Password-plus-assertion login issues no session at the
+  password step; a valid challenge is consumed on success or failed verification.
+  Browser login and enrollment controls were added to the React console.
+- PostgreSQL/FastAPI tests use generated software authenticator credentials and
+  cover successful enrollment/login, replay, bad signature/origin, malformed
+  enrollment, concurrent assertions, counter reuse and account disablement.
+  Database-role regression required API SELECT of credential presence to deny
+  password-only login; no factor/challenge writes were granted. Production human
+  auth remains disabled.
+- Added ADR-026 and updated the security/development runbooks. Locked `webauthn`
+  3.0.1 and its dependencies; updated locked pip-audit found no known
+  vulnerabilities. The final full PostgreSQL/ML regression had 540 passed,
+  zero skipped, 92% combined coverage and two upstream warnings. Ruff/format,
+  strict mypy (123 source
+  files), Alembic upgrade/check, offline source/wheel builds, Compose
+  configuration, frontend ESLint, seven Vitest tests and TypeScript/Vite build
+  passed. Docker daemon socket is absent.
+- Physical-browser ceremony, second-factor lifecycle, admin approval, verified
+  two-operator recovery, challenge archival, restricted-role MFA writes,
+  deployed four-role/TLS topology and independent assessment remain open. The
+  local CLI's asserted operator UUID is not verified human identity. No model,
+  predictive metric or production eligibility changed.
+
+## 2026-09-27 — Phase 15 local factor lifecycle and retention checkpoint
+
+- Migration `0010_factor_lifecycle` binds WebAuthn challenges to the originating
+  session family for local factor changes. Analysts can add a backup key only
+  after a current session, fresh password and a verified assertion from an
+  existing key. Removing a key requires a different active key; removing the
+  last key is denied. Every successful change advances account authorization
+  version, revokes sessions and appends audit in one PostgreSQL transaction.
+  Admin factor changes remain denied. The subsequently additive
+  `0011_factor_removal_retention` records removal targets and pruning guards,
+  preserving the already-applied 0010 revision on the local demo database.
+- The local disposable public-schema database had applied a development version
+  of 0010 that already contained the later removal/retention objects. Before
+  setting its revision to 0011, inspected the two columns, expiry index,
+  ceremony constraint, foreign key and delete/guard triggers plus the pruning
+  function. They matched 0011; `alembic stamp 0011_factor_removal_retention`
+  changed only its version marker, and `alembic check` passed. New databases
+  migrate normally through 0009 → 0010 → 0011; the full migration test covers
+  that path and downgrade on a disposable schema. No production data was used.
+- Expired raw challenge rows can be deleted after one further day. A trigger
+  rejects early DELETE and all TRUNCATE; each new challenge prunes at most 100
+  old rows. Immutable audit events retain ceremony references. This is lazy
+  retention and idle deployments may retain expired rows until maintenance.
+- The console lists the current account's key metadata and offers first/additional
+  enrollment and different-key removal. No private authenticator key is stored.
+  Added ADR-027 and revised runbooks and security boundaries. Production human
+  auth remains fail-closed, and the restricted production API role still lacks
+  challenge/factor writes.
+- PostgreSQL/FastAPI tests cover additional-factor proof, two usable keys,
+  different-key removal, last-key refusal, replay, cross-session binding,
+  retention trigger/pruning, simulated audit failure rollback and concurrent
+  completion. Existing migrations and real-role regression passed. The latest
+  final full suite: 546 passed, zero skipped, 91% combined coverage with two
+  unchanged upstream warnings. The focused 11-test WebAuthn suite passed.
+  Ruff/format,
+  strict mypy (123 source files), Alembic upgrade/check, Python builds,
+  Compose configuration, frontend ESLint, nine Vitest tests and TypeScript/Vite
+  build passed. Dependencies/lockfile unchanged; prior clean audit remains.
+- Supervised remote bootstrap, authenticated admin approval, verified
+  two-operator recovery, physical-browser key ceremony, deployed four-role
+  TLS topology and independent security review remain open. No predictive
+  metric, model eligibility or profile-admission policy changed.
+
+## 2026-09-27 — Phase 15 recovery trust-boundary policy checkpoint
+
+- Added ADR-028 and a framework-free, non-executing recovery policy. A bounded
+  case binds a frozen subject and authorization version, purpose, external proof
+  reference/digest and at most 15-minute proof lifetime. Exactly two distinct
+  active admin approval claims must bind to that case/proof/purpose, carry
+  independent session, challenge and credential identifiers, and be at most
+  five minutes old. Unit tests cover absent/extra/same-actor claims, stale or
+  pre-proof assertions, changed case/purpose/proof, active/stale subject and
+  expired proof. The policy takes claims; it does not authenticate their source.
+- No endpoint, CLI, database write path, migration or grant invokes the policy.
+  Institutional proof verification, real operator WebAuthn authentication,
+  supervised admin bootstrap, immutable PostgreSQL approvals, account freeze/
+  recovery execution and independent notification are still unimplemented.
+  Production human auth remains fail-closed. A claimed operator UUID or case
+  number is not accepted as verified identity.
+- Full suite on disposable PostgreSQL: 565 passed, zero skipped, 91% combined
+  backend/ML coverage, two unchanged upstream deprecation warnings. Ruff,
+  format, strict mypy (124 source files) and offline source/wheel build passed.
+  No schema, frontend, dependency, model or predictive metric changed. The
+  previous Alembic, Compose, frontend and locked dependency checks remain the
+  last measurement for those unchanged parts. Docker runtime and independent
+  security assessment remain unavailable.
+
+## 2026-09-27 — Phase 15 approval-claim hardening checkpoint
+
+- Bound each approval to an exact action digest as well as case, subject,
+  purpose and proof. Approval claims no longer carry trusted role/active flags;
+  the pure policy requires current operator account snapshots, enabled admin
+  roles and matching authorization versions. Distinct actors, session families,
+  challenges and credentials remain required. Added denial tests for changed
+  action, demoted/disabled/expired operators, stale authorization versions and
+  duplicate current accounts.
+- Full disposable-PostgreSQL regression: 567 passed, zero skipped, 91% combined
+  coverage, same two upstream warnings. Ruff, format and strict mypy (124 source
+  files) passed. No migration, runtime grant, API, CLI, frontend, dependency or
+  model change. Docker engine socket is still absent. Production human auth
+  remains disabled; no proof verifier, notification channel or recovery executor
+  exists. Canonical action serialization and institutional process remain to be
+  specified before connecting approvals to writes.
+
+## 2026-09-27 — Phase 16 deterministic transaction-facts fixture checkpoint
+
+- With no institutional proof issuer/notification process or independently
+  authenticated remote admins available, retained Phase 15 remote recovery as
+  an external release gate. Production human auth still fails closed. No
+  approval or reset route was added, and no asserted CLI UUID was promoted to
+  verified identity.
+- Added pure `demo-scenarios-v1` fixture with stable UUIDv5 IDs, fixed UTC anchor,
+  four synthetic customers and 62 KZT transactions. Its five authored stories
+  match the project specification, with shared B/C customer history. CLI dry-run
+  reports manifest SHA-256
+  `4645220dd30cfabb12e8a22688a45035d81e352fe2ef5998f6f16a33019f26c8`.
+  `--apply` requires a local Unix-socket `*_test` database and rejects production.
+  It uses existing customer/transaction use cases, retaining audit, outbox and
+  durable idempotency. The actor UUID is explicitly a synthetic fixture identity.
+- PostgreSQL integration applied the plan only in a disposable migrated test
+  schema, then replayed all 62 transactions without duplicate audit/outbox rows.
+  It verified no profile or evaluation rows were created for fixture IDs. The
+  working public demo database was not seeded. Stories are authored intent, not
+  actual analyst verdicts or measured detector outcomes. ADR-029 and the
+  development/README instructions document this boundary. Added a local
+  five-story guide for optional manually authorized review, pinned profile
+  versions and explicit insufficient-evidence handling; it has not been run as
+  a claimed behavioral-validation study.
+- Full PostgreSQL/ML suite: 573 passed, zero skipped, 91% combined coverage,
+  two unchanged upstream deprecation warnings. Ruff/format, strict mypy (128
+  source files), Alembic upgrade/check, offline source/wheel build, frontend
+  ESLint/nine Vitest tests/build and Compose configuration with a placeholder
+  password passed. New modules are present in the wheel. Docker runtime and
+  remote CI remain unverified; no dependencies, trained model, production
+  eligibility or predictive metric changed.
+
+## 2026-09-27 — Phase 16 read-only five-story evidence ledger checkpoint
+
+- Added `--progress` to the disposable local demo CLI. It checks exact fixture
+  transaction facts and reads retained evaluations, captured profile versions,
+  cases, feedback, learning decisions and immutable profile revisions in one
+  PostgreSQL repeatable-read, read-only transaction. It reuses the Unix-socket
+  `*_test` and non-production guard; no verdict or admission is generated.
+  An ID collision with different facts reports CONFLICT and suppresses
+  evaluation attribution; its PostgreSQL regression test passed.
+- Expanded the five-story guide with conditional evidence criteria for A–E,
+  including pinned B/C versions, recorded exceptional-amount quarantine and
+  revision medians, and ordered D learning. Event-time-compatible revisions do
+  not prove they existed at the original decision. ADR-030 records the boundary.
+- PostgreSQL tests verified fixture replay, read-only reporting, actual API
+  evaluation/case records without feedback, and customer isolation. A proposed
+  test that scripted analyst feedback was rejected by automatic approval review;
+  it was removed before execution. No synthetic verdict or claimed outcome was
+  persisted by this checkpoint. A read-only CLI smoke on the working test DB
+  reported 62 ABSENT fixture facts; the public demo schema remains unseeded.
+- Full suite: 574 passed, zero skipped, 91% combined coverage, with two unchanged
+  upstream deprecation warnings. Ruff/format, strict mypy (129 files), offline
+  source/wheel build, frontend ESLint/9 Vitest tests/build passed. Dependencies
+  and migrations unchanged. Docker runtime and remote CI remain unverified.
+- Next: only with actual independent authorized local review inputs, perform
+  bootstrap and case learning through existing APIs, preserve captured versions,
+  then inspect B/C baseline preservation and D gradual adaptation. Otherwise
+  keep those stories as guided steps, not demonstrated outcomes. Phase 15 remote
+  security and production behavioral validation remain open.
+
+## 2026-09-27 — Phase 16 guided local walkthrough checkpoint
+
+- Read all requested checkpoint/specification/demo/security records before
+  changing the local demo. Read-only inspection of the working disposable test
+  DB found 62 ABSENT fixture facts and four absent KZT profiles; no actual
+  reviewer evidence was available to justify bootstrap or learning.
+- Added `--walkthrough`: a concise A–E presenter view over the existing guarded,
+  read-only PostgreSQL evidence report. It lists 14 candidate UUIDs, stored risk
+  status and captured profile version, case/feedback/learning counts, current
+  profile version, event-time-compatible revisions with an availability warning,
+  story-specific evidence requirements and the next manual step. It checks the
+  manifest hash and cannot create a verdict or admission. ADR-031 and the demo
+  guide explain that B/C preservation and D adaptation remain unverified.
+- PostgreSQL integration covers unseeded/matching/conflicting fixture facts,
+  manifest mismatch, authorized evaluation plus open case with no feedback,
+  and honest INSUFFICIENT_EVIDENCE display. No scripted analyst verdict was
+  submitted. A live read-only walkthrough smoke showed all stories pending.
+- Full regression: 574 passed, zero skipped, 91% combined backend/ML coverage,
+  two unchanged upstream deprecation warnings. The final 7 focused tests passed
+  after wording changes. Ruff/format, strict mypy (130 source files), offline
+  source/wheel build and wheel inclusion of the new module passed. Dependencies,
+  schema and frontend were unchanged. Docker runtime/remote CI remain unverified.
+- Next: only real independent authorized local reviews can establish baseline
+  and gradual-adaptation evidence. Preserve the original captured versions and
+  inspect immutable revisions before claiming B/C or D behavior. Phase 15 remote
+  human security and production behavioral validation remain open.
+
+## 2026-09-27 — Phase 16 staged disposable intake checkpoint
+
+- Kept the fixed 62-fact `demo-scenarios-v1` manifest and hash unchanged. Added
+  pure stages: 48 earlier background facts, A/B/C, D1–D5 and E1–E6. The
+  `--apply-stage` CLI uses the existing guarded `*_test` Unix-socket PostgreSQL
+  target, audited/idempotent enrollment and submission services, and original
+  manifest-based idempotency keys. An advisory transaction lock serializes
+  fixture CLI writes; it does not lock arbitrary API writers.
+- Read-only repeatable-read prerequisite checks refuse new B/C/D/E candidate
+  facts without a verified prior KZT profile. C waits for a retained B
+  evaluation and separate B learning decision; later D steps wait for an
+  authorized ACCEPT admission of the previous step; later E steps wait for a
+  previous retained evaluation. Exact stage replay is idempotent. Existing bulk
+  `--apply` remains a facts-only shortcut without these presentation gates.
+  Neither path generates analyst verdicts, admissions or risk evaluations.
+- Isolated migrated-schema PostgreSQL tests inserted/replayed BASELINE and A,
+  proved B/C/D1/E1 stop without verified profile evidence and found no
+  profiles/evaluations. The working public-schema demo database was not seeded.
+  Positive review-dependent paths remain untested without actual independent
+  authorized reviewer inputs; no behavioral outcome is claimed. ADR-032 and
+  the demo guide document that staged insertion is only a local sequence, not
+  reconstructed bank arrival or label availability.
+- Full disposable-PostgreSQL regression: 576 passed, zero skipped, 90% combined
+  backend/ML coverage; two unchanged upstream warnings. Ruff/format, strict
+  mypy (131 source files), existing migration tests and offline source/wheel
+  build passed. Confirmed the new modules are in the wheel and the manifest
+  SHA-256 remains fixed. Frontend, schema and dependencies did not change;
+  frontend lint/nine tests/build last passed at the previous checkpoint.
+  Docker runtime and remote CI remain unverified. Phase 15 remote security and
+  production behavioral validation are still open.

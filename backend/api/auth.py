@@ -1,6 +1,8 @@
 """Opt-in browser login; opaque tokens live only in HttpOnly cookies."""
 
+import base64
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, ConfigDict, SecretStr
@@ -17,6 +19,21 @@ class LoginRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     login: str
     password: SecretStr
+
+
+class MfaResponseRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    challenge_id: UUID
+    credential: dict[str, object]
+
+
+class FirstFactorRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    password: SecretStr
+
+
+class RemoveFactorRequest(FirstFactorRequest):
+    credential_id: str
 
 
 def _identity(services: ApiServices) -> IdentityService:
@@ -89,6 +106,195 @@ def login(
     session = identity.session(issued.access, issued.csrf)
     assert session is not None
     return _session_document(session)
+
+
+@router.post("/mfa/login/options")
+def mfa_login_options(
+    body: LoginRequest, request: Request, services: Services
+) -> dict[str, object]:
+    identity = _identity(services)
+    _origin(request, services, json_body=True)
+    try:
+        result = identity.start_mfa_login(body.login, body.password.get_secret_value())
+    except AuthenticationDenied:
+        raise HTTPException(401, "invalid credentials") from None
+    return {"challenge_id": str(result.challenge_id), "public_key": result.options}
+
+
+@router.post("/mfa/login/verify")
+def mfa_login_verify(
+    body: MfaResponseRequest, request: Request, response: Response, services: Services
+) -> dict[str, object]:
+    identity = _identity(services)
+    _origin(request, services, json_body=True)
+    try:
+        issued = identity.finish_mfa_login(body.challenge_id, body.credential)
+    except AuthenticationDenied:
+        raise HTTPException(401, "invalid credentials") from None
+    _cookies(response, services, issued)
+    current = identity.session(issued.access, issued.csrf)
+    assert current is not None
+    return _session_document(current)
+
+
+@router.post("/mfa/first-factor/options")
+def first_factor_options(
+    body: FirstFactorRequest, request: Request, services: Services
+) -> dict[str, object]:
+    identity = _identity(services)
+    _origin(request, services, json_body=True)
+    try:
+        result = identity.start_first_factor(
+            request.cookies.get(f"{services.cookie_prefix}access", ""),
+            request.cookies.get(f"{services.cookie_prefix}csrf", ""),
+            request.headers.get("X-CSRF-Token", ""),
+            body.password.get_secret_value(),
+        )
+    except AuthenticationDenied:
+        raise HTTPException(401, "invalid credentials") from None
+    return {"challenge_id": str(result.challenge_id), "public_key": result.options}
+
+
+@router.post("/mfa/first-factor/verify", status_code=201)
+def first_factor_verify(
+    body: MfaResponseRequest, request: Request, response: Response, services: Services
+) -> dict[str, bool]:
+    identity = _identity(services)
+    _origin(request, services, json_body=True)
+    try:
+        identity.finish_first_factor(
+            request.cookies.get(f"{services.cookie_prefix}access", ""),
+            request.cookies.get(f"{services.cookie_prefix}csrf", ""),
+            request.headers.get("X-CSRF-Token", ""),
+            body.challenge_id,
+            body.credential,
+        )
+    except AuthenticationDenied:
+        raise HTTPException(401, "invalid credentials") from None
+    _clear(response, services)
+    return {"enrolled": True}
+
+
+@router.post("/mfa/add-factor/options")
+def add_factor_options(
+    body: FirstFactorRequest, request: Request, services: Services
+) -> dict[str, object]:
+    identity = _identity(services)
+    _origin(request, services, json_body=True)
+    try:
+        result = identity.start_add_factor(
+            request.cookies.get(f"{services.cookie_prefix}access", ""),
+            request.cookies.get(f"{services.cookie_prefix}csrf", ""),
+            request.headers.get("X-CSRF-Token", ""),
+            body.password.get_secret_value(),
+        )
+    except AuthenticationDenied:
+        raise HTTPException(401, "invalid credentials") from None
+    return {"challenge_id": str(result.challenge_id), "public_key": result.options}
+
+
+@router.post("/mfa/add-factor/proof")
+def add_factor_proof(
+    body: MfaResponseRequest, request: Request, services: Services
+) -> dict[str, object]:
+    identity = _identity(services)
+    _origin(request, services, json_body=True)
+    try:
+        result = identity.finish_add_factor_proof(
+            request.cookies.get(f"{services.cookie_prefix}access", ""),
+            request.cookies.get(f"{services.cookie_prefix}csrf", ""),
+            request.headers.get("X-CSRF-Token", ""),
+            body.challenge_id,
+            body.credential,
+        )
+    except AuthenticationDenied:
+        raise HTTPException(401, "invalid credentials") from None
+    return {"challenge_id": str(result.challenge_id), "public_key": result.options}
+
+
+@router.post("/mfa/add-factor/verify", status_code=201)
+def add_factor_verify(
+    body: MfaResponseRequest, request: Request, response: Response, services: Services
+) -> dict[str, bool]:
+    identity = _identity(services)
+    _origin(request, services, json_body=True)
+    try:
+        identity.finish_add_factor(
+            request.cookies.get(f"{services.cookie_prefix}access", ""),
+            request.cookies.get(f"{services.cookie_prefix}csrf", ""),
+            request.headers.get("X-CSRF-Token", ""),
+            body.challenge_id,
+            body.credential,
+        )
+    except AuthenticationDenied:
+        raise HTTPException(401, "invalid credentials") from None
+    _clear(response, services)
+    return {"enrolled": True}
+
+
+@router.get("/mfa/factors")
+def factors(request: Request, services: Services) -> dict[str, object]:
+    identity = _identity(services)
+    if request.headers.get("Authorization") is not None:
+        raise HTTPException(401, "mixed credentials are not accepted")
+    try:
+        credentials = identity.list_factors(
+            request.cookies.get(f"{services.cookie_prefix}access", ""),
+            request.cookies.get(f"{services.cookie_prefix}csrf", ""),
+        )
+    except AuthenticationDenied:
+        raise HTTPException(401, "invalid credentials") from None
+    return {
+        "items": [
+            {
+                "credential_id": base64.urlsafe_b64encode(item.credential_id).rstrip(b"=").decode(),
+                "created_at": item.created_at.isoformat(),
+                "last_used_at": item.last_used_at.isoformat() if item.last_used_at else None,
+                "device_type": item.device_type,
+                "backed_up": item.backed_up,
+            }
+            for item in credentials
+        ]
+    }
+
+
+@router.post("/mfa/remove-factor/options")
+def remove_factor_options(
+    body: RemoveFactorRequest, request: Request, services: Services
+) -> dict[str, object]:
+    identity = _identity(services)
+    _origin(request, services, json_body=True)
+    try:
+        result = identity.start_remove_factor(
+            request.cookies.get(f"{services.cookie_prefix}access", ""),
+            request.cookies.get(f"{services.cookie_prefix}csrf", ""),
+            request.headers.get("X-CSRF-Token", ""),
+            body.password.get_secret_value(),
+            body.credential_id,
+        )
+    except AuthenticationDenied:
+        raise HTTPException(401, "invalid credentials") from None
+    return {"challenge_id": str(result.challenge_id), "public_key": result.options}
+
+
+@router.post("/mfa/remove-factor/verify")
+def remove_factor_verify(
+    body: MfaResponseRequest, request: Request, response: Response, services: Services
+) -> dict[str, bool]:
+    identity = _identity(services)
+    _origin(request, services, json_body=True)
+    try:
+        identity.finish_remove_factor(
+            request.cookies.get(f"{services.cookie_prefix}access", ""),
+            request.cookies.get(f"{services.cookie_prefix}csrf", ""),
+            request.headers.get("X-CSRF-Token", ""),
+            body.challenge_id,
+            body.credential,
+        )
+    except AuthenticationDenied:
+        raise HTTPException(401, "invalid credentials") from None
+    _clear(response, services)
+    return {"removed": True}
 
 
 @router.get("/session")

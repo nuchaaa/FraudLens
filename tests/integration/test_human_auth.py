@@ -326,7 +326,7 @@ def test_human_policy_scope_csrf_and_authorization_before_replay(browser):
 def test_secure_cookie_configuration_and_trusted_host(db_engine):
     origin = "https://fraudlens.example"
     settings = Settings(
-        environment="production",
+        environment="test",
         human_auth_enabled=True,
         human_origin=origin,
         _env_file=None,
@@ -353,16 +353,34 @@ def test_secure_cookie_configuration_and_trusted_host(db_engine):
         )
 
 
-def test_production_rejects_insecure_cookie_mode():
+def test_production_rejects_password_only_human_auth():
     settings = Settings(
         environment="production",
         human_auth_enabled=True,
         human_origin="https://fraudlens.example",
-        human_local_insecure=True,
         _env_file=None,
     )
-    with pytest.raises(ValueError, match="HTTPS"):
+    with pytest.raises(ValueError, match="verified MFA and recovery"):
         create_app(settings)
+
+
+def test_production_rejects_unverified_operator_cli():
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "backend.adapters.identity",
+            "recover",
+            "--operator-id",
+            str(uuid4()),
+        ],
+        env={**os.environ, "FRAUDLENS_ENVIRONMENT": "production"},
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode != 0
+    assert "local operator CLI is unavailable in production" in result.stderr
 
 
 def test_account_changes_roll_back_with_audit_and_service_ids_cannot_collide(
