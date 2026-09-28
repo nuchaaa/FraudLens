@@ -3,9 +3,13 @@
 For an immediate, database-free **controlled behavior simulation**, see
 [`data/synthetic/README.md`](../../data/synthetic/README.md). It generates 2,000
 prior transactions and runs all five authored scenarios through the real pure
-domain engines. It confirms A/B/C and gradual D behavior, and records that
-sequence-v1 signals for E do **not** affect risk-v1's LOW/ALLOW suggestion.
-Those synthetic oracle labels are separate from the human review workflow below.
+domain engines. A–D meet their authored checks. In E, risk-v1 retains its
+LOW/ALLOW gap while the separate experimental risk-v2 policy suggests review
+from the third transfer onward. All five controlled checks now pass. A local
+admin can inspect the read-only **Scenario lab** page after starting the API
+with `FRAUDLENS_EXPERIMENTAL_ENABLED=true`; the page does not run ML or persist
+evaluations. These synthetic oracle labels are separate from the human review
+workflow below, which remains unfinished.
 
 This is a **synthetic research demonstration**, not a fraud-performance result.
 Use a disposable PostgreSQL `*_test` database on a local Unix socket. Start the

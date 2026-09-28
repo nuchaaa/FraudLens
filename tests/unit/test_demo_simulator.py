@@ -45,9 +45,12 @@ def test_controlled_scenarios_exercise_real_pure_engines() -> None:
     # currently contribute to risk-v1's LOW/ALLOW suggestion.
     assert e[-1].risk_level == "LOW"
     assert e[-1].suggested_action == "ALLOW"
+    assert e[0].risk_v2_level == e[1].risk_v2_level == "LOW"
+    assert all(item.risk_v2_level == "MEDIUM" for item in e[2:])
+    assert all(item.risk_v2_action == "STEP_UP_VERIFICATION" for item in e[2:])
 
 
-def test_export_is_deterministic_and_discloses_failed_expectation() -> None:
+def test_export_is_deterministic_and_discloses_v1_gap_and_v2_result() -> None:
     first = export_documents(build_simulation())
     assert first == export_documents(build_simulation())
     rows = list(csv.DictReader(io.StringIO(first["transactions.csv"])))
@@ -65,4 +68,6 @@ def test_export_is_deterministic_and_discloses_failed_expectation() -> None:
     assert manifest["authored_expectations"]["E"]["risk"] == "MEDIUM_OR_HIGHER"
     assert manifest["checks"]["C_remains_suspicious_after_B"] is True
     assert manifest["checks"]["D_gradual_adaptation"] is True
-    assert manifest["checks"]["E_low_value_attack_risk_flags"] is False
+    assert manifest["checks"]["E_low_value_attack_risk_flags"] is True
+    assert manifest["legacy_observations"]["E_risk_v1_gap_retained"] is True
+    assert manifest["version"] == "controlled-results-v2"

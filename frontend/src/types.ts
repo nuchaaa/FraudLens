@@ -52,6 +52,51 @@ export type DemoEvidence = {
   limitations: string;
 };
 
+export type ControlledOutcome = {
+  scenario: "A" | "B" | "C" | "D" | "E";
+  transaction_id: string;
+  customer_id: string;
+  amount: string;
+  currency: string;
+  timestamp: string;
+  purpose: string;
+  authored_label: string;
+  risk_status: string;
+  risk_level: string | null;
+  suggested_action: string | null;
+  risk_v2_status: string;
+  risk_v2_level: string | null;
+  risk_v2_action: string | null;
+  risk_v2_source: string;
+  risk_v2_policy_sha256: string;
+  rule_reasons: string[];
+  sequence_reasons: string[];
+  matched_rules: string[];
+  matched_sequences: string[];
+  unavailable_sequences: string[];
+  gate_action: string;
+  median_before: string;
+  median_after: string;
+  short_median_before: string | null;
+  short_median_after: string | null;
+};
+
+export type ControlledReport = {
+  version: string;
+  transaction_fixture_version: string;
+  synthetic_only: true;
+  production_eligible: false;
+  labels: string;
+  profile_assumption: string;
+  risk_policy: string;
+  counts: { customers: number; baseline_transactions: number; scenario_transactions: number; by_scenario: Record<string, number> };
+  authored_expectations: Record<string, Record<string, string>>;
+  checks: Record<string, boolean>;
+  legacy_observations: Record<string, boolean>;
+  outcomes: ControlledOutcome[];
+  limitations: string;
+};
+
 export type Summary = {
   as_of: string;
   transaction_time_basis: string;

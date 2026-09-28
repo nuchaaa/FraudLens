@@ -17,10 +17,13 @@ const summary = {
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
-function mockApi(items: unknown[] = [], role: "analyst" | "admin" = "analyst", evidence?: unknown) {
+function mockApi(items: unknown[] = [], role: "analyst" | "admin" = "analyst", evidence?: unknown, controlled?: unknown) {
   vi.stubGlobal("fetch", vi.fn(async (request: RequestInfo | URL) => {
     const url = String(request);
     if (url.endsWith("/auth/session")) return new Response("{}", { status: 401 });
+    if (url.includes("/experimental/demo/controlled-scenarios")) {
+      return new Response(JSON.stringify(controlled), { status: 200, headers: { "Content-Type": "application/json" } });
+    }
     if (url.includes("/experimental/demo/evidence/")) {
       return evidence
         ? new Response(JSON.stringify(evidence), { status: 200, headers: { "Content-Type": "application/json" } })
@@ -194,5 +197,39 @@ describe("analyst console", () => {
     expect(screen.getByText("Qadam Auto Demo LLP (fictional and unregistered)")).toBeInTheDocument();
     expect(screen.getByText("Role-play only")).toBeInTheDocument();
     expect(screen.getByText("Real-world verified").nextElementSibling).toHaveTextContent("No");
+  });
+
+  it("shows the read-only controlled results to admins, with synthetic labels distinct from verdicts", async () => {
+    const report = {
+      version: "controlled-results-v2", transaction_fixture_version: "controlled-scenarios-v1",
+      counts: { customers: 10, baseline_transactions: 2000, scenario_transactions: 39 },
+      checks: { A_normal_low_allow_accept: true, E_low_value_attack_risk_flags: true },
+      authored_expectations: { A: { risk: "LOW" }, E: { risk: "MEDIUM_OR_HIGHER" } },
+      outcomes: [{ scenario: "E", transaction_id: "00000000-0000-4000-8000-000000000099",
+        amount: "50000.00", currency: "KZT", timestamp: "2026-09-22T10:00:00Z",
+        purpose: "Synthetic transfer", authored_label: "AUTHORED_ATTACK", risk_level: "LOW",
+        risk_status: "SCORED", suggested_action: "ALLOW", risk_v2_level: "MEDIUM",
+        risk_v2_status: "SCORED", risk_v2_action: "STEP_UP_VERIFICATION", gate_action: "QUARANTINE",
+        median_before: "29000.00", median_after: "29000.00", short_median_before: null,
+        short_median_after: null, rule_reasons: [], sequence_reasons: ["Repeated transfers"] }],
+      risk_policy: "uncalibrated experimental review floor", limitations: "No bank action or model inference.",
+    };
+    mockApi([], "admin", undefined, report);
+    render(<App />);
+    await signIn();
+    fireEvent.click(await screen.findByRole("button", { name: "Scenario lab" }));
+    expect(await screen.findByText("Synthetic oracle only")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /E PASS/ }));
+    expect(screen.getByText("Repeated transfers")).toBeInTheDocument();
+    expect(screen.getByText("Detection starts at transfer 3")).toBeInTheDocument();
+    expect(screen.getByText(/not analyst verdicts/)).toBeInTheDocument();
+  });
+
+  it("does not offer the controlled simulator to analysts", async () => {
+    mockApi();
+    render(<App />);
+    await signIn();
+    expect(await screen.findByText("Not registered")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Scenario lab" })).not.toBeInTheDocument();
   });
 });

@@ -139,6 +139,36 @@ def test_demo_evidence_is_opt_in_authenticated_scoped_and_read_only():
         assert client.get(path, headers={"Authorization": f"Bearer {TOKEN}"}).status_code == 503
 
 
+def test_controlled_scenarios_are_admin_only_opt_in_and_database_free():
+    path = "/api/v1/experimental/demo/controlled-scenarios"
+    settings = Settings(
+        environment="test",
+        database_url=None,
+        api_principals=json.dumps([credential(roles=["admin"])]),
+        experimental_enabled=True,
+        _env_file=None,
+    )
+    with TestClient(create_app(settings)) as client:
+        assert client.get(path).status_code == 401
+        response = client.get(path, headers={"Authorization": f"Bearer {TOKEN}"})
+        assert response.status_code == 200
+        assert response.headers["cache-control"] == "no-store"
+        report = response.json()
+        assert report["version"] == "controlled-results-v2"
+        assert report["synthetic_only"] is True
+        assert report["production_eligible"] is False
+        assert all(report["checks"].values())
+        assert report["outcomes"][-1]["risk_v2_policy_sha256"]
+    from pydantic import SecretStr
+
+    analyst = settings.model_copy(update={"api_principals": SecretStr(json.dumps([credential()]))})
+    with TestClient(create_app(analyst)) as client:
+        assert client.get(path, headers={"Authorization": f"Bearer {TOKEN}"}).status_code == 403
+    disabled = settings.model_copy(update={"experimental_enabled": False})
+    with TestClient(create_app(disabled)) as client:
+        assert client.get(path, headers={"Authorization": f"Bearer {TOKEN}"}).status_code == 503
+
+
 @pytest.mark.parametrize("key", ["", " edge", "trailing ", "two words", "a" * 201, "é", "a\nb"])
 def test_keys_are_bounded_printable_ascii(key):
     with pytest.raises(ValueError):

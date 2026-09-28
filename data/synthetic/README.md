@@ -25,18 +25,27 @@ software behavior check, not an estimate of real-world fraud performance.
 
 The five stories are:
 
-| Story | Authored expectation | Observed rules-v1 result |
+| Story | Authored expectation | Observed experimental result |
 | --- | --- | --- |
 | A | Ordinary transfer: LOW, ALLOW, ACCEPT | LOW, ALLOW, ACCEPT |
 | B | 8M KZT legitimate outlier: review, QUARANTINE | MEDIUM, STEP_UP_VERIFICATION, QUARANTINE |
 | C | 500k KZT after B: suspicious against unchanged baseline | HIGH, HOLD_AND_REVIEW; baseline median remains 29k KZT |
 | D | Gradual legitimate change | 30 ACCEPTs; short-window median rises from 29k to 94,310 KZT |
-| E | Repeated low-value poisoning: flag and prevent admission | Sequence signals match and gate quarantines; **risk-v1 remains LOW/ALLOW** |
+| E | Repeated low-value poisoning: flag and prevent admission | The first two transfers remain LOW/ALLOW. From the third transfer, a complete sequence match raises experimental risk-v2 to MEDIUM/STEP_UP_VERIFICATION. The gate quarantines all six without a verified verdict; **risk-v1 remains LOW/ALLOW**. |
 
-E is an observed detector gap. Sequence signals are retained separately and do
-not feed the versioned risk-v1 score. `scenario_manifest.json` records
-`E_low_value_attack_risk_flags=false`; do not present E as detected by the
-decision engine. A later policy needs explicit design, calibration and testing.
+E remains an observed risk-v1 gap. The separate versioned
+`risk-v2-sequence-experimental` policy adds a review floor for a complete,
+compatible sequence match. Missing or incompatible sequence evidence cannot
+silently raise risk; incomplete evidence retains risk-v1 or abstains. It does
+not change risk-v1's numeric score, issue a bank action, or imply calibration.
+The manifest retains the legacy v1 failure separately from six passing A–E
+controlled checks. Re-run with `--replace` after a deliberate simulator change.
+
+In the local admin console, **Scenario lab** reads an authenticated, no-store
+report computed entirely in memory. It shows the authored oracle expectation,
+observed risk-v1 and risk-v2 suggestions, gate outcome, reasons and pass/fail
+checks for every candidate. It does not read or write PostgreSQL, infer a human
+analyst verdict, or run the offline ML model.
 
 This offline dataset is separate from `demo-scenarios-v1`, its 62 immutable
 transaction IDs, the local analyst database, and the fictional review packet.

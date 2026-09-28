@@ -40,20 +40,23 @@ def export_documents(simulation: Simulation) -> dict[str, str]:
     customers = sorted({str(row.transaction.customer_id) for row in rows})
     recipients = sorted({str(row.transaction.recipient_id) for row in rows})
     outcomes = simulation.outcomes
+    candidate_by_id = {
+        row.transaction.transaction_id: row for row in rows if row.scenario != "BASELINE"
+    }
     by_scenario = {
         scenario: [item for item in outcomes if item.scenario == scenario] for scenario in "ABCDE"
     }
     a, b, c = (by_scenario[key][0] for key in "ABC")
     d, e = by_scenario["D"], by_scenario["E"]
     checks = {
-        "A_normal_low_allow_accept": a.risk_level == "LOW"
-        and a.suggested_action == "ALLOW"
+        "A_normal_low_allow_accept": a.risk_v2_level == "LOW"
+        and a.risk_v2_action == "ALLOW"
         and a.gate_action == "ACCEPT",
-        "B_exceptional_review_and_quarantine": b.risk_level in {"MEDIUM", "HIGH", "CRITICAL"}
-        and b.suggested_action != "ALLOW"
+        "B_exceptional_review_and_quarantine": b.risk_v2_level in {"MEDIUM", "HIGH", "CRITICAL"}
+        and b.risk_v2_action != "ALLOW"
         and b.gate_action == "QUARANTINE"
         and b.median_before == b.median_after,
-        "C_remains_suspicious_after_B": c.risk_level in {"HIGH", "CRITICAL"}
+        "C_remains_suspicious_after_B": c.risk_v2_level in {"HIGH", "CRITICAL"}
         and c.gate_action == "QUARANTINE"
         and c.median_before == b.median_before,
         "D_gradual_adaptation": all(item.gate_action == "ACCEPT" for item in d)
@@ -61,14 +64,15 @@ def export_documents(simulation: Simulation) -> dict[str, str]:
         and d[0].short_median_before is not None
         and d[-1].short_median_after > d[0].short_median_before,
         "E_low_value_attack_risk_flags": any(
-            item.risk_level in {"MEDIUM", "HIGH", "CRITICAL"} for item in e
+            item.risk_v2_level in {"MEDIUM", "HIGH", "CRITICAL"} for item in e
         ),
         "E_sequence_detects_and_profile_resists": any(item.matched_sequences for item in e)
         and all(item.gate_action == "QUARANTINE" for item in e)
         and e[-1].median_after == e[0].median_before,
     }
     manifest = {
-        "version": "controlled-scenarios-v1",
+        "version": "controlled-results-v2",
+        "transaction_fixture_version": "controlled-scenarios-v1",
         "synthetic_only": True,
         "production_eligible": False,
         "labels": (
@@ -79,7 +83,10 @@ def export_documents(simulation: Simulation) -> dict[str, str]:
             "oracle-approved solely in memory to exercise behavior code. This is not a "
             "verified review workflow or a persisted profile."
         ),
-        "risk_policy": "risk-v1-experimental rules_only; uncalibrated authored thresholds",
+        "risk_policy": (
+            "risk-v2-sequence-experimental review floor over unchanged risk-v1 rules_only; "
+            "uncalibrated authored thresholds; no new probability"
+        ),
         "counts": {
             "customers": len(customers),
             "baseline_transactions": sum(row.scenario == "BASELINE" for row in rows),
@@ -107,10 +114,18 @@ def export_documents(simulation: Simulation) -> dict[str, str]:
             },
         },
         "checks": checks,
+        "legacy_observations": {
+            "E_risk_v1_gap_retained": all(item.risk_level == "LOW" for item in e)
+        },
         "outcomes": [
             {
                 "scenario": item.scenario,
                 "transaction_id": str(item.transaction_id),
+                "customer_id": str(candidate_by_id[item.transaction_id].transaction.customer_id),
+                "amount": str(candidate_by_id[item.transaction_id].transaction.amount),
+                "currency": candidate_by_id[item.transaction_id].transaction.currency,
+                "timestamp": candidate_by_id[item.transaction_id].transaction.timestamp.isoformat(),
+                "purpose": candidate_by_id[item.transaction_id].purpose,
                 "authored_label": item.authored_label,
                 "risk_status": item.risk_status,
                 "risk_level": item.risk_level,
@@ -118,6 +133,14 @@ def export_documents(simulation: Simulation) -> dict[str, str]:
                 "rule_score": item.rule_score,
                 "matched_rules": item.matched_rules,
                 "matched_sequences": item.matched_sequences,
+                "rule_reasons": item.rule_reasons,
+                "sequence_reasons": item.sequence_reasons,
+                "risk_v2_status": item.risk_v2_status,
+                "risk_v2_level": item.risk_v2_level,
+                "risk_v2_action": item.risk_v2_action,
+                "risk_v2_source": item.risk_v2_source,
+                "risk_v2_policy_sha256": item.risk_v2_policy_sha256,
+                "unavailable_sequences": item.unavailable_sequences,
                 "profile_version_before": item.profile_version_before,
                 "profile_version_after": item.profile_version_after,
                 "median_before": str(item.median_before),
@@ -133,9 +156,11 @@ def export_documents(simulation: Simulation) -> dict[str, str]:
             for item in outcomes
         ],
         "limitations": (
-            "Rules-v1 excludes sequence matches from risk score. An authored low-value "
-            "attack can still receive LOW/ALLOW; this is a detector gap, not a pass. "
-            "No API, database, analyst decision, model training, or real-world metric is created."
+            "Rules-v1 excludes sequence matches and still says LOW/ALLOW on E. The separate "
+            "risk-v2 review floor raises an evaluable sequence match to at least MEDIUM "
+            "without changing a score or asserting a probability. This authored policy "
+            "is uncalibrated and is not wired into durable evaluation. No database, analyst "
+            "decision, model training, or real-world metric is created."
         ),
     }
     return {

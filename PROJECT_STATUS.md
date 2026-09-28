@@ -1,13 +1,13 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 16 in progress — a new separate offline controlled simulator generates 10 synthetic customers, 2,000 varied prior transactions and 39 A–E candidates. It executes the pure production feature/risk/sequence/gate code and exports CSV plus an observed-outcome manifest in `data/synthetic`. A/B/C and D adaptation meet the authored controlled expectations; E exposes a real gap: sequence signals match but risk-v1 still suggests LOW/ALLOW. These labels and assumed baseline admissions are simulation-only and do not alter the analyst database. The earlier 62-transaction human review walkthrough remains at 49 matching facts, 13 absent candidates and no profile revision. Phase 15 remote-human-security gate remains open; production human auth fails closed.**
-Next work: **Decide and version an explicit policy for sequence signals before claiming E detection; test it with controlled and independent data without silently changing risk-v1. The local analyst walkthrough still needs actual independent reviews before B/C/D can be demonstrated through stored workflows. PR #2 remains open and unmerged. Remote deployment requires institutional recovery proof/notification, authenticated admins, real four-role/TLS topology and independent security review.**
+Current checkpoint: **Phase 16 controlled five-scenario simulator complete.** It generates 10 synthetic customers, 2,000 varied prior transactions and 39 A–E candidates without PostgreSQL writes. All five authored scenario checks pass under a separate, uncalibrated `risk-v2-sequence-experimental` review floor. E's first two transfers remain LOW/ALLOW; later complete sequence matches raise a MEDIUM/STEP_UP_VERIFICATION suggestion. The original risk-v1 gap remains visible and unchanged. An authenticated admin-only, read-only Scenario lab page displays oracle expectations, actual results, reasons and pass/fail checks. Synthetic oracle approvals are not analyst verdicts. The separate 62-transaction live human-review walkthrough remains incomplete, and Phase 15 production security and behavioral validation remain open.**
+Next work: **Gather independent live review evidence before claiming the PostgreSQL B/C/D workflow demonstration; do not script verdicts or profile admissions. Independently evaluate and calibrate sequence policy on suitable data before any production use. PR #2 remains open and unmerged. Remote deployment still requires institutional recovery proof/notification, authenticated admins, real four-role/TLS topology and independent security review.**
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
 ## Completed capabilities
 
-- [x] Separate controlled Phase 16 simulator: `data/synthetic` contains deterministic
+- [x] Completed controlled Phase 16 simulator: `data/synthetic` contains deterministic
   `customers.csv`, `recipients.csv`, `transactions.csv` and
   `scenario_manifest.json`. It creates 200 prior transactions for each of 10
   customers, with three ordinary fictional purposes/known recipients, then
@@ -18,12 +18,24 @@ do not establish legitimacy, score risk or admit transactions.
   MEDIUM/STEP_UP_VERIFICATION/QUARANTINE; C stays HIGH/HOLD_AND_REVIEW against
   the unchanged 29k KZT median; 30 D admissions raise the short median from
   29k to 94,310 KZT. E's six small transfers are quarantined when no verdict
-  exists and trigger sequence evidence, but risk-v1 still returns LOW/ALLOW.
-  This is an explicit failing detector expectation, not a passing scenario or
-  production metric. The original 62-row database demo is unchanged. Final
-  PostgreSQL regression: 584 passed, zero skipped, 90% combined coverage;
-  Ruff/format and strict mypy (135 source files) passed. Two existing upstream
-  warnings remain; frontend, migrations and dependencies were untouched.
+  exists. risk-v1 still returns LOW/ALLOW; the distinct risk-v2 policy raises
+  a MEDIUM review suggestion after a complete sequence match, starting at
+  transfer three. All A–E controlled checks pass; the legacy gap remains
+  recorded. The original 62-row database demo is unchanged.
+- [x] Versioned `risk-v2-sequence-experimental` consumes matching, fingerprinted
+  risk-v1/sequence-v1 evidence. It rejects incompatible evidence, never turns
+  missing input into a match, preserves risk-v1 when no complete signal exists,
+  and neither changes its score nor claims calibration. `Scenario lab` is an
+  admin-only read-only page backed by an in-memory no-store endpoint. It shows
+  authored expectations separately from outcomes and explicitly disclaims
+  analyst verdicts, model inference and database writes. ADR-034 documents the
+  policy. Generated manifest SHA-256:
+  `6d691313369150cf9f6aedafaa23d13d82f14b966b65e5f89c1cbaa95b8aead6`.
+  Final disposable-PostgreSQL validation: 587 Python tests passed, zero
+  skipped, 90% combined coverage. Ruff/format, strict mypy (136 source files),
+  Alembic upgrade/check, frontend ESLint, 14 Vitest tests and build passed.
+  Two existing upstream deprecation warnings remain. No migration or dependency
+  changed; Docker runtime and remote CI were not verified here.
 
 - [x] Phase 16 first checkpoint: versioned `demo-scenarios-v1` fixture with four
   synthetic customers and 62 deterministic KZT transaction facts spanning the

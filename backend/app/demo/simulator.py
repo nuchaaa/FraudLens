@@ -14,6 +14,7 @@ from backend.app.features.context import ContextSource, FeatureContext
 from backend.app.feedback.entities import AnalystVerdict
 from backend.app.profile.entities import CustomerBehaviorProfile, ProfileObservation
 from backend.app.profile.gate import ProfileUpdateGate
+from backend.app.risk.sequence_policy import decide_sequence_risk
 from backend.app.risk.service import RiskPolicy, Strategy, evaluate_risk
 from backend.app.sequence.engine import SequenceStatus, evaluate_sequence
 from backend.app.transaction.entities import Channel, Transaction
@@ -56,6 +57,14 @@ class ScenarioOutcome:
     rule_score: float | None
     matched_rules: tuple[str, ...]
     matched_sequences: tuple[str, ...]
+    rule_reasons: tuple[str, ...]
+    sequence_reasons: tuple[str, ...]
+    risk_v2_status: str
+    risk_v2_level: str | None
+    risk_v2_action: str | None
+    risk_v2_source: str
+    risk_v2_policy_sha256: str
+    unavailable_sequences: tuple[str, ...]
     profile_version_before: int
     profile_version_after: int
     median_before: Decimal
@@ -227,6 +236,7 @@ def build_simulation() -> Simulation:
             context, RiskPolicy(Strategy.RULES_ONLY), clock=partial(_fixed_time, tx.timestamp)
         )
         sequence = evaluate_sequence(context)
+        risk_v2 = decide_sequence_risk(risk, sequence)
         verdict = AnalystVerdict.LEGITIMATE if row.authored_label == "AUTHORED_LEGITIMATE" else None
         decision, updated = gate.apply(tx, profile, verdict)
         before = profile.long_term
@@ -247,6 +257,14 @@ def build_simulation() -> Simulation:
                 tuple(
                     item.code for item in sequence.outcomes if item.status == SequenceStatus.MATCHED
                 ),
+                tuple(reason.message for reason in risk.rules.reasons),
+                tuple(reason.message for reason in sequence.reasons),
+                risk_v2.status,
+                risk_v2.level.value if risk_v2.level else None,
+                risk_v2.suggested_action.value if risk_v2.suggested_action else None,
+                risk_v2.decision_source,
+                risk_v2.policy_sha256,
+                risk_v2.unavailable_sequences,
                 profile.version,
                 updated.version,
                 before.median,
