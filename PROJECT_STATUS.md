@@ -35,7 +35,8 @@ do not establish legitimacy, score risk or admit transactions.
   skipped, 90% combined coverage. Ruff/format, strict mypy (136 source files),
   Alembic upgrade/check, frontend ESLint, 14 Vitest tests and build passed.
   Two existing upstream deprecation warnings remain. No migration or dependency
-  changed; Docker runtime and remote CI were not verified here.
+  changed. Both backend and both frontend GitHub checks passed on PR #2
+  head `11bb17b`; Docker runtime remains unverified.
 
 - [x] Phase 16 first checkpoint: versioned `demo-scenarios-v1` fixture with four
   synthetic customers and 62 deterministic KZT transaction facts spanning the
