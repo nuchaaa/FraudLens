@@ -15,7 +15,7 @@ from backend.adapters.evaluation import ExperimentalEvaluationEngine
 from backend.adapters.passwords import Argon2Passwords
 from backend.adapters.security import CredentialRegistry
 from backend.adapters.webauthn import PyWebAuthnVerifier
-from backend.api import auth, console, evaluations, health, learning, profiles, transactions
+from backend.api import auth, console, demo, evaluations, health, learning, profiles, transactions
 from backend.api.dependencies import ApiServices
 from backend.api.errors import install_error_handlers
 from backend.api.limits import BusinessRequestLimits
@@ -122,6 +122,7 @@ def create_app(
     app.include_router(auth.router)
     app.include_router(transactions.router)
     app.include_router(console.router)
+    app.include_router(demo.router)
     app.include_router(profiles.router)
     app.include_router(evaluations.router)
     app.include_router(learning.router)

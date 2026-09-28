@@ -924,3 +924,67 @@
   demo guide and updated the checkpoint/continuation prompt. B/C baseline
   preservation and D adaptation remain NOT DEMONSTRATED; Phase 15 remote
   release and production behavioral validation remain open.
+
+## 2026-09-28 — Explicit local admin evaluation and case flow
+
+- Added an admin-only console action for an unevaluated transaction: the admin must explicitly assert an absent admitted profile or enter a pinned pre-decision revision before requesting rules-only evaluation. The form retains its idempotency key on retry and displays the persisted experimental result. The administrator may separately open a review case; neither action enters a verdict or admits profile history. Human analysts cannot submit evaluations from the console.
+- Reused existing backend API contracts, human-session CSRF, idempotency and authorization. A PostgreSQL integration test verifies a human admin can create and replay the evaluation while an analyst gets 403. Frontend tests cover admin request data, CSRF/idempotency headers, case creation and analyst UI restriction.
+- Local validation on disposable PostgreSQL 17.10: 579 tests passed, zero skipped, 90% combined backend/ML coverage; two existing upstream Starlette/AnyIO warnings. Ruff, format, strict mypy (131 source files), frontend ESLint, 11 Vitest tests and Vite build passed. Initial sandboxed pytest could not access the PostgreSQL Unix socket; the successful full run used approved socket access. No migration, dependency, model configuration, reviewer verdict or profile admission changed.
+- The staged B/C/D demonstration remains blocked by lack of independently verified transaction-linked evidence. Production human authentication and behavioral validation remain open.
+- Committed locally as `aa0649a` on `codex/fix-demo-ci-and-evaluation-context`. Automatic approval review rejected the push to `origin` as external source-code egress without trusted authorization for the exact destination and payload. No alternate upload was attempted. PR #1 therefore does not yet contain this console change; explicit user approval is required before pushing it.
+
+## 2026-09-28 — Fictional Phase 16 review-evidence package
+
+- Added `demo-review-evidence-v1`, a deterministic companion entry for all 62
+  fixture transactions. Entries contain obviously fictional parties, purposes,
+  locations, references and artifact summaries while explicitly declaring
+  synthetic-only, real-world-unverified, production-ineligible and verdict-free
+  status. Baseline/A/B/D have authored supporting context; C/E deliberately keep
+  support unavailable. The package SHA-256 is
+  `436c1c24119a12a7df63bf9f6ea4888a19c021b1eec94d4df945e83983687185`.
+- Added an offline package command and an authenticated, scope-checked,
+  experimental no-store read endpoint. The React transaction drawer displays
+  matching context behind a prominent role-play warning and retains the existing
+  missing-context disclosure for non-fixture records. The package is not read by
+  feature, risk, case or profile-learning code and creates no database writes.
+- Accepted ADR-033 and updated the runbook, five-story guide and architecture map.
+  The pre-change baseline was 579 Python tests and 11 frontend tests. Final local
+  validation passed 582 Python tests with zero skipped and 90% combined coverage
+  on PostgreSQL 17.10, Ruff/format, strict mypy over 133 source files, frontend
+  ESLint, 12 Vitest tests and Vite build. Two existing upstream warnings remain;
+  dependencies and migrations are unchanged.
+- No analyst verdict, evaluation, case, learning decision or profile revision was
+  generated. Phase 16 remains open until actual analysts independently review new
+  BC/D cases and the stored bootstrap/gate outcomes are verified.
+- Read-only GitHub inspection confirmed PR #1 was merged at remote head `9857c84`
+  with successful backend and frontend checks. The later local console commits and
+  this evidence package were not part of that merge. Published them on
+  `codex/phase16-demo-evidence` and opened PR #2. Both backend and frontend checks
+  passed on its initial head; the PR remains open and unmerged.
+
+## 2026-09-28 — Separate controlled Phase 16 scenario simulator
+
+- Accepted the user's correction that Phase 16 needs deterministic synthetic behavior cases, not an external dataset or model-training claim. Added a database-free simulator using the real pure feature, rules, decision, sequence and profile-gate code. It exports `data/synthetic/{customers,recipients,transactions}.csv` and `scenario_manifest.json` for 10 customers, 2,000 varied prior transactions and 39 A–E candidates. The last 100 prior facts per customer are assumed oracle-approved solely in memory; no analyst verdict, persistent admission or real legitimacy is asserted.
+- Observed A LOW/ALLOW/ACCEPT, B MEDIUM/STEP_UP_VERIFICATION/QUARANTINE, C HIGH/HOLD_AND_REVIEW against the preserved 29k KZT median, and 30 D ACCEPTs with the short median rising from 29k to 94,310 KZT. E's low-value sequence produces supplemental matches and profile quarantine when no verdict exists, but risk-v1 still returns LOW/ALLOW. The manifest explicitly records `E_low_value_attack_risk_flags=false`. This is a detector gap, not a passing result or a measured fraud rate. No ML model was trained or configured.
+- The original 62-transaction PostgreSQL/analyst walkthrough and its unresolved independent-review requirements remain separate and unchanged. No database writes were made by the simulator.
+- Initial complete PostgreSQL test run after adding the simulator: 584 passed, zero skipped, 90% combined coverage; two existing upstream Starlette/AnyIO warnings. The sandbox initially denied the PostgreSQL Unix socket; an approved execution completed the suite. After varying background purposes/recipients, the two focused simulator tests, global Ruff/format, strict mypy (135 source files) and diff whitespace check passed. The final complete PostgreSQL suite was rerun after the fixture edit: 584 passed, zero skipped, 90% combined coverage, with the same two upstream warnings. Frontend and dependencies were untouched.
+
+## 2026-09-28 — Controlled Phase 16 simulator completed
+
+- Added separate fingerprinted `risk-v2-sequence-experimental`. It consumes exact compatible risk-v1 rules-only and sequence-v1 results, raises a MEDIUM/STEP_UP_VERIFICATION review suggestion for a complete matched sequence, and preserves risk-v1 or abstains when evidence is missing. Incompatible evidence fails. It does not alter risk-v1 scores, assert probabilities, execute bank actions or admit profiles.
+- Regenerated `controlled-results-v2` manifest (SHA-256 `6d691313369150cf9f6aedafaa23d13d82f14b966b65e5f89c1cbaa95b8aead6`). All A–E controlled checks pass. E retains the historical risk-v1 LOW/ALLOW failure on all six transfers; its first two also remain LOW/ALLOW under v2, then complete sequence matches suggest MEDIUM review. This is deterministic software behavior with authored oracle labels, not a fraud-performance measurement or analyst verdict.
+- Added an authenticated admin-only, no-store API report computed in memory and a read-only Scenario lab page with expectations, actual v1/v2 outcomes, reasons and pass/fail checks. No simulator data, evaluation, feedback, or profile admission was written to PostgreSQL. Documented the boundary in ADR-034 and the demo guides. The separate live analyst walkthrough and Phase 15 production security gate remain open.
+- Final validation on disposable PostgreSQL 17.10: 587 Python tests passed, zero skipped, 90% combined coverage; Ruff/format, strict mypy across 136 source files, Alembic upgrade/check, frontend ESLint, 14 Vitest tests and Vite build passed. Two upstream Starlette/AnyIO warnings remain. The first sandboxed full run could not access the PostgreSQL socket; the approved rerun passed. No migration or dependency changed. Pushed commit `11bb17b` to existing PR #2; both backend and both frontend GitHub checks passed on that head. Docker runtime was not verified.
+
+## 2026-09-28 — Independent synthetic sequence-policy falsification
+
+- Reviewed the frozen Phase 16 result, research protocol and local dataset suitability assessment. ULB lacks behavioral identities/provenance and PaySim terms/provenance remain unverified; neither supports an honest risk-v2 calibration here. No external data, verified labels or predictive rates were invented.
+- Added a separate seven-case, database-free challenge set under `ml/src/evaluation/sequence_challenge.py`, with an immutable-output CLI and frozen report. It found plausible benign batch reviews and an authored attack spaced outside the 24-hour window that remains LOW/ALLOW. Observable-identical benign/attack new-payee cases receive the same result. The report is a falsification aid, not a random sample or threshold selection set. Report SHA-256: `1d3f5e876d8f0678fe353cadf5d72000bf8318a0dddce1b5c3366ec2bdd98ab2`.
+- Tightened risk-v2 compatibility to require the exact reviewed default sequence-policy fingerprint; a self-consistent custom threshold policy now fails rather than silently changing the review floor. risk-v1 remains unchanged. Regenerated the controlled Phase 16 manifest; all five checks still pass. New manifest SHA-256: `6b383983bc71874e86eaa45bd8c7062b74c00421742b28926bda1c059841f9e2`.
+- Added a reproducibility and negative-findings guide, updated ADR-034/architecture map and the handoff. No PostgreSQL business rows, analyst verdicts, profile admissions, model training or production policy changed. The live analyst walkthrough and Phase 15 security gate remain open.
+- Final disposable PostgreSQL regression: 590 passed, zero skipped, 90% combined backend/ML coverage. Ruff/format and strict mypy (137 source files) passed. Two unchanged upstream deprecation warnings remain. No frontend, migration, dependency, Docker-runtime or remote-deployment change was made.
+
+## 2026-09-28 — Roadmap handoff correction
+
+- Corrected a repeated handoff loop after the user pointed it out. The original specification defines Phase 16 as deterministic synthetic data for five scenarios; that engineering deliverable is complete. The later live analyst walkthrough is a separately tracked extension blocked on independent reviewer evidence, not a reason to repeat Phase 16 or prevent Phase 17.
+- Rewrote NEXT_SESSION_PROMPT.md around a concrete Phase 17 offline comparison of four profiling strategies on the same frozen chronological synthetic streams. It explicitly parks the live walkthrough, forbids tuning on the A–E and seven challenge examples, and requires the next handoff to advance to a different task. Clarified the old ADR-033 closure wording; no detector, schema or frontend behavior changed.

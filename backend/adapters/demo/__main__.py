@@ -23,6 +23,7 @@ from backend.adapters.database.models import (
 from backend.adapters.database.uow import create_unit_of_work
 from backend.adapters.demo.progress import _matches, evidence_report
 from backend.adapters.demo.walkthrough import render_walkthrough
+from backend.app.demo.evidence import build_evidence_package
 from backend.app.demo.scenarios import VERSION, DemoEvent, DemoPlan, build_plan, demo_id
 from backend.app.demo.stages import (
     STAGES,
@@ -291,6 +292,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     action = parser.add_mutually_exclusive_group()
     action.add_argument("--manifest", action="store_true", help="print all synthetic facts")
+    action.add_argument(
+        "--evidence-package",
+        action="store_true",
+        help="print fictional review context without verdicts",
+    )
     action.add_argument("--apply", action="store_true", help="write to TEST_DATABASE_URL only")
     action.add_argument(
         "--apply-stage",
@@ -336,7 +342,14 @@ def main() -> None:
         finally:
             engine.dispose()
     else:
-        report = plan.document() if args.manifest else summary(plan)
+        evidence = build_evidence_package(plan)
+        report = (
+            {"package_sha256": evidence.sha256(), **evidence.document()}
+            if args.evidence_package
+            else plan.document()
+            if args.manifest
+            else summary(plan)
+        )
     print(json.dumps(report, sort_keys=True, indent=2, ensure_ascii=False))
 
 

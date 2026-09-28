@@ -3,10 +3,11 @@ import { FraudLensApi, restoreSession, type HumanSession } from "./api";
 import { Mark } from "./components";
 import { Connect } from "./Connect";
 import { SecurityKeyEnrollment } from "./SecurityKeyEnrollment";
+import { ScenarioLab } from "./ScenarioLab";
 import { Customers, Models, Overview, System, Transactions } from "./pages";
 import type { Summary, WorklistItem } from "./types";
 
-export type Page = "overview" | "transactions" | "cases" | "customers" | "models" | "system";
+export type Page = "overview" | "transactions" | "cases" | "customers" | "models" | "simulator" | "system";
 
 const navigation: Array<[Page, string, string]> = [
   ["overview", "Overview", "⌂"],
@@ -14,6 +15,7 @@ const navigation: Array<[Page, string, string]> = [
   ["cases", "Fraud cases", "◇"],
   ["customers", "Customers", "◎"],
   ["models", "Models", "⌁"],
+  ["simulator", "Scenario lab", "▤"],
   ["system", "System", "⚙"],
 ];
 
@@ -74,13 +76,14 @@ function Console({ session, disconnect }: { session: HumanSession; disconnect: (
   }
 
   const shownItems = page === "cases" ? items.filter((item) => item.case_id) : items;
+  const visibleNavigation = navigation.filter(([key]) => key !== "simulator" || session.role === "admin");
   return (
     <div className="app-shell">
       <aside className="sidebar">
         <div className="brand"><Mark /><span>FraudLens</span></div>
         <div className="workspace-label">ANALYST WORKSPACE</div>
         <nav aria-label="Primary navigation">
-          {navigation.map(([key, label, icon]) => (
+          {visibleNavigation.map(([key, label, icon]) => (
             <button key={key} className={page === key ? "active" : ""} onClick={() => setPage(key)}>
               <span aria-hidden="true">{icon}</span>{label}
               {key === "cases" && summary && summary.cases_awaiting_review > 0 && <em>{summary.cases_awaiting_review}</em>}
@@ -94,13 +97,14 @@ function Console({ session, disconnect }: { session: HumanSession; disconnect: (
       </aside>
       <main className="workspace">
         <header className="topbar">
-          <div><span className="crumb">Fraud operations /</span> {navigation.find(([key]) => key === page)?.[1]}</div>
+          <div><span className="crumb">Fraud operations /</span> {visibleNavigation.find(([key]) => key === page)?.[1]}</div>
           <div className="top-actions"><span className="experimental-pill">Experimental data</span><button onClick={refresh} aria-label="Refresh data">↻</button></div>
         </header>
         {page === "overview" && <Overview api={api} summary={summary} items={items} loading={loading} error={error} openTransactions={() => setPage("transactions")} />}
-        {(page === "transactions" || page === "cases") && <Transactions api={api} title={page === "cases" ? "Fraud cases" : "Transaction worklist"} items={shownItems} loading={loading} error={error} cursor={cursor} more={more} casesOnly={page === "cases"} refreshed={() => setRefreshKey((v) => v + 1)} />}
+        {(page === "transactions" || page === "cases") && <Transactions api={api} title={page === "cases" ? "Fraud cases" : "Transaction worklist"} items={shownItems} loading={loading} error={error} cursor={cursor} more={more} casesOnly={page === "cases"} canEvaluate={session.role === "admin"} refreshed={() => setRefreshKey((v) => v + 1)} />}
         {page === "customers" && <Customers api={api} />}
         {page === "models" && <Models items={items} />}
+        {page === "simulator" && session.role === "admin" && <ScenarioLab api={api} />}
         {page === "system" && <><System summary={summary} />{session.role === "analyst" && <SecurityKeyEnrollment api={api} />}</>}
       </main>
     </div>

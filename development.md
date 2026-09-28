@@ -66,6 +66,7 @@ Preview the fixed Phase 16 transaction plan without a database:
 ```sh
 .venv/bin/python -m backend.adapters.demo
 .venv/bin/python -m backend.adapters.demo --manifest
+.venv/bin/python -m backend.adapters.demo --evidence-package  # fictional review context
 .venv/bin/python -m backend.adapters.demo --progress  # requires TEST_DATABASE_URL
 .venv/bin/python -m backend.adapters.demo --walkthrough  # concise read-only guide
 .venv/bin/python -m backend.adapters.demo --apply-stage BASELINE  # staged facts only
@@ -92,6 +93,14 @@ manifest IDs and requires the earlier facts plus independent stored evidence
 before later stages. See the demo guide and ADR-032. It never scripts a review;
 the existing bulk `--apply` remains a facts-only shortcut and does not prove
 point-in-time availability.
+
+`demo-review-evidence-v1` is a separate, read-only companion to the immutable
+transaction facts. Its SHA-256 is
+`436c1c24119a12a7df63bf9f6ea4888a19c021b1eec94d4df945e83983687185`.
+When experimental mode is enabled, authenticated scoped console users see the
+matching entry in a transaction drawer. Every entry is explicitly fictional,
+not real-world verified and not a supplied verdict. C and E intentionally retain
+unavailable supporting context. See ADR-033.
 
 ```sh
 .venv/bin/uvicorn backend.main:app --reload --host 127.0.0.1
@@ -505,8 +514,9 @@ tests, never as a restart procedure. See ADR-019 for the consumer contract and l
 
 ## Phase 14 analyst console
 
-The console requires the backend, PostgreSQL and an expiring analyst/admin credential from
-the “Authenticated synthetic API” section above. Keep the backend terminal running, then:
+The console requires the backend, PostgreSQL and a locally provisioned human
+analyst/admin account from the Phase 15 instructions below. Keep the backend
+terminal running, then:
 
 ```sh
 cd frontend
@@ -529,6 +539,16 @@ Both routes return `Cache-Control: no-store`. An empty scope returns empty data.
 fields mean no evaluation or insufficient evidence. The console labels every result as
 experimental, uncalibrated and production-ineligible and never changes RECEIVED transaction
 status. Review buttons call the existing versioned/idempotent API after a confirmation dialog.
+For a transaction without a retained evaluation, a local admin can open its detail
+drawer and run an experimental rules-only evaluation. The form requires an explicit
+assertion that no admitted profile exists or a pinned pre-decision revision; it
+does not select today's profile automatically. The server enforces admin scope,
+CSRF, idempotency and experimental-write enablement. A result appears in the drawer
+and refreshed worklist. The admin may then open a review case as a separate
+explicit action; neither action supplies a verdict or admits profile history.
+Analysts cannot submit evaluations from the console; they review the separately
+opened cases. ML-only/hybrid use the existing API only when a reviewed native
+bundle is explicitly configured, and remain synthetic-only and uncalibrated.
 Profile learning remains an independent admin workflow and is intentionally absent from UI.
 
 For the production frontend bundle and checks:

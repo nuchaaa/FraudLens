@@ -1,5 +1,16 @@
 # Local five-story demonstration
 
+For an immediate, database-free **controlled behavior simulation**, see
+[`data/synthetic/README.md`](../../data/synthetic/README.md). It generates 2,000
+prior transactions and runs all five authored scenarios through the real pure
+domain engines. A–D meet their authored checks. In E, risk-v1 retains its
+LOW/ALLOW gap while the separate experimental risk-v2 policy suggests review
+from the third transfer onward. All five controlled checks now pass. A local
+admin can inspect the read-only **Scenario lab** page after starting the API
+with `FRAUDLENS_EXPERIMENTAL_ENABLED=true`; the page does not run ML or persist
+evaluations. These synthetic oracle labels are separate from the human review
+workflow below, which remains unfinished.
+
 This is a **synthetic research demonstration**, not a fraud-performance result.
 Use a disposable PostgreSQL `*_test` database on a local Unix socket. Start the
 backend/frontend with the local settings in `development.md`; never use these
@@ -9,6 +20,13 @@ instructions against real customer data or a remote service.
    `.venv/bin/python -m backend.adapters.demo --manifest`. The fixed manifest
    lists every customer/transaction UUID, timestamp and authored story. Its
    SHA-256 is `4645220dd30cfabb12e8a22688a45035d81e352fe2ef5998f6f16a33019f26c8`.
+   Separately inspect
+   `.venv/bin/python -m backend.adapters.demo --evidence-package`. The
+   `demo-review-evidence-v1` package has SHA-256
+   `436c1c24119a12a7df63bf9f6ea4888a19c021b1eec94d4df945e83983687185`.
+   It supplies clearly fictional names, purposes, locations and artifact
+   summaries for role-play review; it changes no transaction fact and supplies
+   no verdict. C and E deliberately report unavailable support.
 2. Set `TEST_DATABASE_URL` to the disposable socket URL from `development.md`.
    For a quick facts-only worklist, explicitly run
    `.venv/bin/python -m backend.adapters.demo --apply`. A rerun
@@ -60,6 +78,12 @@ instructions against real customer data or a remote service.
    vehicle payment is 8M KZT; C is a later 500k transfer by the same customer
    to a new recipient. D and E contain the authored progression sequences.
    The `BC` rows are the shared prior history for B and C.
+   With experimental mode enabled, opening one of these deterministic rows also
+   retrieves its authenticated, scope-checked fictional evidence entry. The
+   warning panel says `real_world_verified=false` and must remain visible to
+   reviewers. `SUPPORTED` means the role-play packet contains authored documents;
+   it is not a legitimacy label. Non-fixture transactions continue to show the
+   explicit missing-context message.
 4. If experimental routes are enabled locally, evaluate any transaction with
    an explicit absent profile: `POST /api/v1/experimental/evaluations`, an
    `Idempotency-Key`, and a body such as

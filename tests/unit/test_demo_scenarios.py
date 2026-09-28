@@ -4,6 +4,7 @@ from collections import Counter
 from datetime import timedelta
 from decimal import Decimal
 
+from backend.app.demo.evidence import SupportStatus, build_evidence_package
 from backend.app.demo.scenarios import ANCHOR, build_plan, demo_id
 from backend.app.demo.stages import (
     STAGES,
@@ -113,3 +114,44 @@ def test_bootstrap_trace_requires_matching_fixture_admissions_and_distinct_revie
     assert not fixture_bootstrap_trace_matches(
         ids, (*selected[:4], unrelated), (*evidence[:4], (unrelated, second))
     )
+
+
+def test_review_evidence_is_complete_fictional_and_never_supplies_a_verdict() -> None:
+    plan = build_plan()
+    package = build_evidence_package(plan)
+    assert len(package.entries) == len(plan.events)
+    assert len({entry.transaction_id for entry in package.entries}) == len(plan.events)
+    assert all(entry.customer_id in plan.customers for entry in package.entries)
+    assert package.document()["synthetic_only"] is True
+    assert package.document()["real_world_verified"] is False
+    assert len(package.sha256()) == 64
+    for entry in package.document()["entries"]:
+        assert entry["verdict_provided"] is False
+        assert entry["real_world_verified"] is False
+        assert "fraud" not in entry
+        assert "legitimate" not in entry
+
+
+def test_review_evidence_support_is_contextual_not_an_inferred_label() -> None:
+    plan = build_plan()
+    package = build_evidence_package(plan)
+    candidate_ids = {
+        event.transaction.transaction_id
+        for event in plan.events
+        if event.story != "unreviewed normal-looking history"
+    }
+    by_scenario = {
+        scenario: [
+            entry
+            for entry in package.entries
+            if entry.scenario == scenario and entry.transaction_id in candidate_ids
+        ]
+        for scenario in ("B", "C", "D", "E")
+    }
+    assert by_scenario["B"][0].support_status == SupportStatus.SUPPORTED
+    assert by_scenario["B"][0].counterparty_display_name.endswith("(fictional and unregistered)")
+    assert by_scenario["D"][0].support_status == SupportStatus.SUPPORTED
+    assert by_scenario["C"][0].support_status == SupportStatus.UNAVAILABLE
+    assert by_scenario["E"][0].support_status == SupportStatus.UNAVAILABLE
+    assert not by_scenario["C"][0].artifacts
+    assert not by_scenario["E"][0].artifacts

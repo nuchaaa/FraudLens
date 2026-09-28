@@ -16,13 +16,18 @@ flowchart TD
     R --> A[Versioned risk-v1 aggregation]
     M --> A
     S -. retained supplemental evidence .-> E[Explanation and analyst review]
+    S -. experimental review floor .-> R2[Risk-v2 simulator only]
     A --> E
+    A -. unchanged base decision .-> R2
+    R2 -. synthetic lab only .-> E
     E --> G[Separately authorized profile gate]
 ```
 
 Current risk-v1 combines the frozen five-rule result with the optional reviewed
 synthetic model. Sequence-v1 is retained beside that result and is not scored. This
-preserves historical score meaning while creating data for a future risk-v2 experiment.
+preserves historical score meaning. A separate, uncalibrated risk-v2 review floor
+uses complete sequence matches in the offline controlled simulator and its
+read-only page. It does not change durable evaluations or banking actions.
 
 ## Current evidence
 

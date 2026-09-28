@@ -1,11 +1,55 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 16 in progress — BASELINE and story A are seeded in the disposable local demo database; 49 fixture facts match and 13 candidates remain absent. Story A has a retained rules-only INSUFFICIENT_EVIDENCE evaluation. Phase 15 remote-human-security gate remains open and production human auth fails closed. Phases 0–14 and supplemental sequence evidence remain complete.**
-Next work: **Respect the reviewers' uncertainty: `analyst-two` recorded NEEDS_INVESTIGATION on both new BC/D cases because the facts do not establish legitimacy or fraud. Do not bootstrap from these cases or treat `analyst-one`'s ten LEGITIMATE entries as external verification. No profile or learning decision exists. B/C baseline preservation and D adaptation remain NOT DEMONSTRATED. The socket-based CI fix is reviewable in PR #1 and both backend/frontend checks passed. Remote deployment still requires institutional recovery proof/notification, authenticated admins, real four-role/TLS topology and independent security review. Production behavioral validation remains open.**
+Current checkpoint: **Phase 16 is complete against the original roadmap objective: deterministic synthetic demo data for five scenarios, with all five controlled checks visible in the local Scenario lab.** A separate seven-case falsification exercise documents benign review suggestions and a spaced attack that remains LOW/ALLOW. These are uncalibrated synthetic results, not production validation. The optional 62-transaction live analyst walkthrough is unfinished and tracked separately; it does not block starting Phase 17. Phase 15 remote security remains an external release gate.
+Next work: **Start Phase 17 research experiments:** compare arithmetic-mean static, robust median/MAD static, naive adaptive and gated adaptive profiling on the same frozen, chronological synthetic streams. Predeclare the experiment and label-availability assumptions before measuring anything. Do not reuse the A–E demo as threshold-selection data or resume the live walkthrough without new independent reviewer evidence. PR #2 remains open and unmerged; production validation and remote security remain open.
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
 ## Completed capabilities
+
+- [x] Completed controlled Phase 16 simulator: `data/synthetic` contains deterministic
+  `customers.csv`, `recipients.csv`, `transactions.csv` and
+  `scenario_manifest.json`. It creates 200 prior transactions for each of 10
+  customers, with three ordinary fictional purposes/known recipients, then
+  39 authored A–E candidates. The simulator assumes the last 100 prior facts
+  are oracle-approved **only in memory** to exercise production pure behavior
+  code. No PostgreSQL row, analyst verdict, genuine legitimacy claim or model
+  training is created. A gives LOW/ALLOW/ACCEPT; B gives
+  MEDIUM/STEP_UP_VERIFICATION/QUARANTINE; C stays HIGH/HOLD_AND_REVIEW against
+  the unchanged 29k KZT median; 30 D admissions raise the short median from
+  29k to 94,310 KZT. E's six small transfers are quarantined when no verdict
+  exists. risk-v1 still returns LOW/ALLOW; the distinct risk-v2 policy raises
+  a MEDIUM review suggestion after a complete sequence match, starting at
+  transfer three. All A–E controlled checks pass; the legacy gap remains
+  recorded. The original 62-row database demo is unchanged.
+- [x] Versioned `risk-v2-sequence-experimental` consumes matching, fingerprinted
+  risk-v1/sequence-v1 evidence. It rejects incompatible evidence, never turns
+  missing input into a match, preserves risk-v1 when no complete signal exists,
+  and neither changes its score nor claims calibration. `Scenario lab` is an
+  admin-only read-only page backed by an in-memory no-store endpoint. It shows
+  authored expectations separately from outcomes and explicitly disclaims
+  analyst verdicts, model inference and database writes. ADR-034 documents the
+  policy. Generated manifest SHA-256:
+  `6b383983bc71874e86eaa45bd8c7062b74c00421742b28926bda1c059841f9e2`.
+  Final disposable-PostgreSQL validation for the next checkpoint: 590 Python
+  tests passed, zero skipped, 90% combined coverage. Ruff/format and strict
+  mypy (137 source files) passed. The previous Alembic upgrade/check and
+  frontend ESLint, 14 Vitest tests and build passed; they were unchanged.
+  Two existing upstream deprecation warnings remain. No migration or dependency
+  changed. Both backend and both frontend GitHub checks passed on PR #2
+  head `11bb17b`; Docker runtime remains unverified.
+
+- [x] Independent `sequence-challenge-v1` falsification audit uses seven new
+  authored cases separate from the A–E generator. Its deterministic offline
+  report SHA-256 is
+  `1d3f5e876d8f0678fe353cadf5d72000bf8318a0dddce1b5c3366ec2bdd98ab2`.
+  A benign known-payee batch and an identical-observation benign/attack
+  new-payee pair all receive MEDIUM review suggestions; an authored attack
+  spaced 25 hours apart remains LOW/ALLOW. Missing verified baseline abstains.
+  These are selected synthetic counterexamples, not independent verified labels
+  or rates. No thresholds were tuned. risk-v2 now requires the exact default
+  sequence-v1 policy fingerprint, rejecting self-consistent unreviewed threshold
+  changes. See `ml/experiments/sequence-challenge-v1/README.md`.
 
 - [x] Phase 16 first checkpoint: versioned `demo-scenarios-v1` fixture with four
   synthetic customers and 62 deterministic KZT transaction facts spanning the
@@ -14,11 +58,11 @@ do not establish legitimacy, score risk or admit transactions.
   requires a Unix-socket `*_test` PostgreSQL database and refuses production.
   Existing enrollment/submission services retain audit, outbox and idempotency;
   exact rerun creates no duplicate transaction/audit/outbox rows.
-- [ ] Fixture stories are authored intent, not verified labels or measured risk.
+- [ ] Optional live analyst walkthrough: fixture stories are authored intent, not verified labels or measured risk.
   It creates no trusted profiles, admissions, evaluations, cases or feedback.
   `docs/demo/README.md` now gives a manual authorized review path and explicit
   missing-evidence cautions; executing that path and validating resulting safe
-  admissions remain Phase 16 work.
+  admissions remain a separate deferred demonstration, not a prerequisite for Phase 17.
 - [x] Phase 16 second checkpoint: `--progress` reads fixture fact matches, retained
   evaluations and captured profile versions, case/feedback state, learning decisions,
   and immutable profile revision counts/medians/admitted IDs in one repeatable-read,
@@ -61,7 +105,23 @@ do not establish legitimacy, score risk or admit transactions.
   C additionally requires B's separate exceptional-amount QUARANTINE decision
   with no profile version advance. These checks inspect retained workflow
   records; they do not independently verify people or external legitimacy.
-- [ ] Phase 16 behavioral walkthrough remains pending external reviewer input.
+- [ ] Optional live behavioral walkthrough remains pending external reviewer input.
+  `demo-review-evidence-v1` now provides a separate deterministic companion
+  entry for every fixture transaction. It uses obviously fictional names,
+  purposes, locations and artifact references and is pinned by SHA-256
+  `436c1c24119a12a7df63bf9f6ea4888a19c021b1eec94d4df945e83983687185`.
+  Every record says synthetic-only, not real-world verified, production-ineligible
+  and verdict-free. C/E deliberately have unavailable support. Authenticated,
+  scope-checked users can read one entry through an experimental no-store endpoint;
+  the console renders a strong role-play warning. The package does not change
+  transaction facts, scoring, cases or profiles. ADR-033 records the boundary.
+  The local console now lets a human admin explicitly run rules-only evaluation
+  on an unevaluated transaction with an absent-profile assertion or a pinned
+  pre-decision revision, then optionally open a separate review case. The
+  backend continues to enforce scope, CSRF, idempotency and opt-in experimental
+  writes; an analyst cannot submit an evaluation. Neither UI action creates a
+  verdict or learning decision, and the ML bundle remains unconfigured locally.
+  This is a usability improvement, not evidence that B/C/D have been demonstrated.
   On 2026-09-28 the user authorized step-by-step local setup. The guarded
   `--apply-stage BASELINE` command inserted 48 synthetic transaction facts and
   four customers into the working `fraudlens_test` database; read-only progress
@@ -97,19 +157,18 @@ do not establish legitimacy, score risk or admit transactions.
   Local-only Uvicorn and Vite were started and their HTTP endpoints responded.
   Both accounts have since produced the review events above; no review was
   scripted by the setup process.
-- [x] Latest full regression: 578 passed, zero skipped, 90% combined coverage on
-  disposable PostgreSQL; Ruff/format, strict mypy (131 source files), existing
-  Alembic migration/schema tests and offline source/wheel build passed. The
-  unchanged frontend last passed ESLint/nine Vitest tests/build at the prior
-  checkpoint. After the final C-stage guard edit, 11 focused PostgreSQL/unit
-  tests and global Ruff/format/mypy passed. Two upstream deprecation warnings
-  remain. Docker engine and
+- [x] Latest full regression: 582 passed, zero skipped, 90% combined coverage on
+  PostgreSQL 17.10; Ruff/format, strict mypy (133 source files), existing Alembic
+  migration/schema tests, frontend ESLint/12 Vitest tests and Vite build passed.
+  Two upstream deprecation warnings remain. The pre-change baseline was 579
+  Python tests and 11 frontend tests. No migration or dependency changed.
+  Docker engine and
   remote CI passed on both push and PR runs for the socket-based demo test fix
   in https://github.com/nuchaaa/FraudLens/pull/1 after the user explicitly
-  authorized publication. No dependencies
-  or migrations changed this checkpoint. The transaction worklist now explains
+  authorized publication. The transaction worklist now explains
   that NOT EVALUATED is absence of a retained assessment, not a low-risk result;
-  the detail view discloses missing merchant/payee/name/place facts. The reviewed
+  the detail view displays labeled fixture context when available and otherwise
+  discloses missing merchant/payee/name/place facts. The reviewed
   native XGBoost synthetic bundle replayed offline, but the local API has no model
   bundle configured and intake never auto-evaluates. Real registry entries must
   not be attached to fictional transfers as if they were payment evidence.
@@ -648,20 +707,15 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Exact next tasks
 
-1. Use the Phase 16 read-only evidence ledger and `--walkthrough` during an
-   actual local analyst session. The author must not script review verdicts or
-   treat fixture narrative as ground truth. Obtain independent authorized
-   reviewer inputs before any bootstrap/case-learning action; if absent, keep
-   B/C baseline preservation and D adaptation marked NOT DEMONSTRATED.
-2. Once such real inputs exist, pin versions before each evaluation and verify
-   B's gate decision, B/C revision/median preservation, and D's ordered accepted
-   revision progression against retained PostgreSQL evidence. Cold and insufficient
-   cases must stay explicit. Do not report research metrics from authored stories.
-3. Keep Phase 15 remote recovery and production human auth closed until an
-   institution supplies a real proof issuer/process, independently verified
-   notification and two authenticated admins. Then implement atomic PostgreSQL
-   cases/approvals, supervised bootstrap and recovery; no asserted CLI UUIDs.
-4. Real four-role/TLS deployment, physical browser ceremony, load/operational
-   tests and independent security review remain external release gates. Never
-   run role grants on the public-schema demo or touch production data. Update
+1. Begin Phase 17 with the research-protocol comparison of four profile strategies
+   on identical frozen synthetic event streams. Specify chronological processing,
+   independently generated authored outcomes and delayed feedback availability
+   before running the experiment; keep this offline and separate from the A–E demo.
+2. Test point-in-time cutoffs, no future labels, profile-update differences and
+   deterministic replay. Report measured synthetic results with explicit limits;
+   do not calibrate risk-v2 on the seven challenge cases or claim bank performance.
+3. Keep the optional live analyst walkthrough parked until independent reviewers
+   supply new evidence. Keep Phase 15 remote human auth and deployment closed
+   pending institutional recovery, real four-role/TLS topology and security review.
+   Never run grants on the public-schema demo or touch production data. Update
    all three checkpoint files before stopping.

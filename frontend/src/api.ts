@@ -1,5 +1,7 @@
 import type {
   CaseDocument,
+  ControlledReport,
+  DemoEvidence,
   EvaluationDocument,
   ProfileDocument,
   Summary,
@@ -188,12 +190,41 @@ export class FraudLensApi {
     return this.request(`/api/v1/transactions/${encodeURIComponent(id)}`);
   }
 
+  controlledScenarios(): Promise<ControlledReport> {
+    return this.request("/api/v1/experimental/demo/controlled-scenarios");
+  }
+
+  demoEvidence(id: string): Promise<DemoEvidence> {
+    return this.request(`/api/v1/experimental/demo/evidence/${encodeURIComponent(id)}`);
+  }
+
   evaluation(id: string): Promise<EvaluationDocument> {
     return this.request(`/api/v1/experimental/evaluations/${encodeURIComponent(id)}`);
   }
 
+  evaluateRules(transactionId: string, profileVersion: number | null, idempotencyKey: string): Promise<EvaluationDocument> {
+    return this.request("/api/v1/experimental/evaluations", {
+      method: "POST",
+      headers: { "Idempotency-Key": idempotencyKey },
+      body: JSON.stringify({
+        transaction_id: transactionId,
+        profile_version: profileVersion,
+        strategy: "rules_only",
+        manifest_sha256: null,
+      }),
+    });
+  }
+
   case(id: string): Promise<CaseDocument> {
     return this.request(`/api/v1/experimental/cases/${encodeURIComponent(id)}`);
+  }
+
+  openCase(evaluationId: string, idempotencyKey: string): Promise<CaseDocument> {
+    return this.request("/api/v1/experimental/cases", {
+      method: "POST",
+      headers: { "Idempotency-Key": idempotencyKey },
+      body: JSON.stringify({ evaluation_id: evaluationId }),
+    });
   }
 
   profile(customerId: string, currency: string): Promise<ProfileDocument> {

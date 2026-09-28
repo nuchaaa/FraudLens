@@ -38,6 +38,7 @@ The React console is local-only; human login and production risk evaluation rema
 | feedback | Analyst verdict and actor provenance | Append-only records; no automatic learning |
 | profile learning | Independent authorization, bootstrap and ordinary update orchestration | Opt-in API + append-only PostgreSQL evidence |
 | console | Scoped summary/worklist read model and analyst presentation | Local React UI + PostgreSQL projection adapter |
+| demo | Deterministic transaction stories and separate fictional review context | Local-only, read-only evidence package; never a verdict or feature source |
 | audit | Append-only action record | Domain + database append-only guards |
 | shared | Validation, ports, event envelope and outbox record | Contracts implemented |
 
