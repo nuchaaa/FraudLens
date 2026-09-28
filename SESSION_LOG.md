@@ -958,4 +958,6 @@
   BC/D cases and the stored bootstrap/gate outcomes are verified.
 - Read-only GitHub inspection confirmed PR #1 was merged at remote head `9857c84`
   with successful backend and frontend checks. The later local console commits and
-  this evidence package were not part of that merge and need a fresh pull request.
+  this evidence package were not part of that merge. Published them on
+  `codex/phase16-demo-evidence` and opened PR #2. Both backend and frontend checks
+  passed on its initial head; the PR remains open and unmerged.
