@@ -62,13 +62,11 @@ demo seeder guard requires a local Unix socket. CI now proxies its disposable
 PostgreSQL service through an owner-only socket for tests. A separate demo test
 was isolated to a fresh schema to remove order dependence. Locally 578 tests
 passed, zero skipped, 90% coverage, with Ruff/format/mypy and frontend
-lint/9 tests/build passing. Remote CI verification is pending; inspect the
-latest run before claiming it green.
-The local fix branch is `codex/fix-demo-ci-and-evaluation-context` at commit
-`f5b15ef`. Automatic approval review rejected its attempted push to the
-GitHub remote because publication was not explicitly authorized. Do not retry
-via another method; await explicit user authorization before pushing or opening
-a PR. The remote CI status remains unverified.
+lint/9 tests/build passing. The user explicitly authorized publication;
+PR https://github.com/nuchaaa/FraudLens/pull/1 is open on branch
+`codex/fix-demo-ci-and-evaluation-context`. Both backend and frontend checks
+passed on push run 36378777231 and PR run 36378805856. Do not merge without
+the user's instruction.
 
 The --progress and --walkthrough commands use a repeatable-read, read-only
 PostgreSQL snapshot under a local Unix-socket *_test/non-production guard.

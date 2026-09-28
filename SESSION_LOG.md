@@ -903,4 +903,7 @@
   `codex/fix-demo-ci-and-evaluation-context` (initial commit `f5b15ef`).
   Automatic approval review rejected the attempted GitHub push as consequential
   source-code egress without explicit user authorization. No alternate upload
-  was attempted; GitHub CI cannot be claimed green until publication is approved.
+  was attempted until the user explicitly approved it. Then pushed the branch,
+  opened PR https://github.com/nuchaaa/FraudLens/pull/1 and observed both backend
+  and frontend checks pass on the push and PR runs (36378777231, 36378805856).
+  The PR remains open and unmerged.

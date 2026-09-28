@@ -1,7 +1,7 @@
 # FraudLens project status
 
 Current checkpoint: **Phase 16 in progress — BASELINE and story A are seeded in the disposable local demo database; 49 fixture facts match and 13 candidates remain absent. Story A has a retained rules-only INSUFFICIENT_EVIDENCE evaluation. Phase 15 remote-human-security gate remains open and production human auth fails closed. Phases 0–14 and supplemental sequence evidence remain complete.**
-Next work: **Respect the reviewers' uncertainty: `analyst-two` recorded NEEDS_INVESTIGATION on both new BC/D cases because the facts do not establish legitimacy or fraud. Do not bootstrap from these cases or treat `analyst-one`'s ten LEGITIMATE entries as external verification. No profile or learning decision exists. B/C baseline preservation and D adaptation remain NOT DEMONSTRATED. Verify the pending GitHub CI socket fix remotely. Remote deployment still requires institutional recovery proof/notification, authenticated admins, real four-role/TLS topology and independent security review. Production behavioral validation remains open.**
+Next work: **Respect the reviewers' uncertainty: `analyst-two` recorded NEEDS_INVESTIGATION on both new BC/D cases because the facts do not establish legitimacy or fraud. Do not bootstrap from these cases or treat `analyst-one`'s ten LEGITIMATE entries as external verification. No profile or learning decision exists. B/C baseline preservation and D adaptation remain NOT DEMONSTRATED. The socket-based CI fix is reviewable in PR #1 and both backend/frontend checks passed. Remote deployment still requires institutional recovery proof/notification, authenticated admins, real four-role/TLS topology and independent security review. Production behavioral validation remains open.**
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
@@ -104,10 +104,9 @@ do not establish legitimacy, score risk or admit transactions.
   checkpoint. After the final C-stage guard edit, 11 focused PostgreSQL/unit
   tests and global Ruff/format/mypy passed. Two upstream deprecation warnings
   remain. Docker engine and
-  remote CI verification pending for the socket-based demo test fix. A local
-  branch `codex/fix-demo-ci-and-evaluation-context` contains the repair;
-  automatic approval review rejected pushing it to GitHub without explicit
-  user authorization. No dependencies
+  remote CI passed on both push and PR runs for the socket-based demo test fix
+  in https://github.com/nuchaaa/FraudLens/pull/1 after the user explicitly
+  authorized publication. No dependencies
   or migrations changed this checkpoint. The transaction worklist now explains
   that NOT EVALUATED is absence of a retained assessment, not a low-risk result;
   the detail view discloses missing merchant/payee/name/place facts. The reviewed
