@@ -69,6 +69,7 @@ Preview the fixed Phase 16 transaction plan without a database:
 .venv/bin/python -m backend.adapters.demo --progress  # requires TEST_DATABASE_URL
 .venv/bin/python -m backend.adapters.demo --walkthrough  # concise read-only guide
 .venv/bin/python -m backend.adapters.demo --apply-stage BASELINE  # staged facts only
+.venv/bin/python -m backend.adapters.demo --check-stage B  # read-only prerequisite preview
 ```
 
 To apply it, set `TEST_DATABASE_URL` to a **disposable local Unix-socket PostgreSQL

@@ -1,7 +1,7 @@
 # FraudLens project status
 
 Current checkpoint: **Phase 16 in progress — deterministic synthetic facts, read-only evidence ledger, guided walkthrough and staged disposable intake; Phase 15 remote-human-security gate remains open and production human auth fails closed. Phases 0–14 and supplemental sequence evidence remain complete.**
-Next work: **Complete the five-story demonstration only when genuinely authorized local reviewers supply case evidence. Do not invent reviews or admissions. Remote deployment still requires institutional recovery proof/notification, authenticated admins, real four-role/TLS topology and independent security review. Production behavioral validation remains open.**
+Next work: **Complete the five-story demonstration only when genuinely authorized local reviewers supply case evidence. A fresh read-only audit found all 62 fixture facts absent, zero evaluations and four absent profiles in the working demo database. Do not invent reviews or admissions. Remote deployment still requires institutional recovery proof/notification, authenticated admins, real four-role/TLS topology and independent security review. Production behavioral validation remains open.**
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
@@ -47,11 +47,34 @@ do not establish legitimacy, score risk or admit transactions.
   admission or evaluation is generated. Exact replay is idempotent but does not
   prove original stage chronology. Bulk `--apply` remains facts-only. ADR-032
   records that this local sequence does not reconstruct bank arrival time.
-- [x] Latest full regression: 576 passed, zero skipped, 90% combined coverage on
+- [x] Phase 16 read-only preflight extension: `--check-stage STAGE` runs the same
+  disposable-database prerequisite checks without writing and reports READY,
+  BLOCKED with a specific reason, CONFLICT, or REPLAYABLE. Apply rechecks under
+  the fixture lock; the preview is not a reservation or proof of human review.
+  An actual read-only check of B on the working test DB reported BLOCKED for
+  absent baseline facts. PostgreSQL tests cover state transitions and conflicts.
+- [x] Phase 16 provenance hardening: new B/C/D/E stages additionally require
+  the first immutable profile revision to point to an accepted BOOTSTRAP whose
+  admitted observations and stored learning evidence include at least five
+  matching fixture baseline transactions and two distinct recorded reviewers.
+  A verified profile built from unrelated data cannot unlock the staged story.
+  C additionally requires B's separate exceptional-amount QUARANTINE decision
+  with no profile version advance. These checks inspect retained workflow
+  records; they do not independently verify people or external legitimacy.
+- [ ] Phase 16 behavioral walkthrough remains pending external reviewer input.
+  A fresh guarded, read-only progress audit on 2026-09-27 found 62 ABSENT
+  fixture facts, zero retained evaluations and no KZT profile for any of the
+  four fixture customers. No seed, verdict or learning write was made. Do not
+  repeat engineering work on the staged CLI as a substitute for this evidence.
+  The following continuation supplied no reviewer evidence or changed scope;
+  B/C/D outcomes remain NOT DEMONSTRATED.
+- [x] Latest full regression: 578 passed, zero skipped, 90% combined coverage on
   disposable PostgreSQL; Ruff/format, strict mypy (131 source files), existing
   Alembic migration/schema tests and offline source/wheel build passed. The
   unchanged frontend last passed ESLint/nine Vitest tests/build at the prior
-  checkpoint. Two upstream deprecation warnings remain. Docker engine and
+  checkpoint. After the final C-stage guard edit, 11 focused PostgreSQL/unit
+  tests and global Ruff/format/mypy passed. Two upstream deprecation warnings
+  remain. Docker engine and
   remote CI unverified. No dependencies or migrations changed this checkpoint.
 - [ ] No institutional proof issuer, independent notification process or two
   authenticated remote admins has been provided. Phase 15 remote recovery and
@@ -227,7 +250,7 @@ do not establish legitimacy, score risk or admit transactions.
 
 ## Verification — 2026-09-20–27
 
-- [x] Latest full run: **576 passed,
+- [x] Latest full run: **578 passed,
   0 skipped, 2 upstream warnings; 90% combined backend/ML coverage.**
 - [x] Actual PostgreSQL 17.10, including prior-phase regressions.
 - [x] Migration upgrade/downgrade/metadata tests and upgrade with populated legacy profile data.

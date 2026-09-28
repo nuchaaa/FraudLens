@@ -726,3 +726,82 @@
   frontend lint/nine tests/build last passed at the previous checkpoint.
   Docker runtime and remote CI remain unverified. Phase 15 remote security and
   production behavioral validation are still open.
+
+## 2026-09-27 — Phase 16 read-only stage preflight checkpoint
+
+- Added `--check-stage STAGE` to the guarded disposable demo CLI. It runs the
+  same PostgreSQL read-only prerequisite check used before staged writes and
+  reports READY, BLOCKED with the missing-evidence reason, CONFLICT for an
+  incompatible stable fixture ID, or REPLAYABLE for exact existing facts.
+  `--apply-stage` rechecks under its advisory lock; preflight is not a
+  reservation, proof of review, or historical-availability guarantee.
+- Isolated migrated-schema PostgreSQL tests cover baseline/A readiness and
+  replay, B/C/D/E blocking without a verified prior profile, and conflict
+  reporting for altered fixture facts. No analyst verdict or trusted admission
+  was scripted. A live read-only check on the working disposable test DB
+  reported B BLOCKED because background facts are absent; no seed was applied.
+- Full regression: 577 passed, zero skipped, 90% combined backend/ML coverage,
+  two unchanged upstream deprecation warnings. Ruff/format, strict mypy (131
+  source files), offline source/wheel build and migration tests passed. Frontend,
+  schema and dependencies did not change; frontend checks last passed at the
+  prior checkpoint. The five-story behavioral claims still require actual
+  authorized independent reviewer inputs. Phase 15 remote security and
+  production behavioral validation remain open.
+
+## 2026-09-27 — Phase 16 fixture-bootstrap provenance guard
+
+- Audited the staged demo path and found that a verified KZT profile built from
+  unrelated customer transactions could previously unlock B/C/D/E, even though
+  the demonstration claims a baseline from this fixture's earlier transfers.
+  Tightened the read-only stage prerequisite: the first immutable profile
+  revision must link to an accepted BOOTSTRAP; at least five matching fixture
+  baseline IDs must occur in both version-one admitted observations and that
+  decision's evidence; the evidence must name two distinct recorded reviewers.
+  This checks retained workflow data, not external legitimacy or the human
+  identity behind a stored reviewer ID.
+- C now specifically waits for B's separately retained exceptional-amount
+  QUARANTINE learning decision with no profile-version advance, rather than any
+  case-learning decision. That preserves the intended B/C baseline narrative as
+  a prerequisite while leaving actual reviewer conclusions unasserted.
+- Pure tests cover matching/missing/unrelated bootstrap trace IDs and distinct
+  reviewer-ID structure without persisting scripted verdicts. Full disposable
+  PostgreSQL suite: 578 passed, zero skipped, 90% combined backend/ML coverage;
+  two unchanged upstream warnings. After the final C-guard edit, 11 focused
+  PostgreSQL/unit tests and global Ruff/format/strict mypy (131 source files)
+  passed. Offline package build passed before the final C edit and was rebuilt
+  afterward. No schema, dependency or frontend changes. Positive reviewer-
+  dependent demo paths remain unexercised; the working public demo database was
+  not seeded. Phase 15 remote security and production behavioral validation
+  remain open.
+
+## 2026-09-27 — Phase 16 evidence availability audit
+
+- Re-read the requested project specification, local demo guide, ADR-029–032,
+  development instructions and deployment gates. The staged fixture, preflight,
+  read-only ledger and presenter walkthrough are already implemented. Completing
+  B/C baseline preservation or D gradual adaptation still needs independently
+  authorized local analyst decisions and a separate admin learning action.
+- Ran only the guarded read-only `--progress` command against the working
+  disposable PostgreSQL test database. It reported all 62 fixture transaction
+  facts ABSENT, zero retained evaluations and no KZT profile for the four
+  fixture customers. There was no reviewer evidence to inspect. No fixture
+  transaction, analyst verdict, case, profile or learning decision was written.
+- No source, schema, dependency or frontend code changed in this audit.
+  Previous validation remains 578 full-suite tests passed and 11 focused tests
+  after the final C-stage guard edit. Updated the checkpoint and next-session
+  instructions to avoid repeating engineering work as a substitute for real
+  reviewer evidence. Phase 16 remains open, as do Phase 15 remote security and
+  production behavioral validation.
+
+## 2026-09-27 — Repeated Phase 16 continuation without new evidence
+
+- The attached continuation repeated the prior Phase 16 checkpoint and supplied
+  no independently authorized analyst review, admin learning decision, changed
+  scope or permission to seed the working disposable database. The preceding
+  read-only audit still establishes the latest observed state: 62 ABSENT facts,
+  zero evaluations and four absent profiles. No new database query or test was
+  needed to restate that same checkpoint.
+- Made no source, schema, dependency, frontend or database change. Left B/C
+  baseline preservation and D gradual adaptation as guided, NOT DEMONSTRATED.
+  Updated the continuation prompt to identify the required external reviewer
+  input instead of directing another pass of staged-CLI engineering.
