@@ -805,3 +805,97 @@
   baseline preservation and D gradual adaptation as guided, NOT DEMONSTRATED.
   Updated the continuation prompt to identify the required external reviewer
   input instead of directing another pass of staged-CLI engineering.
+## 2026-09-28 — Phase 16 local demo baseline and analyst setup
+
+- With the user's step-by-step authorization, applied only the guarded BASELINE
+  stage to the disposable Unix-socket `fraudlens_test` PostgreSQL database.
+  Read-only replay/preflight reported the 48 background facts as matching and
+  the 14 candidate facts as absent. No profile, evaluation, case, feedback or
+  learning decision was generated.
+- Started local-only Uvicorn and Vite with development human auth and
+  experimental routes enabled; both HTTP endpoints responded. The two friends
+  separately provisioned `analyst-one` and `analyst-two`, choosing their own
+  passwords privately in Terminal. Read-only SQL verified both accounts are
+  active analysts scoped to the BC and D fixture customers. No password or
+  password hash was read. Asked the first friend to test console sign-in.
+- These accounts and synthetic facts are setup, not analyst verdicts or proof
+  of legitimacy. B/C baseline preservation and D gradual adaptation remain
+  NOT DEMONSTRATED. No source, migration or dependency change was made; prior
+  regression results remain the latest full validation. Phase 15 remote human
+  security and production behavioral validation remain open.
+
+- After the user pointed out that the analysts had no case to review, used a
+  temporary in-process, expiring machine admin credential through the existing
+  authenticated FastAPI routes to create 10 rules-only experimental evaluations
+  with explicitly absent profiles and 10 empty cases on early BC/D background
+  transfers in the disposable local test database. The token was not printed
+  or persisted. Read-only SQL verified 10 scoped cases and zero feedback rows.
+  This prepares visible review work without asserting any verdict or admission.
+
+- The user reported `analyst-two` could not submit a verdict on the displayed
+  cases. Read-only SQL showed `analyst-one` had entered LEGITIMATE terminal
+  feedback on all 10 original cases; `analyst-two` only closed one already
+  reviewed case. Terminal feedback is one-use, so closure cannot count as a
+  second review. Used the same temporary authenticated local API setup to
+  create two more rules-only, absent-profile evaluations and empty OPEN cases
+  for untouched BC/D baseline transactions. Verified their zero feedback and
+  transition counts, and verified no BC/D profile or learning decision exists.
+  The immutable earlier reviews were not changed. The second analyst confirmed
+  these two cases show OPEN in the console. Their future synthetic judgments
+  are not field labels.
+
+- `analyst-two` then entered NEEDS_INVESTIGATION feedback on both new cases,
+  explaining that the available facts do not prove fraud or legitimacy. The
+  user observed that merchant/building/location data is absent and that a
+  small amount alone could mislead a reviewer. Confirmed the transaction
+  entity contains no such merchant or location field. Kept the earlier
+  LEGITIMATE histories intact and made no profile-learning or bootstrap write.
+  Clarified the demo guide so unresolved cases remain pending rather than
+  being promoted to trusted history. No source, schema or dependency change;
+  prior regression checks remain the latest full validation.
+
+- For an honest next demo step, checked stage A read-only (READY), added only
+  its 25,000 KZT synthetic transaction via guarded staged intake, and created
+  one authenticated experimental rules-only evaluation with an explicitly
+  absent profile. It returned INSUFFICIENT_EVIDENCE; amount, new-recipient and
+  unusual-time rules lacked trusted baseline inputs. Read-only progress showed
+  49 MATCH / 13 ABSENT, no profile revisions, and B preflight BLOCKED for no
+  verified prior KZT profile. No A case/verdict/learning write was made. The
+  current analyst accounts are BC/D-scoped, so A is visible via the local
+  read-only walkthrough or authorized admin view, not their worklists.
+
+- The user pasted the five-story walkthrough. It correctly reported 49 MATCH,
+  13 ABSENT and story A's INSUFFICIENT_EVIDENCE evaluation, but its generic
+  "apply the transaction-facts fixture" hint for absent B/C/D/E contradicted
+  guarded stage prerequisites. Changed the presenter text to name the exact
+  `--check-stage` for each absent candidate and to apply only if READY. A
+  focused PostgreSQL renderer regression passed (1 test); Ruff, format and
+  mypy passed; the live read-only walkthrough showed the corrected hints.
+  No further fixture, case, feedback, profile or learning write was made.
+
+## 2026-09-28 — Evaluation visibility, missing payment context and CI repair
+
+- Investigated the user's transaction and GitHub screenshots. The synthetic
+  baseline rows are raw immutable intake; no assessment is automatically
+  created. Experimental rules-only evaluation is separate, and ML-only/hybrid
+  additionally require a reviewed native bundle. Replayed the saved synthetic
+  XGBoost context offline successfully (uncalibrated score 0.8466238975524902);
+  this verifies the adapter, not field performance. The local API has no model
+  bundle configured and the model remains production-ineligible.
+- Added console text that NOT EVALUATED is not a low-risk verdict and that the
+  transaction record lacks sender/receiver names, merchant/ИП identity, purpose
+  and verified payment location. Inspected Kazakhstan's official registry
+  search: it can verify an identified business but does not identify the payee
+  of a synthetic transaction. No real business was attached to the fixture.
+- GitHub Actions backend run 36374656050 failed four demo tests because the
+  service URL was TCP and the disposable demo guard requires a Unix socket.
+  The workflow now proxies its disposable PostgreSQL service to an owner-only
+  local socket for pytest. The first local full run also exposed an order-
+  dependent demo test in the shared schema; moved the two demo seeding/report
+  tests to isolated migrated schemas. All six focused PostgreSQL tests passed.
+- Final local suite: 578 passed, zero skipped, 90% backend/ML coverage on
+  PostgreSQL 17.10. Ruff, format, strict mypy (131 source files), frontend
+  ESLint/nine Vitest tests/build and git diff whitespace check passed. Two
+  upstream deprecation warnings remain. No schema/dependency change, profile
+  admission, scripted review or new predictive metric. Remote CI verification
+  remains pending at this checkpoint.

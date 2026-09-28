@@ -1,7 +1,7 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 16 in progress — deterministic synthetic facts, read-only evidence ledger, guided walkthrough and staged disposable intake; Phase 15 remote-human-security gate remains open and production human auth fails closed. Phases 0–14 and supplemental sequence evidence remain complete.**
-Next work: **Complete the five-story demonstration only when genuinely authorized local reviewers supply case evidence. A fresh read-only audit found all 62 fixture facts absent, zero evaluations and four absent profiles in the working demo database. Do not invent reviews or admissions. Remote deployment still requires institutional recovery proof/notification, authenticated admins, real four-role/TLS topology and independent security review. Production behavioral validation remains open.**
+Current checkpoint: **Phase 16 in progress — BASELINE and story A are seeded in the disposable local demo database; 49 fixture facts match and 13 candidates remain absent. Story A has a retained rules-only INSUFFICIENT_EVIDENCE evaluation. Phase 15 remote-human-security gate remains open and production human auth fails closed. Phases 0–14 and supplemental sequence evidence remain complete.**
+Next work: **Respect the reviewers' uncertainty: `analyst-two` recorded NEEDS_INVESTIGATION on both new BC/D cases because the facts do not establish legitimacy or fraud. Do not bootstrap from these cases or treat `analyst-one`'s ten LEGITIMATE entries as external verification. No profile or learning decision exists. B/C baseline preservation and D adaptation remain NOT DEMONSTRATED. Verify the pending GitHub CI socket fix remotely. Remote deployment still requires institutional recovery proof/notification, authenticated admins, real four-role/TLS topology and independent security review. Production behavioral validation remains open.**
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
@@ -62,12 +62,41 @@ do not establish legitimacy, score risk or admit transactions.
   with no profile version advance. These checks inspect retained workflow
   records; they do not independently verify people or external legitimacy.
 - [ ] Phase 16 behavioral walkthrough remains pending external reviewer input.
-  A fresh guarded, read-only progress audit on 2026-09-27 found 62 ABSENT
-  fixture facts, zero retained evaluations and no KZT profile for any of the
-  four fixture customers. No seed, verdict or learning write was made. Do not
-  repeat engineering work on the staged CLI as a substitute for this evidence.
-  The following continuation supplied no reviewer evidence or changed scope;
-  B/C/D outcomes remain NOT DEMONSTRATED.
+  On 2026-09-28 the user authorized step-by-step local setup. The guarded
+  `--apply-stage BASELINE` command inserted 48 synthetic transaction facts and
+  four customers into the working `fraudlens_test` database; read-only progress
+  initially showed 48 MATCH and 14 ABSENT. A temporary local test-only machine admin
+  credential was used through the authenticated API to create 10 experimental
+  rules-only, absent-profile evaluations and 10 cases: five early BC and five
+  early D baseline transfers. `analyst-one` subsequently entered LEGITIMATE
+  feedback on all 10; `analyst-two` closed one already-reviewed case, which
+  does not count as independent feedback. Two further untouched BC/D baseline
+  transfers received absent-profile evaluations and empty OPEN cases for
+  `analyst-two`. That analyst independently entered NEEDS_INVESTIGATION feedback
+  on both, citing insufficient proof. Small amounts are not legitimacy evidence;
+  transaction facts have no merchant, building or location to verify. Read-only
+  SQL found no BC/D profile or learning decision. B/C/D outcomes remain
+  NOT DEMONSTRATED.
+  Story A passed read-only stage preflight and its single synthetic 25,000 KZT
+  transfer was added through guarded staged intake. An authenticated rules-only
+  evaluation with explicitly absent profile returned INSUFFICIENT_EVIDENCE:
+  amount, new-recipient and unusual-time rules lacked baseline inputs. Read-only
+  walkthrough showed 49 MATCH / 13 ABSENT; B preflight remains BLOCKED for no
+  verified prior KZT profile. The two analyst accounts are scoped to BC/D, not
+  A; story A can be shown through the local read-only walkthrough or an
+  authorized admin view. No A case, verdict or profile admission was created.
+  The presenter walkthrough's formerly generic advice for absent candidates
+  now names each exact `--check-stage` and says to apply only when READY; it
+  does not suggest bypassing B/C/D/E prerequisites. The focused PostgreSQL
+  renderer test, Ruff, format and mypy passed; the live read-only walkthrough
+  confirmed the corrected text. No migration or dependency changed.
+  The existing `local-admin` account is active. Two friends privately chose
+  passwords and provisioned separate active local accounts, `analyst-one` and
+  `analyst-two`, each scoped to the BC and D fixture customers; read-only SQL
+  verified their account roles, active status and scope without reading secrets.
+  Local-only Uvicorn and Vite were started and their HTTP endpoints responded.
+  Both accounts have since produced the review events above; no review was
+  scripted by the setup process.
 - [x] Latest full regression: 578 passed, zero skipped, 90% combined coverage on
   disposable PostgreSQL; Ruff/format, strict mypy (131 source files), existing
   Alembic migration/schema tests and offline source/wheel build passed. The
@@ -75,7 +104,13 @@ do not establish legitimacy, score risk or admit transactions.
   checkpoint. After the final C-stage guard edit, 11 focused PostgreSQL/unit
   tests and global Ruff/format/mypy passed. Two upstream deprecation warnings
   remain. Docker engine and
-  remote CI unverified. No dependencies or migrations changed this checkpoint.
+  remote CI verification pending for the socket-based demo test fix. No dependencies
+  or migrations changed this checkpoint. The transaction worklist now explains
+  that NOT EVALUATED is absence of a retained assessment, not a low-risk result;
+  the detail view discloses missing merchant/payee/name/place facts. The reviewed
+  native XGBoost synthetic bundle replayed offline, but the local API has no model
+  bundle configured and intake never auto-evaluates. Real registry entries must
+  not be attached to fictional transfers as if they were payment evidence.
 - [ ] No institutional proof issuer, independent notification process or two
   authenticated remote admins has been provided. Phase 15 remote recovery and
   production human auth remain blocked as external release gates, not simulated.

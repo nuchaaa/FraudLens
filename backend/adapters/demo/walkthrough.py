@@ -18,11 +18,14 @@ def _items(value: object) -> list[Mapping[str, object]]:
     return [_mapping(item) for item in value]
 
 
-def _next_step(fact: object, evaluations: list[Mapping[str, object]]) -> str:
+def _next_step(fact: object, evaluations: list[Mapping[str, object]], stage: str) -> str:
     if fact == "CONFLICT":
         return "STOP: fixture UUID has different stored facts."
     if fact == "ABSENT":
-        return "Apply the transaction-facts fixture to a disposable local test database."
+        return (
+            f"On a disposable local test DB, run --check-stage {stage}; apply only if READY. "
+            "Do not bypass required review/profile evidence."
+        )
     if not evaluations:
         return "Capture an experimental evaluation with an explicit pre-decision profile version."
     cases = [case for evaluation in evaluations for case in _items(evaluation["cases"])]
@@ -98,7 +101,7 @@ def render_walkthrough(plan: DemoPlan, report: Mapping[str, object]) -> str:
             f"{len(_items(profile['revisions']))}."
         )
         lines.append(f"Evidence requirement: {requirement}")
-        for event in candidates:
+        for index, event in enumerate(candidates, start=1):
             identifier = str(event.transaction.transaction_id)
             entry = recorded.get(identifier)
             if entry is None:
@@ -131,7 +134,8 @@ def render_walkthrough(plan: DemoPlan, report: Mapping[str, object]) -> str:
                 f"feedback records: {sum(len(_items(case['feedback'])) for case in cases)}; "
                 f"learning decisions: {sum(len(_items(case['learning'])) for case in cases)}."
             )
-            lines.append(f"  Next: {_next_step(entry['fixture_fact'], evaluations)}")
+            stage = scenario if scenario in {"A", "B", "C"} else f"{scenario}{index}"
+            lines.append(f"  Next: {_next_step(entry['fixture_fact'], evaluations, stage)}")
     lines.extend(
         (
             "",
