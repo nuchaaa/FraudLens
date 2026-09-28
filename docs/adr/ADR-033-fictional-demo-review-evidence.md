@@ -45,6 +45,10 @@ does not itself authorize learning; the separate bootstrap/update workflow and
 existing provenance gates remain mandatory.
 
 This artifact cannot demonstrate real-world detection performance, identity
-verification, historical evidence availability or analyst independence. Phase 16
-cannot close until the required reviews and learning decisions are actually
-recorded and the five-story outcomes are verified without scripted verdicts.
+verification, historical evidence availability or analyst independence. The
+**extended live analyst walkthrough** cannot close until the required reviews
+and learning decisions are actually recorded and the five-story outcomes are
+verified without scripted verdicts. This is distinct from the original Phase 16
+roadmap deliverable, deterministic synthetic demo data, which the controlled
+simulator subsequently completed; Phase 17 can proceed while the walkthrough
+waits for independent reviewers.

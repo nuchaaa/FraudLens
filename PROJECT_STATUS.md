@@ -1,7 +1,7 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 16 controlled five-scenario simulator complete; separate sequence-policy falsification checkpoint added.** All A–E authored simulator checks pass, while risk-v1 remains unchanged. An independent seven-case synthetic challenge found plausible benign batches that risk-v2 suggests reviewing and an authored attack spaced beyond its 24-hour window that remains LOW/ALLOW. These negative findings prohibit a calibration or performance claim. The risk-v2 policy now pins the exact reviewed sequence-v1 threshold fingerprint. The local Scenario lab remains read-only; the separate 62-transaction live human-review walkthrough, Phase 15 production security, and behavioral validation remain open.**
-Next work: **Obtain suitable point-in-time behavioral data and verified label availability before selecting or calibrating a sequence operating point; preserve the frozen challenge report as a falsification check. Gather independent live review evidence before claiming the PostgreSQL B/C/D workflow demonstration; do not script verdicts or profile admissions. PR #2 remains open and unmerged. Remote deployment still requires institutional recovery proof/notification, authenticated admins, real four-role/TLS topology and independent security review.**
+Current checkpoint: **Phase 16 is complete against the original roadmap objective: deterministic synthetic demo data for five scenarios, with all five controlled checks visible in the local Scenario lab.** A separate seven-case falsification exercise documents benign review suggestions and a spaced attack that remains LOW/ALLOW. These are uncalibrated synthetic results, not production validation. The optional 62-transaction live analyst walkthrough is unfinished and tracked separately; it does not block starting Phase 17. Phase 15 remote security remains an external release gate.
+Next work: **Start Phase 17 research experiments:** compare arithmetic-mean static, robust median/MAD static, naive adaptive and gated adaptive profiling on the same frozen, chronological synthetic streams. Predeclare the experiment and label-availability assumptions before measuring anything. Do not reuse the A–E demo as threshold-selection data or resume the live walkthrough without new independent reviewer evidence. PR #2 remains open and unmerged; production validation and remote security remain open.
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
@@ -58,11 +58,11 @@ do not establish legitimacy, score risk or admit transactions.
   requires a Unix-socket `*_test` PostgreSQL database and refuses production.
   Existing enrollment/submission services retain audit, outbox and idempotency;
   exact rerun creates no duplicate transaction/audit/outbox rows.
-- [ ] Fixture stories are authored intent, not verified labels or measured risk.
+- [ ] Optional live analyst walkthrough: fixture stories are authored intent, not verified labels or measured risk.
   It creates no trusted profiles, admissions, evaluations, cases or feedback.
   `docs/demo/README.md` now gives a manual authorized review path and explicit
   missing-evidence cautions; executing that path and validating resulting safe
-  admissions remain Phase 16 work.
+  admissions remain a separate deferred demonstration, not a prerequisite for Phase 17.
 - [x] Phase 16 second checkpoint: `--progress` reads fixture fact matches, retained
   evaluations and captured profile versions, case/feedback state, learning decisions,
   and immutable profile revision counts/medians/admitted IDs in one repeatable-read,
@@ -105,7 +105,7 @@ do not establish legitimacy, score risk or admit transactions.
   C additionally requires B's separate exceptional-amount QUARANTINE decision
   with no profile version advance. These checks inspect retained workflow
   records; they do not independently verify people or external legitimacy.
-- [ ] Phase 16 behavioral walkthrough remains pending external reviewer input.
+- [ ] Optional live behavioral walkthrough remains pending external reviewer input.
   `demo-review-evidence-v1` now provides a separate deterministic companion
   entry for every fixture transaction. It uses obviously fictional names,
   purposes, locations and artifact references and is pinned by SHA-256
@@ -707,20 +707,15 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Exact next tasks
 
-1. Use the Phase 16 read-only evidence ledger and `--walkthrough` during an
-   actual local analyst session. The author must not script review verdicts or
-   treat fixture narrative as ground truth. Obtain independent authorized
-   reviewer inputs before any bootstrap/case-learning action; if absent, keep
-   B/C baseline preservation and D adaptation marked NOT DEMONSTRATED.
-2. Once such real inputs exist, pin versions before each evaluation and verify
-   B's gate decision, B/C revision/median preservation, and D's ordered accepted
-   revision progression against retained PostgreSQL evidence. Cold and insufficient
-   cases must stay explicit. Do not report research metrics from authored stories.
-3. Keep Phase 15 remote recovery and production human auth closed until an
-   institution supplies a real proof issuer/process, independently verified
-   notification and two authenticated admins. Then implement atomic PostgreSQL
-   cases/approvals, supervised bootstrap and recovery; no asserted CLI UUIDs.
-4. Real four-role/TLS deployment, physical browser ceremony, load/operational
-   tests and independent security review remain external release gates. Never
-   run role grants on the public-schema demo or touch production data. Update
+1. Begin Phase 17 with the research-protocol comparison of four profile strategies
+   on identical frozen synthetic event streams. Specify chronological processing,
+   independently generated authored outcomes and delayed feedback availability
+   before running the experiment; keep this offline and separate from the A–E demo.
+2. Test point-in-time cutoffs, no future labels, profile-update differences and
+   deterministic replay. Report measured synthetic results with explicit limits;
+   do not calibrate risk-v2 on the seven challenge cases or claim bank performance.
+3. Keep the optional live analyst walkthrough parked until independent reviewers
+   supply new evidence. Keep Phase 15 remote human auth and deployment closed
+   pending institutional recovery, real four-role/TLS topology and security review.
+   Never run grants on the public-schema demo or touch production data. Update
    all three checkpoint files before stopping.
