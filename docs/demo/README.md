@@ -26,8 +26,10 @@ instructions against real customer data or a remote service.
    `.venv/bin/python -m backend.adapters.demo --walkthrough`. It uses the same
    read-only snapshot and guard, shows the 14 candidate transfers by story,
    recorded risk status/case/feedback counts, the current profile version and
-   the next manual step. It never supplies a verdict. On the current unseeded
-   working test DB, it reports **62 absent facts** and no profile revisions.
+   the next manual step. It never supplies a verdict. On the current working
+   test DB, it reports **49 matching facts and 13 absent candidates**, with no
+   profile revisions. Story A has a retained rules-only INSUFFICIENT_EVIDENCE
+   result; that is not a legitimate verdict.
    For a **sequenced demonstration**, use `--apply-stage` instead of bulk
    `--apply`. Start with
    `.venv/bin/python -m backend.adapters.demo --apply-stage BASELINE` (48

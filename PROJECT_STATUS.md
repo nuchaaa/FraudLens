@@ -26,8 +26,8 @@ do not establish legitimacy, score risk or admit transactions.
   non-production guard as `--apply`; mismatched fixture facts suppress evidence
   attribution. No verdict or admission is generated. ADR-030
   and the five-story guide specify what would constitute recorded evidence for each
-  story and where historical availability remains unproven. The working public
-  demo database still has no seeded fixture: `--progress` reported 62 ABSENT facts.
+  story and where historical availability remains unproven. At that checkpoint,
+  before later local seeding, `--progress` reported 62 ABSENT facts.
 - [x] Phase 16 third checkpoint: `--walkthrough` renders the same guarded,
   read-only PostgreSQL snapshot as a concise A–E presenter guide. It names the
   14 candidate transfers, recorded experimental risk status/captured version,
@@ -35,8 +35,8 @@ do not establish legitimacy, score risk or admit transactions.
   revisions with an availability warning, and the next manual step. It checks
   manifest identity and never infers a verdict, admission, B/C baseline
   preservation or D adaptation. ADR-031 and the demo guide document this.
-  A live read-only smoke on the working test DB showed 62 ABSENT fixture facts
-  and no profile revisions, so all five stories remain pending there.
+  Its initial read-only smoke showed 62 ABSENT fixture facts and no profile
+  revisions. Later local staging added BASELINE and A as detailed below.
 - [x] Phase 16 fourth checkpoint: `--apply-stage` partitions the unchanged
   manifest into BASELINE, A, B, C, D1–D5 and E1–E6. It uses the existing
   audited/idempotent transaction service and the same Unix-socket `*_test`
@@ -113,6 +113,12 @@ do not establish legitimacy, score risk or admit transactions.
   native XGBoost synthetic bundle replayed offline, but the local API has no model
   bundle configured and intake never auto-evaluates. Real registry entries must
   not be attached to fictional transfers as if they were payment evidence.
+- [x] Latest read-only Phase 16 evidence audit: 49 fixture facts MATCH, 13 ABSENT;
+  13 retained experimental evaluations, 12 cases, 10 LEGITIMATE feedback entries
+  and 2 NEEDS_INVESTIGATION entries. No learning decisions or profile revisions
+  exist for any of the four demo customers. B stage preflight remains BLOCKED for
+  a verified prior KZT profile. No new writes were made during this audit. The
+  open PR's backend/frontend checks were confirmed passing on its current head.
 - [ ] No institutional proof issuer, independent notification process or two
   authenticated remote admins has been provided. Phase 15 remote recovery and
   production human auth remain blocked as external release gates, not simulated.

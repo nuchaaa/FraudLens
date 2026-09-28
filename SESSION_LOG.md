@@ -907,3 +907,20 @@
   opened PR https://github.com/nuchaaa/FraudLens/pull/1 and observed both backend
   and frontend checks pass on the push and PR runs (36378777231, 36378805856).
   The PR remains open and unmerged.
+
+## 2026-09-28 — Read-only Phase 16 continuation audit
+
+- Re-read the current checkpoint, specification, development/demo guide,
+  deployment gates and ADR-029–032. No new transaction-linked merchant/payee
+  facts or independently verified legitimacy evidence was supplied.
+- Ran the guarded read-only `--progress` and `--check-stage B` commands against
+  the disposable PostgreSQL socket. The ledger remains 49 MATCH / 13 ABSENT,
+  with 13 experimental evaluations, 12 cases, 10 LEGITIMATE and 2
+  NEEDS_INVESTIGATION feedback entries, no learning decisions and no profile
+  revisions. B is still BLOCKED for lack of a verified prior KZT profile.
+  The audit made no database writes, reviewer claims or profile admission.
+- Confirmed current PR #1 backend and frontend checks pass on push/PR runs
+  36379336513 and 36379339075. Corrected stale "unseeded" wording in the
+  demo guide and updated the checkpoint/continuation prompt. B/C baseline
+  preservation and D adaptation remain NOT DEMONSTRATED; Phase 15 remote
+  release and production behavioral validation remain open.
