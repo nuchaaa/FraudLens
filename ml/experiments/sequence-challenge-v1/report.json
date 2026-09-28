@@ -1,0 +1,100 @@
+{
+  "calibrated": false,
+  "cases": [
+    {
+      "authored_intent": "AUTHORED_BENIGN",
+      "matched_sequences": [],
+      "name": "single_known",
+      "risk_v1_action": "ALLOW",
+      "risk_v1_level": "LOW",
+      "risk_v2_action": "ALLOW",
+      "risk_v2_level": "LOW",
+      "risk_v2_source": "RISK_V1",
+      "unavailable_sequences": []
+    },
+    {
+      "authored_intent": "AUTHORED_BENIGN",
+      "matched_sequences": [
+        "CUMULATIVE_LOW_VALUE_SEQUENCE"
+      ],
+      "name": "household_batch",
+      "risk_v1_action": "ALLOW",
+      "risk_v1_level": "LOW",
+      "risk_v2_action": "STEP_UP_VERIFICATION",
+      "risk_v2_level": "MEDIUM",
+      "risk_v2_source": "SEQUENCE_REVIEW_FLOOR",
+      "unavailable_sequences": []
+    },
+    {
+      "authored_intent": "AUTHORED_BENIGN",
+      "matched_sequences": [
+        "CUMULATIVE_LOW_VALUE_SEQUENCE",
+        "REPEATED_NEW_RECIPIENT"
+      ],
+      "name": "new_payee_benign_batch",
+      "risk_v1_action": "ALLOW",
+      "risk_v1_level": "LOW",
+      "risk_v2_action": "STEP_UP_VERIFICATION",
+      "risk_v2_level": "MEDIUM",
+      "risk_v2_source": "SEQUENCE_REVIEW_FLOOR",
+      "unavailable_sequences": []
+    },
+    {
+      "authored_intent": "AUTHORED_ATTACK",
+      "matched_sequences": [
+        "CUMULATIVE_LOW_VALUE_SEQUENCE",
+        "REPEATED_NEW_RECIPIENT"
+      ],
+      "name": "new_payee_attack_batch",
+      "risk_v1_action": "ALLOW",
+      "risk_v1_level": "LOW",
+      "risk_v2_action": "STEP_UP_VERIFICATION",
+      "risk_v2_level": "MEDIUM",
+      "risk_v2_source": "SEQUENCE_REVIEW_FLOOR",
+      "unavailable_sequences": []
+    },
+    {
+      "authored_intent": "AUTHORED_ATTACK",
+      "matched_sequences": [],
+      "name": "spaced_new_payee",
+      "risk_v1_action": "ALLOW",
+      "risk_v1_level": "LOW",
+      "risk_v2_action": "ALLOW",
+      "risk_v2_level": "LOW",
+      "risk_v2_source": "RISK_V1",
+      "unavailable_sequences": []
+    },
+    {
+      "authored_intent": "AUTHORED_BENIGN",
+      "matched_sequences": [],
+      "name": "large_purchase",
+      "risk_v1_action": "STEP_UP_VERIFICATION",
+      "risk_v1_level": "MEDIUM",
+      "risk_v2_action": "STEP_UP_VERIFICATION",
+      "risk_v2_level": "MEDIUM",
+      "risk_v2_source": "RISK_V1",
+      "unavailable_sequences": []
+    },
+    {
+      "authored_intent": "UNKNOWN",
+      "matched_sequences": [],
+      "name": "no_verified_baseline",
+      "risk_v1_action": null,
+      "risk_v1_level": null,
+      "risk_v2_action": null,
+      "risk_v2_level": null,
+      "risk_v2_source": "ABSTAIN",
+      "unavailable_sequences": [
+        "CUMULATIVE_LOW_VALUE_SEQUENCE",
+        "GRADUAL_AMOUNT_ESCALATION",
+        "REPEATED_NEW_RECIPIENT",
+        "CUMULATIVE_AMOUNT_EXPOSURE"
+      ]
+    }
+  ],
+  "labels_verified": false,
+  "limitation": "Authored intents are not independent fraud labels. This is a falsification exercise, not operating-point selection or real-world performance.",
+  "production_eligible": false,
+  "synthetic_only": true,
+  "version": "sequence-challenge-v1"
+}

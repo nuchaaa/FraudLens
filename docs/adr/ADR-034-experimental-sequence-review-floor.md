@@ -14,7 +14,8 @@ would erase the observed failure and break replay compatibility.
 
 Add `risk-v2-sequence-experimental` as a separate, fingerprinted pure policy.
 It consumes an exact risk-v1 rules-only result and sequence-v1 result for the
-same context and transaction. Evidence version, fingerprints, signal order and
+same context and transaction. Evidence version, the exact reviewed default
+sequence-policy fingerprint, signal order and
 uncalibrated status must agree. A complete MATCHED sequence outcome with a
 reason and no missing indicators raises a LOW or abstaining base result to at
 least MEDIUM with a STEP_UP_VERIFICATION suggestion. Otherwise the policy

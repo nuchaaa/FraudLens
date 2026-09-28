@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from backend.app.risk.entities import RecommendedAction, RiskLevel
 from backend.app.risk.service import ExperimentalRiskResult, Strategy
 from backend.app.sequence.engine import (
+    DEFAULT_SEQUENCE_POLICY,
     SEQUENCE_VERSION,
     SequenceResult,
     SequenceStatus,
@@ -30,10 +31,15 @@ class SequenceRiskPolicy:
     """Authored review floor, not a calibrated operating threshold."""
 
     minimum_level: RiskLevel = RiskLevel.MEDIUM
+    sequence_policy_sha256: str = DEFAULT_SEQUENCE_POLICY.fingerprint
     version: str = VERSION
 
     def __post_init__(self) -> None:
-        if self.version != VERSION or self.minimum_level != RiskLevel.MEDIUM:
+        if (
+            self.version != VERSION
+            or self.minimum_level != RiskLevel.MEDIUM
+            or self.sequence_policy_sha256 != DEFAULT_SEQUENCE_POLICY.fingerprint
+        ):
             raise ValueError("unsupported sequence risk policy")
 
     @property
@@ -43,6 +49,7 @@ class SequenceRiskPolicy:
                 "version": self.version,
                 "minimum_level": self.minimum_level,
                 "sequence_version": SEQUENCE_VERSION,
+                "sequence_policy_sha256": self.sequence_policy_sha256,
                 "sequence_codes": SEQUENCE_CODES,
                 "missing_policy": (
                     "matched_complete_signal_only; otherwise retain risk-v1 or abstain"
@@ -88,6 +95,7 @@ def decide_sequence_risk(
         or str(base.transaction_id) != sequence.transaction_id
         or sequence.sequence_version != SEQUENCE_VERSION
         or sequence.policy_sha256 != sequence.policy.fingerprint
+        or sequence.policy_sha256 != policy.sequence_policy_sha256
         or sequence.thresholds_calibrated is not False
         or tuple(item.code for item in sequence.outcomes) != SEQUENCE_CODES
         or any(not isinstance(item.status, SequenceStatus) for item in sequence.outcomes)

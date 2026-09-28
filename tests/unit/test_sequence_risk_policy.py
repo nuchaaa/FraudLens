@@ -9,7 +9,7 @@ from backend.app.features.context import ContextSource, FeatureContext
 from backend.app.profile.entities import CustomerBehaviorProfile
 from backend.app.risk.sequence_policy import SequenceRiskPolicy, decide_sequence_risk
 from backend.app.risk.service import RiskPolicy, Strategy, evaluate_risk
-from backend.app.sequence.engine import evaluate_sequence
+from backend.app.sequence.engine import SequencePolicy, evaluate_sequence
 from backend.app.transaction.entities import Transaction
 
 
@@ -78,3 +78,24 @@ def test_missing_sequence_evidence_abstains_and_mismatches_fail_closed(
             decide_sequence_risk(base, incompatible)
     with pytest.raises(ValueError, match="unsupported"):
         SequenceRiskPolicy(version="risk-v1-experimental")
+
+
+def test_unreviewed_sequence_thresholds_cannot_enter_risk_v2(
+    transaction: Transaction, profile: CustomerBehaviorProfile, now: datetime
+) -> None:
+    verified = replace(
+        profile,
+        admission_workflow_verified=True,
+        admission_policy_version="test-oracle",
+        learning_decision_id=uuid4(),
+    )
+    context = FeatureContext(
+        uuid4(), transaction, verified, "Asia/Almaty", (), now, ContextSource.DECLARED_OFFLINE
+    )
+    base = evaluate_risk(context, RiskPolicy(Strategy.RULES_ONLY), clock=lambda: now)
+    unreviewed = evaluate_sequence(context, SequencePolicy(low_value_count=2))
+    assert unreviewed.policy_sha256 == unreviewed.policy.fingerprint
+    with pytest.raises(ValueError, match="incompatible"):
+        decide_sequence_risk(base, unreviewed)
+    with pytest.raises(ValueError, match="unsupported"):
+        SequenceRiskPolicy(sequence_policy_sha256=unreviewed.policy_sha256)

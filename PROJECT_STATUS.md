@@ -1,7 +1,7 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 16 controlled five-scenario simulator complete.** It generates 10 synthetic customers, 2,000 varied prior transactions and 39 A–E candidates without PostgreSQL writes. All five authored scenario checks pass under a separate, uncalibrated `risk-v2-sequence-experimental` review floor. E's first two transfers remain LOW/ALLOW; later complete sequence matches raise a MEDIUM/STEP_UP_VERIFICATION suggestion. The original risk-v1 gap remains visible and unchanged. An authenticated admin-only, read-only Scenario lab page displays oracle expectations, actual results, reasons and pass/fail checks. Synthetic oracle approvals are not analyst verdicts. The separate 62-transaction live human-review walkthrough remains incomplete, and Phase 15 production security and behavioral validation remain open.**
-Next work: **Gather independent live review evidence before claiming the PostgreSQL B/C/D workflow demonstration; do not script verdicts or profile admissions. Independently evaluate and calibrate sequence policy on suitable data before any production use. PR #2 remains open and unmerged. Remote deployment still requires institutional recovery proof/notification, authenticated admins, real four-role/TLS topology and independent security review.**
+Current checkpoint: **Phase 16 controlled five-scenario simulator complete; separate sequence-policy falsification checkpoint added.** All A–E authored simulator checks pass, while risk-v1 remains unchanged. An independent seven-case synthetic challenge found plausible benign batches that risk-v2 suggests reviewing and an authored attack spaced beyond its 24-hour window that remains LOW/ALLOW. These negative findings prohibit a calibration or performance claim. The risk-v2 policy now pins the exact reviewed sequence-v1 threshold fingerprint. The local Scenario lab remains read-only; the separate 62-transaction live human-review walkthrough, Phase 15 production security, and behavioral validation remain open.**
+Next work: **Obtain suitable point-in-time behavioral data and verified label availability before selecting or calibrating a sequence operating point; preserve the frozen challenge report as a falsification check. Gather independent live review evidence before claiming the PostgreSQL B/C/D workflow demonstration; do not script verdicts or profile admissions. PR #2 remains open and unmerged. Remote deployment still requires institutional recovery proof/notification, authenticated admins, real four-role/TLS topology and independent security review.**
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
@@ -30,13 +30,26 @@ do not establish legitimacy, score risk or admit transactions.
   authored expectations separately from outcomes and explicitly disclaims
   analyst verdicts, model inference and database writes. ADR-034 documents the
   policy. Generated manifest SHA-256:
-  `6d691313369150cf9f6aedafaa23d13d82f14b966b65e5f89c1cbaa95b8aead6`.
-  Final disposable-PostgreSQL validation: 587 Python tests passed, zero
-  skipped, 90% combined coverage. Ruff/format, strict mypy (136 source files),
-  Alembic upgrade/check, frontend ESLint, 14 Vitest tests and build passed.
+  `6b383983bc71874e86eaa45bd8c7062b74c00421742b28926bda1c059841f9e2`.
+  Final disposable-PostgreSQL validation for the next checkpoint: 590 Python
+  tests passed, zero skipped, 90% combined coverage. Ruff/format and strict
+  mypy (137 source files) passed. The previous Alembic upgrade/check and
+  frontend ESLint, 14 Vitest tests and build passed; they were unchanged.
   Two existing upstream deprecation warnings remain. No migration or dependency
   changed. Both backend and both frontend GitHub checks passed on PR #2
   head `11bb17b`; Docker runtime remains unverified.
+
+- [x] Independent `sequence-challenge-v1` falsification audit uses seven new
+  authored cases separate from the A–E generator. Its deterministic offline
+  report SHA-256 is
+  `1d3f5e876d8f0678fe353cadf5d72000bf8318a0dddce1b5c3366ec2bdd98ab2`.
+  A benign known-payee batch and an identical-observation benign/attack
+  new-payee pair all receive MEDIUM review suggestions; an authored attack
+  spaced 25 hours apart remains LOW/ALLOW. Missing verified baseline abstains.
+  These are selected synthetic counterexamples, not independent verified labels
+  or rates. No thresholds were tuned. risk-v2 now requires the exact default
+  sequence-v1 policy fingerprint, rejecting self-consistent unreviewed threshold
+  changes. See `ml/experiments/sequence-challenge-v1/README.md`.
 
 - [x] Phase 16 first checkpoint: versioned `demo-scenarios-v1` fixture with four
   synthetic customers and 62 deterministic KZT transaction facts spanning the
