@@ -31,7 +31,8 @@ from backend.config import Settings
 from backend.main import create_app
 
 
-def test_seed_replay_and_no_automatic_learning_or_evaluation(db_engine) -> None:
+def test_seed_replay_and_no_automatic_learning_or_evaluation(isolated_db_engine) -> None:
+    db_engine = isolated_db_engine
     plan = build_plan()
     transaction_ids = [event.transaction.transaction_id for event in plan.events]
     assert apply_plan(db_engine, plan) == (62, 0)
@@ -162,10 +163,14 @@ def test_stage_preflight_reports_conflicting_fixture_facts(isolated_db_engine) -
         apply_stage(isolated_db_engine, plan, "BASELINE")
 
 
-def test_progress_reports_only_recorded_authorized_evidence(db_engine) -> None:
+def test_progress_reports_only_recorded_authorized_evidence(isolated_db_engine) -> None:
+    db_engine = isolated_db_engine
     plan = build_plan()
     before = evidence_report(db_engine, plan)
     assert before == evidence_report(db_engine, plan)
+    unseeded_guide = render_walkthrough(plan, before)
+    assert "run --check-stage B; apply only if READY" in unseeded_guide
+    assert "run --check-stage D1; apply only if READY" in unseeded_guide
     assert sum(apply_plan(db_engine, plan)) == 62
     seeded = evidence_report(db_engine, plan)
     assert seeded["fixture_fact_counts"] == {"MATCH": 62}

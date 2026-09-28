@@ -26,8 +26,10 @@ instructions against real customer data or a remote service.
    `.venv/bin/python -m backend.adapters.demo --walkthrough`. It uses the same
    read-only snapshot and guard, shows the 14 candidate transfers by story,
    recorded risk status/case/feedback counts, the current profile version and
-   the next manual step. It never supplies a verdict. On the current unseeded
-   working test DB, it reports **62 absent facts** and no profile revisions.
+   the next manual step. It never supplies a verdict. On the current working
+   test DB, it reports **49 matching facts and 13 absent candidates**, with no
+   profile revisions. Story A has a retained rules-only INSUFFICIENT_EVIDENCE
+   result; that is not a legitimate verdict.
    For a **sequenced demonstration**, use `--apply-stage` instead of bulk
    `--apply`. Start with
    `.venv/bin/python -m backend.adapters.demo --apply-stage BASELINE` (48
@@ -70,7 +72,15 @@ instructions against real customer data or a remote service.
    legitimate. Bootstrap requires 5–100 closed legitimate cases, at least two
    reviewers and evaluations captured with absent profiles. Preserve the
    version returned before each later evaluation. Never copy the fixture's
-   story text into a verdict automatically.
+   story text into a verdict automatically. The captured transaction has no
+   merchant name, building or location field. An amount that looks small is
+   not proof of legitimacy. If independent reviewers cannot verify the facts,
+   record NEEDS_INVESTIGATION and leave bootstrap and later gated stages pending.
+   A public business registry may verify registration of an already identified
+   payee, but it cannot establish which business received a synthetic transfer.
+   Do not attach a real Kazakhstan business or ИП to these authored transactions.
+   Future payment context needs a transaction-linked source, source/observation
+   provenance and an explicit unavailable state when a field was not supplied.
 6. Only after a verified baseline exists, evaluate B against that pinned
    version. If independently confirmed legitimate, its exceptional amount
    should be handled by the conservative profile-learning gate; inspect the

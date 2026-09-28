@@ -46,7 +46,23 @@ jobs:
       - run: uv run --group ml ruff check . && uv run --group ml ruff format --check .
       - run: uv run --group ml mypy
       - run: uv run --group ml alembic upgrade head
-      - run: uv run --group ml pytest --cov=backend --cov=ml.src --cov-report=term-missing
+      - name: Test through a disposable local PostgreSQL socket
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq socat
+          socket_dir="$RUNNER_TEMP/fraudlens-pg-socket"
+          mkdir -m 0700 "$socket_dir"
+          socat UNIX-LISTEN:"$socket_dir/.s.PGSQL.55439",fork,mode=0600 TCP:127.0.0.1:5432 &
+          proxy_pid=$!
+          trap 'kill "$proxy_pid"' EXIT
+          for attempt in {1..50}; do
+            if [ -S "$socket_dir/.s.PGSQL.55439" ]; then break; fi
+            sleep 0.1
+          done
+          test -S "$socket_dir/.s.PGSQL.55439"
+          export TEST_DATABASE_URL="postgresql+psycopg://fraudlens:ci-only-password@/fraudlens_test?host=$socket_dir&port=55439"
+          export FRAUDLENS_DATABASE_URL="$TEST_DATABASE_URL"
+          uv run --group ml pytest --cov=backend --cov=ml.src --cov-report=term-missing
       - run: uv export --locked --group ml --format requirements-txt --no-emit-project --no-hashes > /tmp/fraudlens-requirements.txt
       - run: uv run --group ml pip-audit --disable-pip --no-deps -r /tmp/fraudlens-requirements.txt
       - run: uv build

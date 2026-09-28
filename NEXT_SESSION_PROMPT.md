@@ -1,103 +1,30 @@
-Continue FraudLens from Phase 16 IN PROGRESS, after deterministic synthetic facts,
-the read-only evidence ledger, guided walkthrough, staged disposable intake,
-read-only stage preflight and fixture-bootstrap provenance hardening.
-Read PROJECT_STATUS.md first, then docs/PROJECT_SPECIFICATION.md, development.md,
-docs/demo/README.md, docs/adr/ADR-032-staged-disposable-demo-intake.md,
-ADR-031, ADR-030, ADR-029 and docs/security/deployment-gates.md.
-Do not redo completed work.
+Continue FraudLens from Phase 16 IN PROGRESS. Read PROJECT_STATUS.md first, then docs/PROJECT_SPECIFICATION.md, development.md, docs/demo/README.md, docs/security/deployment-gates.md and ADR-029–032. Do not redo completed work.
 
 Repository: /Users/nurasilkirgizbek/Documents/Codex/2026-09-19/if-my-chat-gpt-open-my-2/outputs/fraudlens
-Architecture: framework-free backend/app, FastAPI backend/api, PostgreSQL adapters,
-React/TypeScript frontend and offline ml/src. Phases 0–14 complete. Phase 15
-remote human security remains an external release gate; production human auth
-fails closed. No institutional proof issuer/notice process or two independently
-authenticated remote admins are available. Current Compose uses owner credentials;
-Docker engine, four-role TLS topology and independent review remain unverified.
-Production behavioral validation is OPEN; models/rules/sequences are experimental.
+Architecture: framework-free backend/app, FastAPI backend/api, PostgreSQL adapters, React/TypeScript frontend and offline ml/src. Phases 0–14 are complete. Phase 15 production human auth remains fail-closed pending institutional recovery, real four-role/TLS deployment and independent security review. Production behavioral validation is OPEN; models/rules/sequences are experimental and production-ineligible.
 
-Phase 16 demo-scenarios-v1: stable UUIDv5 IDs, four customers, 62 KZT facts and
-five authored stories: normal A, 8M vehicle B, 500k new-recipient C for B's
-customer, gradual 45k–110k D and six-transfer 50k–500k E. Manifest SHA256:
-4645220dd30cfabb12e8a22688a45035d81e352fe2ef5998f6f16a33019f26c8.
-Story text is not ground truth. The working public-schema test DB remains
-unseeded: the fresh 2026-09-27 read-only audit showed 62 ABSENT facts, zero
-retained evaluations and four absent profiles. The bulk --apply
-path creates facts only and deliberately bypasses staged prerequisites.
+Phase 16 fixture demo-scenarios-v1 has four synthetic customers, 62 deterministic KZT transactions and five authored stories: A normal-looking, B 8M vehicle payment, C later 500k new recipient for B's customer, D gradual 45k–110k, E six-transfer escalation. Story text is not a verified label. The latest read-only audit of local Unix-socket fraudlens_test found the 48 BASELINE facts plus story A (49 MATCH / 13 ABSENT), 13 evaluations, 12 cases, 10 LEGITIMATE and 2 NEEDS_INVESTIGATION feedback entries, and zero learning decisions/profile revisions. A has a retained rules-only INSUFFICIENT_EVIDENCE evaluation with explicitly absent profile. B --check-stage is BLOCKED because no verified prior KZT profile exists. The audit made no writes.
 
-The --progress and --walkthrough commands use a repeatable-read, read-only
-PostgreSQL snapshot under a local Unix-socket *_test/non-production guard.
-They show exact fact identity, retained evaluations and captured versions,
-case/feedback/learning decisions, immutable profile revisions, and A–E manual
-steps. Event-time-compatible revisions do NOT prove historical availability.
-They cannot generate analyst verdicts or certify behavioral outcomes.
+Two friends provisioned separate local analyst accounts scoped to BC/D and entered their own feedback. analyst-one marked 10 earlier cases LEGITIMATE; analyst-two marked two additional BC/D cases NEEDS_INVESTIGATION because available facts do not establish fraud or legitimacy. The ten LEGITIMATE entries are not external verification, and a prior case closure by analyst-two is not a second verdict. Preserve all immutable evidence. Do not bootstrap from uncertain cases, script review verdicts, infer legitimacy from small amounts, or bulk-apply later candidate stages. B/C baseline preservation and D adaptation remain NOT DEMONSTRATED. Genuine independent evidence and authorized reviews are needed before any admission.
 
-New --apply-stage supports BASELINE (48 background facts), A, B, C, D1–D5 and
-E1–E6 with original IDs/idempotency keys. B/C/D/E require a verified prior KZT
-profile whose first immutable revision has accepted BOOTSTRAP evidence for at
-least five matching fixture baseline admissions and two distinct recorded
-reviewers. A verified profile built from unrelated data does not unlock them.
-The stored trace does not independently authenticate the people or prove real
-legitimacy. C additionally requires a retained B evaluation and an exceptional
-amount QUARANTINE learning decision without profile-version advance; later D
-stages require a prior ACCEPT learning decision; later E
-stages require a prior evaluation. Missing prerequisites fail without writes.
-It creates no profiles, reviews or evaluations. A PostgreSQL advisory lock
-serializes fixture CLI writes, not arbitrary API writers. It controls local
-insertion order but does not reconstruct actual bank arrival/label knowledge.
-An isolated migrated-schema test seeded/replayed BASELINE and A, and verified
-later stages refuse absent review/profile evidence. Positive reviewer-dependent
-paths have NOT been exercised or claimed. No actual reviewers are available.
-The new --check-stage STAGE previews READY/BLOCKED/CONFLICT/REPLAYABLE without
-writes. It uses the same disposable guard and apply rechecks prerequisites;
-preflight is not a reservation or evidence of reviewer legitimacy. A live
-read-only check of B reported BLOCKED for absent background facts.
+The demo CLI already has guarded --progress, --walkthrough, --check-stage and --apply-stage BASELINE/A/B/C/D1–D5/E1–E6. Later stages require prior verified profile and retained workflow evidence. Review docs/demo/README.md before use. Versions must be pinned before each decision; event-time-compatible revisions do not establish historical availability. The CLI cannot reconstruct actual bank arrival or labels.
 
-Validation: 578 tests passed, zero skipped, 90% combined backend/ML coverage on
-PostgreSQL 17.10. Ruff/format, strict mypy (131 source files), existing migration
-tests and offline source/wheel build passed. After the final C-stage guard edit,
-11 focused PostgreSQL/unit tests and global Ruff/format/mypy passed. The unchanged frontend last passed
-ESLint/nine Vitest tests/build at the previous checkpoint. Two upstream
-deprecation warnings remain. Dependencies and migrations unchanged; no known
-failing tests. Docker runtime and remote CI unverified.
+Raw transaction intake does not auto-evaluate. NOT EVALUATED means no retained assessment, not low risk. Rules-only evaluation is separate and experimental. ML-only/hybrid also require a reviewed, explicitly configured native behavior-v1 model bundle; the local API currently has none. A saved synthetic XGBoost context replayed offline, proving software operation, not field performance. The console discloses absent sender/receiver names, merchant/ИП, purpose and verified payment location. Kazakhstan public registration lookup cannot identify who received a fictional transfer. Do not attach a real business to synthetic transactions or invent transaction context; source-linked sanitized payment facts would be needed for enrichment.
 
-Next: To complete the five-story demonstration, obtain actual authorized local
-analyst sessions and independent reviewer evidence. Do NOT script unverified
-human verdicts, automatically admit intake, or treat story text as legitimacy
-or fraud. If reviewers remain unavailable, leave B/C baseline preservation and
-D gradual adaptation as guided, NOT DEMONSTRATED. With real inputs, use existing
-evaluation/case/bootstrap/learning APIs, pin profile versions BEFORE decisions,
-then inspect B's gate action, B/C immutable revisions and median preservation,
-and D's ordered accepted revisions. Show cold/insufficient evidence explicitly.
-Do not fabricate metrics, claim production performance, or promote models.
-Phase 15 remote security remains closed.
-The staged CLI and guide are already implemented and tested. If the same
-read-only evidence remains absent and no genuine reviewers are available, do
-not add more preflight helpers or mark Phase 16 complete. Report the concrete
-missing inputs to the user and leave B/C/D as guided, NOT DEMONSTRATED.
-The user must supply genuinely independent authorized local reviewer input or
-a new objective; reposting this unchanged prompt alone does not provide the
-evidence needed to complete the five-story behavior claim.
+Maintenance PR https://github.com/nuchaaa/FraudLens/pull/1 is OPEN, not merged. Branch codex/fix-demo-ci-and-evaluation-context fixes GitHub backend CI's TCP-versus-Unix-socket mismatch, isolates demo tests, corrects staged walkthrough guidance, and clarifies the console. Both backend/frontend checks passed on the latest checked push and PR runs 36379336513 and 36379339075; inspect checks after any newer commit. Local validation: 578 passed, zero skipped, 90% combined backend/ML coverage on PostgreSQL 17.10; Ruff, format, strict mypy (131 source files), frontend lint/9 Vitest tests/build passed. Two upstream deprecation warnings remain. Do not merge without the user's instruction.
 
-Disposable PostgreSQL: /private/tmp owner-only Unix socket, port 55439,
-database fraudlens_test; cluster ../../work/fraudlens-postgres/data. Never use
-SQLite or production data. Commands from repo root:
+Next: inspect current retained evidence read-only. If reviewers cannot obtain independently verifiable transaction-linked facts, keep BC/D admissions and stories B/C/D pending; explain the concrete missing evidence rather than add more helper code. If the user supplies a legitimate sanitized payment source, design provenance-aware optional merchant/payee/place fields, explicit unavailable states and point-in-time capture before implementation; do not infer these from public registries. Do not claim synthetic scores as predictive metrics or promote the model. Phase 15 release gates remain separate.
+
+Disposable PostgreSQL uses owner-only /private/tmp Unix socket, port 55439, database fraudlens_test; cluster ../../work/fraudlens-postgres/data. Never use SQLite or production data. From repo root:
 export TEST_DATABASE_URL='postgresql+psycopg:///fraudlens_test?host=/private/tmp&port=55439'
 export FRAUDLENS_DATABASE_URL="$TEST_DATABASE_URL"
 .venv/bin/python -m backend.adapters.demo --progress
 .venv/bin/python -m backend.adapters.demo --walkthrough
 .venv/bin/python -m backend.adapters.demo --check-stage B
-.venv/bin/python -m backend.adapters.demo --apply-stage BASELINE  # only when explicitly seeding the disposable DB
-.venv/bin/alembic upgrade head
-.venv/bin/alembic check
 .venv/bin/pytest --cov=backend --cov=ml.src
 .venv/bin/ruff check .
 .venv/bin/ruff format --check .
 .venv/bin/mypy
-UV_CACHE_DIR=../../work/uv-cache ../../work/bootstrap/bin/uv build --offline
 cd frontend && npm run lint && npm test && npm run build
 
-Important: backend/app/demo/{scenarios,stages}.py;
-backend/adapters/demo/{__main__,progress,walkthrough}.py;
-tests/{unit/test_demo_scenarios,integration/test_demo_seed}.py;
-docs/demo/README.md and ADR-029/030/031/032. Update PROJECT_STATUS.md,
-NEXT_SESSION_PROMPT.md and SESSION_LOG.md before stopping.
+Before stopping, update PROJECT_STATUS.md, NEXT_SESSION_PROMPT.md and SESSION_LOG.md. Never fabricate metrics, identities, transaction facts or reviewer evidence.
