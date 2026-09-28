@@ -1,11 +1,29 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 17 first offline profiling comparison complete.** A frozen new synthetic stream (four customers, 80 assumed baseline observations, 21 candidate events) was processed under four profile strategies with separate event, arrival and feedback-availability clocks. The naive adaptive mean admitted an 8M KZT payment before later C and moved the pre-C reference from 29,150 to 408,714.285714… KZT; the gated robust median stayed 29,000 KZT. Twelve delayed, authored legitimate D events were accepted after feedback; six E events without feedback stayed out of the gated profile. These are measured synthetic mechanism results, not verified labels, predictive performance, calibration or production validation. Phase 16's original deterministic-demo objective remains complete; its optional live analyst walkthrough and Phase 15 remote security remain separate open tracks.
-Next work: **Phase 17 second checkpoint:** use the same frozen source to isolate statistic from update policy in a predeclared factorial comparison, then test delayed-feedback sensitivity, compromised-confirmation and event/arrival disorder as explicit limitations. Do not retune thresholds or claim external validation. The parked analyst walkthrough requires new independent reviewer evidence before resumption; production security remains closed.
+Current checkpoint: **Phase 17 second offline research comparison complete.** The first frozen four-strategy source/report are unchanged. A predeclared six-cell factorial crosses mean versus median/MAD with static, naive and gated updates on the same four-customer, 21-candidate synthetic stream. Identical admissions within each policy separate the reference statistic from update behavior. The naive mean before C reached 408,714.285714… KZT after B's 8M payment while its paired naive median stayed 29,000 KZT. The gate excludes B, accepts feedback-supported D changes and excludes unverified E. Exact-boundary delayed feedback withholds D1 from D2; simulated compromised approvals cause the gate to accept all six small E transfers; out-of-order B/C arrival fails closed without a correction protocol. These are synthetic mechanism findings, not verified labels, detection performance, calibration or production validation. Phase 16's original deterministic-demo objective remains complete; its optional live analyst walkthrough and Phase 15 remote security remain separate open tracks.
+Next work: **Phase 17 third checkpoint:** predeclare and build a separate append-only retraction/replay research fixture for late arrival and revoked/compromised confirmations. Compare point-in-time decisions before and after correction without retroactively changing retained originals. Do not use the A–E or seven challenge cases for risk threshold selection. The parked analyst walkthrough requires new independent reviewer evidence; production security remains closed.
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
 ## Completed capabilities
+
+- [x] Phase 17 second research experiment: predeclared
+  `docs/research/phase17-profile-factorial-v1-protocol.md` before computing a
+  versioned six-cell report, with canonical source SHA-256 unchanged at
+  `fe669407b3265659ea0024ee0e183d86967d6c6ad69ec19464dc649d0264e36e`.
+  Report SHA-256:
+  `4ce0a58640c3850f556de8d6776fa1a7bfb1a2b57e83abb40d9ef1bd25860b58`.
+  Statistic pairs share exact admitted IDs. Naive mean shifts after B but
+  naive median remains 29k even with B admitted. The sensitivity report
+  records exact feedback-boundary withholding, six E admissions under
+  intentionally false confirmations, and an explicit unsupported out-of-order
+  case. No existing policy, database row, frontend, migration or dependency
+  changed. All results remain synthetic-only and production-ineligible. Final
+  disposable PostgreSQL 17.10 regression: 599 Python tests passed, zero
+  skipped, 90% combined backend/ML coverage. Ruff/format, strict mypy (139
+  source files) and offline source/wheel build passed. Two existing upstream
+  Starlette/AnyIO warnings remain. PR #3 is open against PR #2; remote checks
+  for this new checkpoint require a push.
 
 - [x] Phase 17 first research experiment: frozen
   `profile-comparison-stream-v1` source SHA-256
@@ -731,14 +749,14 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Exact next tasks
 
-1. Extend the Phase 17 frozen source into a predeclared statistic × admission-policy
-   factorial comparison so effects of arithmetic mean versus median/MAD and
-   static versus naive versus gated updates are not conflated. Preserve exact
-   event/arrival/feedback clocks and the first report unchanged for replay.
-2. Add explicit sensitivity cases for delayed feedback, a compromised simulated
-   confirmation, and out-of-order arrival. Record where the current gate abstains,
-   quarantines or needs a correction protocol. Keep all results synthetic-only;
-   do not calibrate risk-v2 or report bank detection rates.
+1. Predeclare an append-only retraction/replay research protocol with a new
+   versioned synthetic stream. Model a late-arriving event and a revoked or
+   compromised confirmation with explicit knowledge timestamps; retain original
+   point-in-time decisions and issue new corrected views instead of silently
+   rewriting history. Specify which evidence cannot be reconstructed.
+2. Implement the offline fixture and deterministic tests for correction ordering,
+   replay idempotence, customer isolation and original-decision preservation.
+   Do not integrate a production admission or risk policy or tune risk-v2.
 3. Keep the optional live analyst walkthrough parked until independent reviewers
    supply new evidence. Keep Phase 15 remote human auth and deployment closed
    pending institutional recovery, real four-role/TLS topology and security review.
