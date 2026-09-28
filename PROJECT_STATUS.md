@@ -1,11 +1,29 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 17 second offline research comparison complete.** The first frozen four-strategy source/report are unchanged. A predeclared six-cell factorial crosses mean versus median/MAD with static, naive and gated updates on the same four-customer, 21-candidate synthetic stream. Identical admissions within each policy separate the reference statistic from update behavior. The naive mean before C reached 408,714.285714… KZT after B's 8M payment while its paired naive median stayed 29,000 KZT. The gate excludes B, accepts feedback-supported D changes and excludes unverified E. Exact-boundary delayed feedback withholds D1 from D2; simulated compromised approvals cause the gate to accept all six small E transfers; out-of-order B/C arrival fails closed without a correction protocol. These are synthetic mechanism findings, not verified labels, detection performance, calibration or production validation. Phase 16's original deterministic-demo objective remains complete; its optional live analyst walkthrough and Phase 15 remote security remain separate open tracks.
-Next work: **Phase 17 third checkpoint:** predeclare and build a separate append-only retraction/replay research fixture for late arrival and revoked/compromised confirmations. Compare point-in-time decisions before and after correction without retroactively changing retained originals. Do not use the A–E or seven challenge cases for risk threshold selection. The parked analyst walkthrough requires new independent reviewer evidence; production security remains closed.
+Current checkpoint: **Phase 17 third offline research checkpoint complete.** A separate, predeclared append-only fixture now retains original point-in-time gate views and issues explicitly requested corrected offline projections. A late-arriving older event is refused by the unchanged gate after a newer admission; chronological replay later admits both without changing the original six-observation view. A later revoked simulated confirmation is removed only from a new corrected view; the original accepted view remains and revocation does not assert fraud. Correction request replay is idempotent. Source and report are frozen under independent hashes. These are synthetic software mechanisms, not authorized live corrections, verified labels, detection performance, calibration or production validation. Phase 16's original deterministic-demo objective remains complete; its optional live analyst walkthrough and Phase 15 remote security remain separate open tracks.
+Next work: **Phase 17 fourth checkpoint:** define and implement a read-only dataset-readiness auditor for future behavioral validation data. Predeclare required customer/recipient/currency/time/label/feedback/retraction provenance, chronology and privacy controls; reject incomplete sources with explicit reasons. Do not train or calibrate on unsuitable data. The parked analyst walkthrough requires new independent reviewer evidence; production security remains closed.
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
 ## Completed capabilities
+
+- [x] Phase 17 third research fixture: predeclared
+  `docs/research/phase17-retraction-replay-v1-protocol.md` and frozen
+  `ml/experiments/phase17-profile-retraction-v1/{source,report}.json`.
+  Canonical source SHA-256:
+  `a47cf3b27e4556da4fa71554f6057570a7135c7ad56be71b01219ee1064a74dc`;
+  report SHA-256:
+  `cca72cb96342a02754e26a8f2388faee66445ec76776cc802c6b73c57239683b`.
+  The runner uses the unchanged pure gate for original applies and chronological
+  corrected projections, preserving original profiles and their knowledge
+  cutoffs. It records explicit historical-replay need, revoked-confirmation
+  exclusion, supersession links and duplicate correction attempts. No live
+  profile, database, risk policy, model, frontend, migration or dependency
+  changed. All results remain synthetic-only and production-ineligible. Final
+  disposable PostgreSQL 17.10 regression: 604 Python tests passed, zero
+  skipped, 90% combined backend/ML coverage. Ruff/format, strict mypy (140
+  source files) and offline source/wheel build passed; two existing upstream
+  Starlette/AnyIO deprecations remain. Draft stacked PR #3 remains open.
 
 - [x] Phase 17 second research experiment: predeclared
   `docs/research/phase17-profile-factorial-v1-protocol.md` before computing a
@@ -749,14 +767,15 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Exact next tasks
 
-1. Predeclare an append-only retraction/replay research protocol with a new
-   versioned synthetic stream. Model a late-arriving event and a revoked or
-   compromised confirmation with explicit knowledge timestamps; retain original
-   point-in-time decisions and issue new corrected views instead of silently
-   rewriting history. Specify which evidence cannot be reconstructed.
-2. Implement the offline fixture and deterministic tests for correction ordering,
-   replay idempotence, customer isolation and original-decision preservation.
-   Do not integrate a production admission or risk policy or tune risk-v2.
+1. Predeclare a behavioral dataset-readiness contract for future retrospective
+   or prospective evaluation: customer/recipient/currency identity, event and
+   arrival clocks, label and feedback availability, revocations, consent/license,
+   privacy handling, and held-out time/customer split feasibility.
+2. Implement a read-only auditor that emits versioned machine-readable reasons
+   when a supplied manifest lacks provenance or point-in-time fields. Test it
+   with small frozen synthetic valid/invalid manifests; do not load real private
+   bank data or turn this into training/model selection. Keep ULB separate from
+   behavior-v1 because it lacks the needed identity and availability fields.
 3. Keep the optional live analyst walkthrough parked until independent reviewers
    supply new evidence. Keep Phase 15 remote human auth and deployment closed
    pending institutional recovery, real four-role/TLS topology and security review.

@@ -65,7 +65,12 @@ ADR-012 records the static synthetic experiment and predeclared selection rules.
 The first offline A/B/C/D-style **profiling mechanism** comparison is recorded in
 [`phase17-profile-comparison-v1-protocol.md`](phase17-profile-comparison-v1-protocol.md)
 and its frozen synthetic report. It tests four statistic/update combinations
-on one authored chronological stream; it is not an external adaptive-profile
-validation or a causal comparison of statistic and gate separately. ADR-013
+on one authored chronological stream. The separate
+[`phase17-profile-factorial-v1-protocol.md`](phase17-profile-factorial-v1-protocol.md)
+crosses the two statistics with three update policies on that unchanged source.
+The [`phase17-retraction-replay-v1-protocol.md`](phase17-retraction-replay-v1-protocol.md)
+predeclares a new append-only offline correction fixture for late arrivals and
+revoked simulated confirmations. None provides external adaptive-profile
+validation, authenticated correction authority or calibrated risk. ADR-013
 records the separate ULB retrospective benchmark with unknown arrival/label
 availability and PCA fitting scope. Neither establishes a production baseline.
