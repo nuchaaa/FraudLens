@@ -1,7 +1,7 @@
 import { type FormEvent, useEffect, useMemo, useState } from "react";
-import { FraudLensApi } from "./api";
+import { ApiError, FraudLensApi } from "./api";
 import { Badge, formatMoney, formatTime, riskTone, ShortId, State } from "./components";
-import type { CaseDocument, EvaluationDocument, ProfileDocument, Summary, WorklistItem } from "./types";
+import type { CaseDocument, DemoEvidence, EvaluationDocument, ProfileDocument, Summary, WorklistItem } from "./types";
 
 export function Overview({ api, summary, items, loading, error, openTransactions }: {
   api: FraudLensApi; summary: Summary | null; items: WorklistItem[]; loading: boolean; error: string; openTransactions: () => void;
@@ -63,12 +63,17 @@ export function Transactions({ api, title, items, loading, error, cursor, more, 
 function TransactionDetail({ api, item, canEvaluate, close, refreshed }: { api: FraudLensApi; item: WorklistItem; canEvaluate: boolean; close: () => void; refreshed: () => void }) {
   const [evaluation, setEvaluation] = useState<EvaluationDocument | null>(null);
   const [caseDoc, setCaseDoc] = useState<CaseDocument | null>(null);
+  const [demoEvidence, setDemoEvidence] = useState<DemoEvidence | null>(null);
   const [error, setError] = useState("");
   const [reviewing, setReviewing] = useState(false);
   useEffect(() => {
     let active = true;
-    Promise.all([item.evaluation_id ? api.evaluation(item.evaluation_id) : null, item.case_id ? api.case(item.case_id) : null])
-      .then(([nextEvaluation, nextCase]) => { if (active) { setEvaluation(nextEvaluation); setCaseDoc(nextCase); } })
+    const evidence = api.demoEvidence(item.transaction.transaction_id).catch((reason: unknown) => {
+      if (reason instanceof ApiError && (reason.status === 404 || reason.status === 503)) return null;
+      throw reason;
+    });
+    Promise.all([item.evaluation_id ? api.evaluation(item.evaluation_id) : null, item.case_id ? api.case(item.case_id) : null, evidence])
+      .then(([nextEvaluation, nextCase, nextEvidence]) => { if (active) { setEvaluation((current) => nextEvaluation ?? current); setCaseDoc((current) => nextCase ?? current); setDemoEvidence(nextEvidence); } })
       .catch((reason: unknown) => active && setError(reason instanceof Error ? reason.message : "Detail request failed"));
     return () => { active = false; };
   }, [api, item]);
@@ -76,12 +81,22 @@ function TransactionDetail({ api, item, canEvaluate, close, refreshed }: { api: 
   return <div className="drawer-backdrop" onMouseDown={(event) => event.target === event.currentTarget && close()}><aside className="drawer" aria-label="Transaction details"><div className="drawer-head"><div><span className="eyebrow">TRANSACTION DETAIL</span><h2>{formatMoney(item.transaction.amount, item.transaction.currency)}</h2><span><ShortId value={item.transaction.transaction_id} /></span></div><button onClick={close} aria-label="Close details">×</button></div>
     {error && <State error={error} />}
     <section className="detail-section"><h3>Transaction facts</h3><div className="fact-grid"><Fact label="Customer"><ShortId value={item.transaction.customer_id} /></Fact><Fact label="Recipient"><ShortId value={item.transaction.recipient_id} /></Fact><Fact label="Occurred">{formatTime(item.transaction.timestamp)}</Fact><Fact label="Channel / device">{item.transaction.channel} · {item.transaction.device_id}</Fact><Fact label="Immutable status"><Badge>{item.transaction.status}</Badge></Fact></div></section>
-    <section className="detail-section"><h3>Missing payment context</h3><p className="muted">This intake record has no sender or receiver name, merchant or registered-business identity, purchase purpose, or verified place of payment. Customer and recipient UUIDs are identifiers, not names. A small amount does not establish legitimacy.</p></section>
+    {demoEvidence ? <DemoEvidenceView value={demoEvidence} /> : <section className="detail-section"><h3>Missing payment context</h3><p className="muted">This intake record has no sender or receiver name, merchant or registered-business identity, purchase purpose, or verified place of payment. Customer and recipient UUIDs are identifiers, not names. A small amount does not establish legitimacy.</p></section>}
     <section className="detail-section"><div className="section-title"><h3>Experimental risk</h3><Badge tone={riskTone(evaluation?.risk.level ?? item.risk_level)}>{displayedRisk}</Badge></div>{!item.evaluation_id && !evaluation ? <><p className="muted">No retained evaluation exists. The transaction remains RECEIVED.</p>{canEvaluate && <RuleEvaluationForm api={api} transactionId={item.transaction.transaction_id} saved={(created) => { setEvaluation(created); refreshed(); }} />}</> : !evaluation ? <State loading /> : <><div className="risk-hero"><strong>{evaluation.risk.score == null ? "—" : `${Math.round(evaluation.risk.score * 100)}`}</strong><span>{evaluation.risk.score == null ? "Insufficient evidence" : "uncalibrated index / 100"}</span></div><div className="fact-grid"><Fact label="Strategy">{evaluation.risk.policy.strategy}</Fact><Fact label="Suggested action">{evaluation.risk.suggested_action?.replaceAll("_", " ") ?? "None"}</Fact><Fact label="Profile revision">{evaluation.risk.profile_version ?? "Explicitly absent"}</Fact><Fact label="Production eligible"><Badge tone="critical">No</Badge></Fact></div><ReasonList evaluation={evaluation} /></>}</section>
     {canEvaluate && evaluation && !caseDoc && !item.case_id && <OpenCaseForm api={api} evaluationId={evaluation.evaluation_id} saved={(created) => { setCaseDoc(created); refreshed(); }} />}
     {caseDoc && <section className="detail-section"><div className="section-title"><h3>Review case</h3><Badge tone={caseDoc.state === "UNDER_REVIEW" ? "medium" : "neutral"}>{caseDoc.state.replaceAll("_", " ")}</Badge></div><p className="muted">Version {caseDoc.version} · {caseDoc.feedback.length} feedback record(s). Feedback does not update the profile.</p><button className="primary compact" onClick={() => setReviewing(true)}>Review case</button></section>}
     {reviewing && caseDoc && <ReviewDialog api={api} value={caseDoc} close={() => setReviewing(false)} saved={(next) => { setCaseDoc(next); setReviewing(false); refreshed(); }} />}
   </aside></div>;
+}
+
+function DemoEvidenceView({ value }: { value: DemoEvidence }) {
+  return <section className="detail-section demo-evidence">
+    <div className="section-title"><h3>Fictional demo evidence</h3><Badge tone={value.support_status === "SUPPORTED" ? "low" : "medium"}>{value.support_status}</Badge></div>
+    <div className="notice danger"><strong>Role-play only</strong><span>Authored synthetic context; never real bank, registry or location verification and never a supplied verdict.</span></div>
+    <div className="fact-grid"><Fact label="Sender">{value.sender_display_name}</Fact><Fact label="Counterparty">{value.counterparty_display_name}</Fact><Fact label="Purpose">{value.payment_purpose}</Fact><Fact label="Fictional location">{value.location.display}</Fact><Fact label="Reference">{value.payment_reference}</Fact><Fact label="Real-world verified"><Badge tone="critical">No</Badge></Fact></div>
+    <div className="evidence-artifacts"><h4>Supporting artifacts</h4>{value.artifacts.length ? value.artifacts.map((artifact) => <article key={artifact.reference}><strong>{artifact.kind.replaceAll("_", " ")}</strong><span>{artifact.summary}</span><small>{artifact.reference}</small></article>) : <p className="muted">No transaction-linked supporting artifact was supplied.</p>}</div>
+    <p className="fineprint">{value.limitations}</p>
+  </section>;
 }
 
 function RuleEvaluationForm({ api, transactionId, saved }: { api: FraudLensApi; transactionId: string; saved: (value: EvaluationDocument) => void }) {

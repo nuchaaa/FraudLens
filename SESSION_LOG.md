@@ -932,3 +932,30 @@
 - Local validation on disposable PostgreSQL 17.10: 579 tests passed, zero skipped, 90% combined backend/ML coverage; two existing upstream Starlette/AnyIO warnings. Ruff, format, strict mypy (131 source files), frontend ESLint, 11 Vitest tests and Vite build passed. Initial sandboxed pytest could not access the PostgreSQL Unix socket; the successful full run used approved socket access. No migration, dependency, model configuration, reviewer verdict or profile admission changed.
 - The staged B/C/D demonstration remains blocked by lack of independently verified transaction-linked evidence. Production human authentication and behavioral validation remain open.
 - Committed locally as `aa0649a` on `codex/fix-demo-ci-and-evaluation-context`. Automatic approval review rejected the push to `origin` as external source-code egress without trusted authorization for the exact destination and payload. No alternate upload was attempted. PR #1 therefore does not yet contain this console change; explicit user approval is required before pushing it.
+
+## 2026-09-28 — Fictional Phase 16 review-evidence package
+
+- Added `demo-review-evidence-v1`, a deterministic companion entry for all 62
+  fixture transactions. Entries contain obviously fictional parties, purposes,
+  locations, references and artifact summaries while explicitly declaring
+  synthetic-only, real-world-unverified, production-ineligible and verdict-free
+  status. Baseline/A/B/D have authored supporting context; C/E deliberately keep
+  support unavailable. The package SHA-256 is
+  `436c1c24119a12a7df63bf9f6ea4888a19c021b1eec94d4df945e83983687185`.
+- Added an offline package command and an authenticated, scope-checked,
+  experimental no-store read endpoint. The React transaction drawer displays
+  matching context behind a prominent role-play warning and retains the existing
+  missing-context disclosure for non-fixture records. The package is not read by
+  feature, risk, case or profile-learning code and creates no database writes.
+- Accepted ADR-033 and updated the runbook, five-story guide and architecture map.
+  The pre-change baseline was 579 Python tests and 11 frontend tests. Final local
+  validation passed 582 Python tests with zero skipped and 90% combined coverage
+  on PostgreSQL 17.10, Ruff/format, strict mypy over 133 source files, frontend
+  ESLint, 12 Vitest tests and Vite build. Two existing upstream warnings remain;
+  dependencies and migrations are unchanged.
+- No analyst verdict, evaluation, case, learning decision or profile revision was
+  generated. Phase 16 remains open until actual analysts independently review new
+  BC/D cases and the stored bootstrap/gate outcomes are verified.
+- Read-only GitHub inspection confirmed PR #1 was merged at remote head `9857c84`
+  with successful backend and frontend checks. The later local console commits and
+  this evidence package were not part of that merge and need a fresh pull request.

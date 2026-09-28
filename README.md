@@ -117,6 +117,11 @@ spending changes, and an unverified escalating sequence. The first Phase 16
 fixture seeds 62 synthetic transaction facts for stories A–E into a disposable
 PostgreSQL test database. It does not create trusted profiles, verdicts, risk
 evaluations or measured outcomes; the full reviewed demonstration remains open.
+The separate `demo-review-evidence-v1` package supplies clearly fictional names,
+purposes, locations and artifact summaries for analyst role-play without changing
+transaction facts or supplying a verdict. The local console labels this context
+as synthetic and not real-world verified; see
+[ADR-033](docs/adr/ADR-033-fictional-demo-review-evidence.md).
 See the [local five-story guide](docs/demo/README.md).
 
 ## Tech stack

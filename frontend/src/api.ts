@@ -1,5 +1,6 @@
 import type {
   CaseDocument,
+  DemoEvidence,
   EvaluationDocument,
   ProfileDocument,
   Summary,
@@ -186,6 +187,10 @@ export class FraudLensApi {
 
   transaction(id: string): Promise<Transaction> {
     return this.request(`/api/v1/transactions/${encodeURIComponent(id)}`);
+  }
+
+  demoEvidence(id: string): Promise<DemoEvidence> {
+    return this.request(`/api/v1/experimental/demo/evidence/${encodeURIComponent(id)}`);
   }
 
   evaluation(id: string): Promise<EvaluationDocument> {

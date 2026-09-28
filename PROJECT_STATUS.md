@@ -1,7 +1,7 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 16 in progress — BASELINE and story A are seeded in the disposable local demo database; 49 fixture facts match and 13 candidates remain absent. Story A has a retained rules-only INSUFFICIENT_EVIDENCE evaluation. The local console now offers an explicit admin-only rules evaluation and separate case creation for unevaluated transactions. Phase 15 remote-human-security gate remains open and production human auth fails closed. Phases 0–14 and supplemental sequence evidence remain complete.**
-Next work: **Respect the reviewers' uncertainty: `analyst-two` recorded NEEDS_INVESTIGATION on both new BC/D cases because the facts do not establish legitimacy or fraud. Do not bootstrap from these cases or treat `analyst-one`'s ten LEGITIMATE entries as external verification. No profile or learning decision exists. B/C baseline preservation and D adaptation remain NOT DEMONSTRATED. PR #1 remains open; the latest console commit is local-only because automatic approval review rejected its push. Push only after explicit user approval, then inspect CI. Remote deployment still requires institutional recovery proof/notification, authenticated admins, real four-role/TLS topology and independent security review. Production behavioral validation remains open.**
+Current checkpoint: **Phase 16 in progress — the versioned fictional review-evidence package and scoped read-only console view are implemented locally for all 62 deterministic transactions. BASELINE and story A remain seeded in the disposable local demo database; 49 fixture facts match and 13 candidates remain absent. Story A has a retained rules-only INSUFFICIENT_EVIDENCE evaluation. Phase 15 remote-human-security gate remains open and production human auth fails closed. Phases 0–14 and supplemental sequence evidence remain complete.**
+Next work: **Restart the local API/console with experimental mode, then let `analyst-one` and `analyst-two` independently review newly opened BC and D baseline cases using the clearly fictional packet. Do not tell them which verdict to choose. Existing NEEDS_INVESTIGATION and LEGITIMATE history stays immutable. Only if enough actual stored reviews support legitimacy may an admin use the separate bootstrap workflow and continue B/C/D stages. B/C baseline preservation and D adaptation remain NOT DEMONSTRATED. PR #1 was merged at `9857c84` with green checks; the later console/evidence work remains local for a new PR. Remote deployment still requires institutional recovery proof/notification, authenticated admins, real four-role/TLS topology and independent security review.**
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
@@ -62,6 +62,15 @@ do not establish legitimacy, score risk or admit transactions.
   with no profile version advance. These checks inspect retained workflow
   records; they do not independently verify people or external legitimacy.
 - [ ] Phase 16 behavioral walkthrough remains pending external reviewer input.
+  `demo-review-evidence-v1` now provides a separate deterministic companion
+  entry for every fixture transaction. It uses obviously fictional names,
+  purposes, locations and artifact references and is pinned by SHA-256
+  `436c1c24119a12a7df63bf9f6ea4888a19c021b1eec94d4df945e83983687185`.
+  Every record says synthetic-only, not real-world verified, production-ineligible
+  and verdict-free. C/E deliberately have unavailable support. Authenticated,
+  scope-checked users can read one entry through an experimental no-store endpoint;
+  the console renders a strong role-play warning. The package does not change
+  transaction facts, scoring, cases or profiles. ADR-033 records the boundary.
   The local console now lets a human admin explicitly run rules-only evaluation
   on an unevaluated transaction with an absent-profile assertion or a pinned
   pre-decision revision, then optionally open a separate review case. The
@@ -104,19 +113,18 @@ do not establish legitimacy, score risk or admit transactions.
   Local-only Uvicorn and Vite were started and their HTTP endpoints responded.
   Both accounts have since produced the review events above; no review was
   scripted by the setup process.
-- [x] Latest full regression: 578 passed, zero skipped, 90% combined coverage on
-  disposable PostgreSQL; Ruff/format, strict mypy (131 source files), existing
-  Alembic migration/schema tests and offline source/wheel build passed. The
-  unchanged frontend last passed ESLint/nine Vitest tests/build at the prior
-  checkpoint. After the final C-stage guard edit, 11 focused PostgreSQL/unit
-  tests and global Ruff/format/mypy passed. Two upstream deprecation warnings
-  remain. Docker engine and
+- [x] Latest full regression: 582 passed, zero skipped, 90% combined coverage on
+  PostgreSQL 17.10; Ruff/format, strict mypy (133 source files), existing Alembic
+  migration/schema tests, frontend ESLint/12 Vitest tests and Vite build passed.
+  Two upstream deprecation warnings remain. The pre-change baseline was 579
+  Python tests and 11 frontend tests. No migration or dependency changed.
+  Docker engine and
   remote CI passed on both push and PR runs for the socket-based demo test fix
   in https://github.com/nuchaaa/FraudLens/pull/1 after the user explicitly
-  authorized publication. No dependencies
-  or migrations changed this checkpoint. The transaction worklist now explains
+  authorized publication. The transaction worklist now explains
   that NOT EVALUATED is absence of a retained assessment, not a low-risk result;
-  the detail view discloses missing merchant/payee/name/place facts. The reviewed
+  the detail view displays labeled fixture context when available and otherwise
+  discloses missing merchant/payee/name/place facts. The reviewed
   native XGBoost synthetic bundle replayed offline, but the local API has no model
   bundle configured and intake never auto-evaluates. Real registry entries must
   not be attached to fictional transfers as if they were payment evidence.

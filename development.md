@@ -66,6 +66,7 @@ Preview the fixed Phase 16 transaction plan without a database:
 ```sh
 .venv/bin/python -m backend.adapters.demo
 .venv/bin/python -m backend.adapters.demo --manifest
+.venv/bin/python -m backend.adapters.demo --evidence-package  # fictional review context
 .venv/bin/python -m backend.adapters.demo --progress  # requires TEST_DATABASE_URL
 .venv/bin/python -m backend.adapters.demo --walkthrough  # concise read-only guide
 .venv/bin/python -m backend.adapters.demo --apply-stage BASELINE  # staged facts only
@@ -92,6 +93,14 @@ manifest IDs and requires the earlier facts plus independent stored evidence
 before later stages. See the demo guide and ADR-032. It never scripts a review;
 the existing bulk `--apply` remains a facts-only shortcut and does not prove
 point-in-time availability.
+
+`demo-review-evidence-v1` is a separate, read-only companion to the immutable
+transaction facts. Its SHA-256 is
+`436c1c24119a12a7df63bf9f6ea4888a19c021b1eec94d4df945e83983687185`.
+When experimental mode is enabled, authenticated scoped console users see the
+matching entry in a transaction drawer. Every entry is explicitly fictional,
+not real-world verified and not a supplied verdict. C and E intentionally retain
+unavailable supporting context. See ADR-033.
 
 ```sh
 .venv/bin/uvicorn backend.main:app --reload --host 127.0.0.1

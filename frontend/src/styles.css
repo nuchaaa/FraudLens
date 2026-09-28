@@ -80,3 +80,5 @@ textarea { min-height:100px; resize:vertical; }
 .evaluation-form { margin-top:16px; padding:16px; border:1px solid var(--line); border-radius:10px; background:#0d1d2d; }
 .evaluation-form label { display:grid; gap:8px; color:#aebed0; font-size:13px; font-weight:600; margin:14px 0; }
 .evaluation-form .primary { margin-top:8px; }
+.demo-evidence .notice { margin:0 0 16px; }
+.evidence-artifacts { margin-top:18px; }.evidence-artifacts h4 { margin:0 0 8px; }.evidence-artifacts article { display:grid; gap:4px; padding:10px 12px; margin-top:7px; border:1px solid #594323; border-radius:8px; background:#201b13; }.evidence-artifacts article strong { color:#f1c567; font-size:12px; }.evidence-artifacts article span { color:#bdc9d6; font-size:12px; }.evidence-artifacts article small { color:#71869c; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }

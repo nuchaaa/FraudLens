@@ -28,6 +28,30 @@ export type WorklistItem = {
 
 export type Worklist = { items: WorklistItem[]; next_cursor: string | null };
 
+export type DemoEvidence = {
+  version: string;
+  transaction_id: string;
+  customer_id: string;
+  scenario: string;
+  synthetic_only: true;
+  real_world_verified: false;
+  production_eligible: false;
+  verdict_provided: false;
+  sender_display_name: string;
+  counterparty_display_name: string;
+  counterparty_type: string;
+  payment_purpose: string;
+  location: {
+    display: string;
+    source: string;
+    verified_real_world_location: false;
+  };
+  payment_reference: string;
+  support_status: "SUPPORTED" | "PARTIAL" | "UNAVAILABLE";
+  artifacts: Array<{ kind: string; reference: string; summary: string }>;
+  limitations: string;
+};
+
 export type Summary = {
   as_of: string;
   transaction_time_basis: string;

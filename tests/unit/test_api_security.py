@@ -9,6 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from backend.adapters.security import CredentialRegistry
+from backend.app.demo.scenarios import build_plan
 from backend.app.shared.security import Forbidden, Principal, Role
 from backend.app.transaction.entities import TransactionStatus
 from backend.app.transaction.service import (
@@ -93,6 +94,49 @@ def test_missing_credentials_fail_closed_and_missing_storage_is_503():
         response = client.get(path, headers={"Authorization": f"Bearer {TOKEN}"})
         assert response.status_code == 503
         assert client.get("/health/live").status_code == 200
+
+
+def test_demo_evidence_is_opt_in_authenticated_scoped_and_read_only():
+    event = build_plan().events[0]
+    scoped = credential(customer_ids=[str(event.transaction.customer_id)])
+    path = f"/api/v1/experimental/demo/evidence/{event.transaction.transaction_id}"
+    settings = Settings(
+        environment="test",
+        database_url=None,
+        api_principals=json.dumps([scoped]),
+        experimental_enabled=True,
+        _env_file=None,
+    )
+    with TestClient(create_app(settings)) as client:
+        assert client.get(path).status_code == 401
+        response = client.get(path, headers={"Authorization": f"Bearer {TOKEN}"})
+        assert response.status_code == 200
+        assert response.headers["cache-control"] == "no-store"
+        assert response.json()["synthetic_only"] is True
+        assert response.json()["real_world_verified"] is False
+        assert response.json()["verdict_provided"] is False
+        assert (
+            client.get(
+                f"/api/v1/experimental/demo/evidence/{uuid4()}",
+                headers={"Authorization": f"Bearer {TOKEN}"},
+            ).status_code
+            == 404
+        )
+
+    unscoped = credential()
+    with TestClient(
+        create_app(
+            settings.model_copy(
+                update={"api_principals": __import__("pydantic").SecretStr(json.dumps([unscoped]))}
+            )
+        )
+    ) as client:
+        assert client.get(path, headers={"Authorization": f"Bearer {TOKEN}"}).status_code == 404
+
+    with TestClient(
+        create_app(settings.model_copy(update={"experimental_enabled": False}))
+    ) as client:
+        assert client.get(path, headers={"Authorization": f"Bearer {TOKEN}"}).status_code == 503
 
 
 @pytest.mark.parametrize("key", ["", " edge", "trailing ", "two words", "a" * 201, "é", "a\nb"])

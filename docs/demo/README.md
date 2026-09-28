@@ -9,6 +9,13 @@ instructions against real customer data or a remote service.
    `.venv/bin/python -m backend.adapters.demo --manifest`. The fixed manifest
    lists every customer/transaction UUID, timestamp and authored story. Its
    SHA-256 is `4645220dd30cfabb12e8a22688a45035d81e352fe2ef5998f6f16a33019f26c8`.
+   Separately inspect
+   `.venv/bin/python -m backend.adapters.demo --evidence-package`. The
+   `demo-review-evidence-v1` package has SHA-256
+   `436c1c24119a12a7df63bf9f6ea4888a19c021b1eec94d4df945e83983687185`.
+   It supplies clearly fictional names, purposes, locations and artifact
+   summaries for role-play review; it changes no transaction fact and supplies
+   no verdict. C and E deliberately report unavailable support.
 2. Set `TEST_DATABASE_URL` to the disposable socket URL from `development.md`.
    For a quick facts-only worklist, explicitly run
    `.venv/bin/python -m backend.adapters.demo --apply`. A rerun
@@ -60,6 +67,12 @@ instructions against real customer data or a remote service.
    vehicle payment is 8M KZT; C is a later 500k transfer by the same customer
    to a new recipient. D and E contain the authored progression sequences.
    The `BC` rows are the shared prior history for B and C.
+   With experimental mode enabled, opening one of these deterministic rows also
+   retrieves its authenticated, scope-checked fictional evidence entry. The
+   warning panel says `real_world_verified=false` and must remain visible to
+   reviewers. `SUPPORTED` means the role-play packet contains authored documents;
+   it is not a legitimacy label. Non-fixture transactions continue to show the
+   explicit missing-context message.
 4. If experimental routes are enabled locally, evaluate any transaction with
    an explicit absent profile: `POST /api/v1/experimental/evaluations`, an
    `Idempotency-Key`, and a body such as
