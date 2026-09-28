@@ -27,7 +27,9 @@ do not establish legitimacy, score risk or admit transactions.
   skipped, 90% combined backend/ML coverage on disposable PostgreSQL 17.10;
   Ruff/format, strict mypy (138 source files) and offline source/wheel build
   passed. Two existing upstream deprecations remain. No migration, dependency
-  or frontend changed.
+  or frontend changed. Draft stacked PR #3
+  (`codex/phase17-profile-experiment` against the Phase 16 branch) is open;
+  both backend and both frontend GitHub checks passed on code head `6c29c7f`.
 
 - [x] Completed controlled Phase 16 simulator: `data/synthetic` contains deterministic
   `customers.csv`, `recipients.csv`, `transactions.csv` and
