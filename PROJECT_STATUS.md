@@ -104,7 +104,10 @@ do not establish legitimacy, score risk or admit transactions.
   checkpoint. After the final C-stage guard edit, 11 focused PostgreSQL/unit
   tests and global Ruff/format/mypy passed. Two upstream deprecation warnings
   remain. Docker engine and
-  remote CI verification pending for the socket-based demo test fix. No dependencies
+  remote CI verification pending for the socket-based demo test fix. A local
+  branch `codex/fix-demo-ci-and-evaluation-context` contains the repair;
+  automatic approval review rejected pushing it to GitHub without explicit
+  user authorization. No dependencies
   or migrations changed this checkpoint. The transaction worklist now explains
   that NOT EVALUATED is absence of a retained assessment, not a low-risk result;
   the detail view discloses missing merchant/payee/name/place facts. The reviewed

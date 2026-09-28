@@ -64,6 +64,11 @@ was isolated to a fresh schema to remove order dependence. Locally 578 tests
 passed, zero skipped, 90% coverage, with Ruff/format/mypy and frontend
 lint/9 tests/build passing. Remote CI verification is pending; inspect the
 latest run before claiming it green.
+The local fix branch is `codex/fix-demo-ci-and-evaluation-context` at commit
+`f5b15ef`. Automatic approval review rejected its attempted push to the
+GitHub remote because publication was not explicitly authorized. Do not retry
+via another method; await explicit user authorization before pushing or opening
+a PR. The remote CI status remains unverified.
 
 The --progress and --walkthrough commands use a repeatable-read, read-only
 PostgreSQL snapshot under a local Unix-socket *_test/non-production guard.

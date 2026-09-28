@@ -899,3 +899,8 @@
   upstream deprecation warnings remain. No schema/dependency change, profile
   admission, scripted review or new predictive metric. Remote CI verification
   remains pending at this checkpoint.
+- Committed the changes locally on branch
+  `codex/fix-demo-ci-and-evaluation-context` (initial commit `f5b15ef`).
+  Automatic approval review rejected the attempted GitHub push as consequential
+  source-code egress without explicit user authorization. No alternate upload
+  was attempted; GitHub CI cannot be claimed green until publication is approved.
