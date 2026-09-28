@@ -32,3 +32,16 @@ transactions to profiles. Freeze train/validation/test periods before inspecting
 An external dataset may support a narrower nonbehavioral benchmark, but that needs its
 own ordered feature version and honest comparison boundaries. The ULB source manifest, notice and frozen protocol now document that narrower benchmark.
 No production baseline or behavioral external validation is claimed.
+
+## Phase 17 manifest-level readiness check
+
+The versioned [behavioral readiness contract](phase17-dataset-readiness-v1-contract.md)
+now turns these gaps into explicit PASS/FAIL/UNKNOWN checks on a small source
+manifest. The frozen `ulb-known.json` audit is `BLOCKED`: six requirements are
+explicitly absent and ten are unestablished, including arrival, label
+availability and trusted admission provenance. Its source hash and version
+come from the already committed ULB v3 metadata; no raw rows or final-test
+scores are reprocessed. A fictional complete manifest is only
+`READY_FOR_ROW_AUDIT`, never eligible for behavioral validation. The auditor
+cannot authenticate legal permission, inspect row chronology or verify
+point-in-time evidence; those remain separate prerequisites.

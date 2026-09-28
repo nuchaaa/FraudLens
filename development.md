@@ -322,6 +322,21 @@ The pinned SHA256 check rejects changed source bytes. Label availability, arriva
 customer identity and upstream PCA fitting scope remain unknown. This is retrospective
 benchmark evidence only; it does not authorize deployment or behavioral-profile learning.
 
+## Phase 17 behavioral dataset readiness audit
+
+The offline manifest auditor reads no transaction rows and performs no training.
+See `ml/experiments/phase17-dataset-readiness-v1/README.md` for the frozen four-manifest
+command, result hashes and limitations. To inspect a new candidate manifest:
+
+```sh
+.venv/bin/python -m ml.src.datasets.readiness --manifest /path/to/candidate.json
+```
+
+`BLOCKED` identifies absent/unknown required fields. `READY_FOR_ROW_AUDIT`
+means only that declarations are complete; neither status authorizes behavioral
+training or production use. The auditor does not verify a manifest's license,
+privacy controls, source bytes or point-in-time row chronology.
+
 ## Phase 8 experimental native inference
 
 Use the optional ML group and libomp as above. Export only an existing reviewed local run:

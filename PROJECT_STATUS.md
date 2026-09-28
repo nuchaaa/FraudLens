@@ -1,11 +1,28 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 17 third offline research checkpoint complete.** A separate, predeclared append-only fixture now retains original point-in-time gate views and issues explicitly requested corrected offline projections. A late-arriving older event is refused by the unchanged gate after a newer admission; chronological replay later admits both without changing the original six-observation view. A later revoked simulated confirmation is removed only from a new corrected view; the original accepted view remains and revocation does not assert fraud. Correction request replay is idempotent. Source and report are frozen under independent hashes. These are synthetic software mechanisms, not authorized live corrections, verified labels, detection performance, calibration or production validation. Phase 16's original deterministic-demo objective remains complete; its optional live analyst walkthrough and Phase 15 remote security remain separate open tracks.
-Next work: **Phase 17 fourth checkpoint:** define and implement a read-only dataset-readiness auditor for future behavioral validation data. Predeclare required customer/recipient/currency/time/label/feedback/retraction provenance, chronology and privacy controls; reject incomplete sources with explicit reasons. Do not train or calibrate on unsuitable data. The parked analyst walkthrough requires new independent reviewer evidence; production security remains closed.
+Current checkpoint: **Phase 17 fourth offline research checkpoint complete.** A predeclared, read-only dataset-readiness auditor now checks versioned manifests for source/legal/privacy provenance, behavioral identities, point-in-time clocks, trusted admission provenance and a declared chronological/held-out-customer split. It distinguishes explicit absence from unknown evidence. A fictional complete manifest is only `READY_FOR_ROW_AUDIT`, never behavioral-validation eligible. The ULB v3 metadata is `BLOCKED` for behavior-v1 by six explicit failures and ten unknowns; no ULB rows or frozen test scores were reused. No suitable real behavioral validation source has been established in this repository. These are source-claim checks, not row-level, legal or production approvals. Phase 16's original deterministic-demo objective remains complete; its optional live analyst walkthrough and Phase 15 remote security remain separate open tracks.
+Next work: **Phase 17 prospective validation protocol:** pre-register the future data-access and evaluation plan before any suitable real behavioral stream is received. Define independent label and availability review, chronological/customer holdouts, operating-point selection and uncertainty reporting without estimating metrics from fictional data. Do not train or calibrate until source permission, row-level chronology and provenance are independently verified. The parked analyst walkthrough requires new independent reviewer evidence; production security remains closed.
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
 ## Completed capabilities
+
+- [x] Phase 17 fourth research checkpoint: predeclared
+  `docs/research/phase17-dataset-readiness-v1-contract.md` and implemented a
+  manifest-only auditor at `ml/src/datasets/readiness.py`. Four frozen small
+  manifests cover fictional declared completeness, missing chronology,
+  unknown label availability and committed ULB v3 metadata. The report SHA-256
+  is `24741c4c30671b0c38e2b2136186f6281e7507b4265460cb18a6eb55ca10182e`.
+  Fictional completeness permits only later row audit; the other three are
+  BLOCKED with stable machine-readable failure/unknown codes. ULB has six
+  explicit absent requirements and ten unestablished ones. Every result has
+  `behavioral_validation_eligible=false` and `production_eligible=false`.
+  No raw/private source rows, model, risk policy, database, frontend,
+  migration or dependency changed; no field metrics were created. Final
+  disposable PostgreSQL 17.10 regression: 609 Python tests passed, zero
+  skipped, 90% combined backend/ML coverage. Ruff/format, strict mypy (141
+  source files) and offline source/wheel build passed. Two existing upstream
+  Starlette/AnyIO warnings remain. Draft stacked PR #3 remains open.
 
 - [x] Phase 17 third research fixture: predeclared
   `docs/research/phase17-retraction-replay-v1-protocol.md` and frozen
@@ -767,15 +784,15 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Exact next tasks
 
-1. Predeclare a behavioral dataset-readiness contract for future retrospective
-   or prospective evaluation: customer/recipient/currency identity, event and
-   arrival clocks, label and feedback availability, revocations, consent/license,
-   privacy handling, and held-out time/customer split feasibility.
-2. Implement a read-only auditor that emits versioned machine-readable reasons
-   when a supplied manifest lacks provenance or point-in-time fields. Test it
-   with small frozen synthetic valid/invalid manifests; do not load real private
-   bank data or turn this into training/model selection. Keep ULB separate from
-   behavior-v1 because it lacks the needed identity and availability fields.
+1. Pre-register a prospective behavioral validation protocol for a future,
+   independently permitted source. Specify data-access authority and privacy
+   review, row-level event/arrival/label/revocation chronology checks, trusted
+   admission provenance, chronological and held-out-customer partitions,
+   validation-only operating-point selection and uncertainty reporting.
+2. Define stop conditions and a reproducible evidence package for independent
+   review. Do not claim that a complete manifest verifies real rows or that
+   ULB/fictional fixtures satisfy behavior-v1. Do not train, tune risk-v2 or
+   calculate new predictive metrics until suitable data is obtained and checked.
 3. Keep the optional live analyst walkthrough parked until independent reviewers
    supply new evidence. Keep Phase 15 remote human auth and deployment closed
    pending institutional recovery, real four-role/TLS topology and security review.

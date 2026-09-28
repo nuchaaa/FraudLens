@@ -73,4 +73,8 @@ predeclares a new append-only offline correction fixture for late arrivals and
 revoked simulated confirmations. None provides external adaptive-profile
 validation, authenticated correction authority or calibrated risk. ADR-013
 records the separate ULB retrospective benchmark with unknown arrival/label
-availability and PCA fitting scope. Neither establishes a production baseline.
+availability and PCA fitting scope. The read-only
+[`phase17-dataset-readiness-v1-contract.md`](phase17-dataset-readiness-v1-contract.md)
+audits source manifests for these gaps before any new behavioral validation
+can be proposed. A complete manifest still needs row-level and independent
+evidence review. None establishes a production baseline.
