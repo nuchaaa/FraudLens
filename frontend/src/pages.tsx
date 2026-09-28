@@ -38,8 +38,8 @@ function MiniTable({ items }: { items: WorklistItem[] }) {
   return <div className="mini-list">{items.map((item) => <div className="mini-row" key={item.transaction.transaction_id}><div className="transaction-symbol">↗</div><div><strong>{formatMoney(item.transaction.amount, item.transaction.currency)}</strong><span><ShortId value={item.transaction.customer_id} /> · {formatTime(item.transaction.timestamp)}</span></div><Badge tone={riskTone(item.risk_level)}>{evaluationLabel(item)}</Badge></div>)}</div>;
 }
 
-export function Transactions({ api, title, items, loading, error, cursor, more, casesOnly, refreshed }: {
-  api: FraudLensApi; title: string; items: WorklistItem[]; loading: boolean; error: string; cursor: string | null; more: () => void; casesOnly: boolean; refreshed: () => void;
+export function Transactions({ api, title, items, loading, error, cursor, more, casesOnly, canEvaluate, refreshed }: {
+  api: FraudLensApi; title: string; items: WorklistItem[]; loading: boolean; error: string; cursor: string | null; more: () => void; casesOnly: boolean; canEvaluate: boolean; refreshed: () => void;
 }) {
   const [query, setQuery] = useState("");
   const [risk, setRisk] = useState("ALL");
@@ -56,11 +56,11 @@ export function Transactions({ api, title, items, loading, error, cursor, more, 
       {!!filtered.length && <div className="table-scroll"><table><thead><tr><th>Transaction</th><th>Time</th><th>Customer</th><th>Amount</th><th>Risk</th><th>Decision</th><th>Case</th></tr></thead><tbody>{filtered.map((item) => <tr key={item.transaction.transaction_id} onClick={() => setSelected(item)} tabIndex={0} onKeyDown={(event) => event.key === "Enter" && setSelected(item)}><td><ShortId value={item.transaction.transaction_id} /><small>{item.transaction.channel}</small></td><td>{formatTime(item.transaction.timestamp)}</td><td><ShortId value={item.transaction.customer_id} /></td><td className="amount">{formatMoney(item.transaction.amount, item.transaction.currency)}</td><td><Badge tone={riskTone(item.risk_level)}>{evaluationLabel(item)}</Badge>{item.score != null && <small>{Math.round(item.score * 100)} · uncalibrated</small>}</td><td>{item.suggested_action?.replaceAll("_", " ") ?? "—"}</td><td>{item.case_state ? <Badge tone={item.case_state === "UNDER_REVIEW" ? "medium" : "neutral"}>{item.case_state.replaceAll("_", " ")}</Badge> : "—"}</td></tr>)}</tbody></table></div>}
     </div>
     {cursor && !casesOnly && <button className="load-more" onClick={more}>Load older records</button>}
-    {selected && <TransactionDetail api={api} item={selected} close={() => setSelected(null)} refreshed={refreshed} />}
+    {selected && <TransactionDetail api={api} item={selected} canEvaluate={canEvaluate} close={() => setSelected(null)} refreshed={refreshed} />}
   </section>;
 }
 
-function TransactionDetail({ api, item, close, refreshed }: { api: FraudLensApi; item: WorklistItem; close: () => void; refreshed: () => void }) {
+function TransactionDetail({ api, item, canEvaluate, close, refreshed }: { api: FraudLensApi; item: WorklistItem; canEvaluate: boolean; close: () => void; refreshed: () => void }) {
   const [evaluation, setEvaluation] = useState<EvaluationDocument | null>(null);
   const [caseDoc, setCaseDoc] = useState<CaseDocument | null>(null);
   const [error, setError] = useState("");
@@ -72,14 +72,61 @@ function TransactionDetail({ api, item, close, refreshed }: { api: FraudLensApi;
       .catch((reason: unknown) => active && setError(reason instanceof Error ? reason.message : "Detail request failed"));
     return () => { active = false; };
   }, [api, item]);
+  const displayedRisk = evaluation?.risk.level ?? (evaluation ? evaluation.risk.status.replaceAll("_", " ") : evaluationLabel(item));
   return <div className="drawer-backdrop" onMouseDown={(event) => event.target === event.currentTarget && close()}><aside className="drawer" aria-label="Transaction details"><div className="drawer-head"><div><span className="eyebrow">TRANSACTION DETAIL</span><h2>{formatMoney(item.transaction.amount, item.transaction.currency)}</h2><span><ShortId value={item.transaction.transaction_id} /></span></div><button onClick={close} aria-label="Close details">×</button></div>
     {error && <State error={error} />}
     <section className="detail-section"><h3>Transaction facts</h3><div className="fact-grid"><Fact label="Customer"><ShortId value={item.transaction.customer_id} /></Fact><Fact label="Recipient"><ShortId value={item.transaction.recipient_id} /></Fact><Fact label="Occurred">{formatTime(item.transaction.timestamp)}</Fact><Fact label="Channel / device">{item.transaction.channel} · {item.transaction.device_id}</Fact><Fact label="Immutable status"><Badge>{item.transaction.status}</Badge></Fact></div></section>
     <section className="detail-section"><h3>Missing payment context</h3><p className="muted">This intake record has no sender or receiver name, merchant or registered-business identity, purchase purpose, or verified place of payment. Customer and recipient UUIDs are identifiers, not names. A small amount does not establish legitimacy.</p></section>
-    <section className="detail-section"><div className="section-title"><h3>Experimental risk</h3><Badge tone={riskTone(item.risk_level)}>{evaluationLabel(item)}</Badge></div>{!item.evaluation_id ? <p className="muted">No retained evaluation exists. The transaction remains RECEIVED.</p> : !evaluation ? <State loading /> : <><div className="risk-hero"><strong>{evaluation.risk.score == null ? "—" : `${Math.round(evaluation.risk.score * 100)}`}</strong><span>{evaluation.risk.score == null ? "Insufficient evidence" : "uncalibrated index / 100"}</span></div><div className="fact-grid"><Fact label="Strategy">{evaluation.risk.policy.strategy}</Fact><Fact label="Suggested action">{evaluation.risk.suggested_action?.replaceAll("_", " ") ?? "None"}</Fact><Fact label="Profile revision">{evaluation.risk.profile_version ?? "Explicitly absent"}</Fact><Fact label="Production eligible"><Badge tone="critical">No</Badge></Fact></div><ReasonList evaluation={evaluation} /></>}</section>
+    <section className="detail-section"><div className="section-title"><h3>Experimental risk</h3><Badge tone={riskTone(evaluation?.risk.level ?? item.risk_level)}>{displayedRisk}</Badge></div>{!item.evaluation_id && !evaluation ? <><p className="muted">No retained evaluation exists. The transaction remains RECEIVED.</p>{canEvaluate && <RuleEvaluationForm api={api} transactionId={item.transaction.transaction_id} saved={(created) => { setEvaluation(created); refreshed(); }} />}</> : !evaluation ? <State loading /> : <><div className="risk-hero"><strong>{evaluation.risk.score == null ? "—" : `${Math.round(evaluation.risk.score * 100)}`}</strong><span>{evaluation.risk.score == null ? "Insufficient evidence" : "uncalibrated index / 100"}</span></div><div className="fact-grid"><Fact label="Strategy">{evaluation.risk.policy.strategy}</Fact><Fact label="Suggested action">{evaluation.risk.suggested_action?.replaceAll("_", " ") ?? "None"}</Fact><Fact label="Profile revision">{evaluation.risk.profile_version ?? "Explicitly absent"}</Fact><Fact label="Production eligible"><Badge tone="critical">No</Badge></Fact></div><ReasonList evaluation={evaluation} /></>}</section>
+    {canEvaluate && evaluation && !caseDoc && !item.case_id && <OpenCaseForm api={api} evaluationId={evaluation.evaluation_id} saved={(created) => { setCaseDoc(created); refreshed(); }} />}
     {caseDoc && <section className="detail-section"><div className="section-title"><h3>Review case</h3><Badge tone={caseDoc.state === "UNDER_REVIEW" ? "medium" : "neutral"}>{caseDoc.state.replaceAll("_", " ")}</Badge></div><p className="muted">Version {caseDoc.version} · {caseDoc.feedback.length} feedback record(s). Feedback does not update the profile.</p><button className="primary compact" onClick={() => setReviewing(true)}>Review case</button></section>}
     {reviewing && caseDoc && <ReviewDialog api={api} value={caseDoc} close={() => setReviewing(false)} saved={(next) => { setCaseDoc(next); setReviewing(false); refreshed(); }} />}
   </aside></div>;
+}
+
+function RuleEvaluationForm({ api, transactionId, saved }: { api: FraudLensApi; transactionId: string; saved: (value: EvaluationDocument) => void }) {
+  const [basis, setBasis] = useState<"" | "absent" | "revision">("");
+  const [revision, setRevision] = useState("");
+  const [key, setKey] = useState(() => crypto.randomUUID());
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const version = Number(revision);
+  const valid = basis === "absent" || (basis === "revision" && Number.isSafeInteger(version) && version > 0);
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (!valid) return;
+    setBusy(true); setError("");
+    try {
+      saved(await api.evaluateRules(transactionId, basis === "absent" ? null : version, key));
+    } catch (reason) { setError(reason instanceof Error ? reason.message : "Evaluation failed"); }
+    finally { setBusy(false); }
+  }
+  return <form className="evaluation-form" onSubmit={(event) => void submit(event)}>
+    <p className="muted">Admin-only rules evaluation. It retains an experimental assessment, never executes a banking action or admits the transaction to a profile. ML requires a separately configured reviewed bundle.</p>
+    <label>Profile evidence<select value={basis} onChange={(event) => { setBasis(event.target.value as typeof basis); setKey(crypto.randomUUID()); }}><option value="">Choose explicitly</option><option value="absent">Assert no admitted profile</option><option value="revision">Use a pinned pre-decision revision</option></select></label>
+    {basis === "revision" && <label>Pinned profile revision<input type="number" min="1" step="1" value={revision} onChange={(event) => { setRevision(event.target.value); setKey(crypto.randomUUID()); }} required /></label>}
+    <p className="fineprint">A revision selected today is not proof it existed at the original decision. The API rejects incompatible profile assertions.</p>
+    {error && <div className="form-error" role="alert">{error}</div>}
+    <button className="primary compact" disabled={busy || !valid}>{busy ? "Evaluating…" : "Run rules-only evaluation"}</button>
+  </form>;
+}
+
+function OpenCaseForm({ api, evaluationId, saved }: { api: FraudLensApi; evaluationId: string; saved: (value: CaseDocument) => void }) {
+  const [key] = useState(() => crypto.randomUUID());
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  async function open() {
+    setBusy(true); setError("");
+    try { saved(await api.openCase(evaluationId, key)); }
+    catch (reason) { setError(reason instanceof Error ? reason.message : "Case creation failed"); }
+    finally { setBusy(false); }
+  }
+  return <section className="detail-section">
+    <h3>Review case</h3>
+    <p className="muted">Opening a case creates review work only. It does not assert fraud, legitimacy or permission to update a profile.</p>
+    {error && <div className="form-error" role="alert">{error}</div>}
+    <button className="secondary" disabled={busy} onClick={() => void open()}>{busy ? "Opening…" : "Open review case"}</button>
+  </section>;
 }
 
 function ReasonList({ evaluation }: { evaluation: EvaluationDocument }) {

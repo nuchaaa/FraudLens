@@ -323,6 +323,93 @@ def test_human_policy_scope_csrf_and_authorization_before_replay(browser):
     assert client.get(f"/api/v1/customers/{customer}/profiles/KZT").status_code == 200
 
 
+def test_local_admin_can_capture_rules_only_evaluation_but_analyst_cannot(db_engine):
+    settings = Settings(
+        environment="test",
+        human_auth_enabled=True,
+        human_origin=ORIGIN,
+        human_local_insecure=True,
+        experimental_enabled=True,
+        _env_file=None,
+    )
+    app = create_app(settings, uow_factory=partial(create_unit_of_work, db_engine))
+    with TestClient(app, base_url=ORIGIN) as client:
+        identity = app.state.services.identity
+        assert identity is not None
+        customer = uuid4()
+        identity.provision(
+            "evaluation-admin", PASSWORD, Role.ADMIN, frozenset(), operator_id=uuid4()
+        )
+        identity.provision(
+            "evaluation-analyst",
+            PASSWORD,
+            Role.ANALYST,
+            frozenset({customer}),
+            operator_id=uuid4(),
+        )
+        admin_session = _login(client, "evaluation-admin")
+        assert admin_session.status_code == 200
+        headers = {
+            "Origin": ORIGIN,
+            "X-CSRF-Token": admin_session.json()["csrf"],
+            "Idempotency-Key": "evaluation-ui-customer",
+        }
+        assert (
+            client.post(
+                "/api/v1/customers",
+                json={"customer_id": str(customer), "timezone": "UTC"},
+                headers=headers,
+            ).status_code
+            == 201
+        )
+        transaction_id = uuid4()
+        transaction = {
+            "transaction_id": str(transaction_id),
+            "customer_id": str(customer),
+            "recipient_id": str(uuid4()),
+            "amount": "25000.00",
+            "currency": "KZT",
+            "timestamp": datetime.now(UTC).isoformat(),
+            "channel": "MOBILE",
+            "device_id": "synthetic-evaluation-device",
+        }
+        headers["Idempotency-Key"] = "evaluation-ui-transaction"
+        assert (
+            client.post("/api/v1/transactions", json=transaction, headers=headers).status_code
+            == 201
+        )
+        evaluation = {
+            "transaction_id": str(transaction_id),
+            "profile_version": None,
+            "strategy": "rules_only",
+            "manifest_sha256": None,
+        }
+        headers["Idempotency-Key"] = "evaluation-ui-rules"
+        created = client.post("/api/v1/experimental/evaluations", json=evaluation, headers=headers)
+        assert created.status_code == 201, created.text
+        assert created.json()["risk"]["status"] == "INSUFFICIENT_EVIDENCE"
+        assert (
+            client.post(
+                "/api/v1/experimental/evaluations",
+                json=evaluation,
+                headers=headers,
+            ).headers["Idempotency-Replayed"]
+            == "true"
+        )
+        analyst_session = _login(client, "evaluation-analyst")
+        assert analyst_session.status_code == 200
+        headers["X-CSRF-Token"] = analyst_session.json()["csrf"]
+        headers["Idempotency-Key"] = "evaluation-ui-analyst-denied"
+        assert (
+            client.post(
+                "/api/v1/experimental/evaluations",
+                json=evaluation,
+                headers=headers,
+            ).status_code
+            == 403
+        )
+
+
 def test_secure_cookie_configuration_and_trusted_host(db_engine):
     origin = "https://fraudlens.example"
     settings = Settings(

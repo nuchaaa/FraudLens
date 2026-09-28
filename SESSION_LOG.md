@@ -924,3 +924,10 @@
   demo guide and updated the checkpoint/continuation prompt. B/C baseline
   preservation and D adaptation remain NOT DEMONSTRATED; Phase 15 remote
   release and production behavioral validation remain open.
+
+## 2026-09-28 — Explicit local admin evaluation and case flow
+
+- Added an admin-only console action for an unevaluated transaction: the admin must explicitly assert an absent admitted profile or enter a pinned pre-decision revision before requesting rules-only evaluation. The form retains its idempotency key on retry and displays the persisted experimental result. The administrator may separately open a review case; neither action enters a verdict or admits profile history. Human analysts cannot submit evaluations from the console.
+- Reused existing backend API contracts, human-session CSRF, idempotency and authorization. A PostgreSQL integration test verifies a human admin can create and replay the evaluation while an analyst gets 403. Frontend tests cover admin request data, CSRF/idempotency headers, case creation and analyst UI restriction.
+- Local validation on disposable PostgreSQL 17.10: 579 tests passed, zero skipped, 90% combined backend/ML coverage; two existing upstream Starlette/AnyIO warnings. Ruff, format, strict mypy (131 source files), frontend ESLint, 11 Vitest tests and Vite build passed. Initial sandboxed pytest could not access the PostgreSQL Unix socket; the successful full run used approved socket access. No migration, dependency, model configuration, reviewer verdict or profile admission changed.
+- The staged B/C/D demonstration remains blocked by lack of independently verified transaction-linked evidence. Production human authentication and behavioral validation remain open.

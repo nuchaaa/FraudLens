@@ -98,7 +98,7 @@ function Console({ session, disconnect }: { session: HumanSession; disconnect: (
           <div className="top-actions"><span className="experimental-pill">Experimental data</span><button onClick={refresh} aria-label="Refresh data">↻</button></div>
         </header>
         {page === "overview" && <Overview api={api} summary={summary} items={items} loading={loading} error={error} openTransactions={() => setPage("transactions")} />}
-        {(page === "transactions" || page === "cases") && <Transactions api={api} title={page === "cases" ? "Fraud cases" : "Transaction worklist"} items={shownItems} loading={loading} error={error} cursor={cursor} more={more} casesOnly={page === "cases"} refreshed={() => setRefreshKey((v) => v + 1)} />}
+        {(page === "transactions" || page === "cases") && <Transactions api={api} title={page === "cases" ? "Fraud cases" : "Transaction worklist"} items={shownItems} loading={loading} error={error} cursor={cursor} more={more} casesOnly={page === "cases"} canEvaluate={session.role === "admin"} refreshed={() => setRefreshKey((v) => v + 1)} />}
         {page === "customers" && <Customers api={api} />}
         {page === "models" && <Models items={items} />}
         {page === "system" && <><System summary={summary} />{session.role === "analyst" && <SecurityKeyEnrollment api={api} />}</>}

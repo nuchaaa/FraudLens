@@ -505,8 +505,9 @@ tests, never as a restart procedure. See ADR-019 for the consumer contract and l
 
 ## Phase 14 analyst console
 
-The console requires the backend, PostgreSQL and an expiring analyst/admin credential from
-the “Authenticated synthetic API” section above. Keep the backend terminal running, then:
+The console requires the backend, PostgreSQL and a locally provisioned human
+analyst/admin account from the Phase 15 instructions below. Keep the backend
+terminal running, then:
 
 ```sh
 cd frontend
@@ -529,6 +530,16 @@ Both routes return `Cache-Control: no-store`. An empty scope returns empty data.
 fields mean no evaluation or insufficient evidence. The console labels every result as
 experimental, uncalibrated and production-ineligible and never changes RECEIVED transaction
 status. Review buttons call the existing versioned/idempotent API after a confirmation dialog.
+For a transaction without a retained evaluation, a local admin can open its detail
+drawer and run an experimental rules-only evaluation. The form requires an explicit
+assertion that no admitted profile exists or a pinned pre-decision revision; it
+does not select today's profile automatically. The server enforces admin scope,
+CSRF, idempotency and experimental-write enablement. A result appears in the drawer
+and refreshed worklist. The admin may then open a review case as a separate
+explicit action; neither action supplies a verdict or admits profile history.
+Analysts cannot submit evaluations from the console; they review the separately
+opened cases. ML-only/hybrid use the existing API only when a reviewed native
+bundle is explicitly configured, and remain synthetic-only and uncalibrated.
 Profile learning remains an independent admin workflow and is intentionally absent from UI.
 
 For the production frontend bundle and checks:

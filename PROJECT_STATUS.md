@@ -1,7 +1,7 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 16 in progress — BASELINE and story A are seeded in the disposable local demo database; 49 fixture facts match and 13 candidates remain absent. Story A has a retained rules-only INSUFFICIENT_EVIDENCE evaluation. Phase 15 remote-human-security gate remains open and production human auth fails closed. Phases 0–14 and supplemental sequence evidence remain complete.**
-Next work: **Respect the reviewers' uncertainty: `analyst-two` recorded NEEDS_INVESTIGATION on both new BC/D cases because the facts do not establish legitimacy or fraud. Do not bootstrap from these cases or treat `analyst-one`'s ten LEGITIMATE entries as external verification. No profile or learning decision exists. B/C baseline preservation and D adaptation remain NOT DEMONSTRATED. The socket-based CI fix is reviewable in PR #1 and both backend/frontend checks passed. Remote deployment still requires institutional recovery proof/notification, authenticated admins, real four-role/TLS topology and independent security review. Production behavioral validation remains open.**
+Current checkpoint: **Phase 16 in progress — BASELINE and story A are seeded in the disposable local demo database; 49 fixture facts match and 13 candidates remain absent. Story A has a retained rules-only INSUFFICIENT_EVIDENCE evaluation. The local console now offers an explicit admin-only rules evaluation and separate case creation for unevaluated transactions. Phase 15 remote-human-security gate remains open and production human auth fails closed. Phases 0–14 and supplemental sequence evidence remain complete.**
+Next work: **Respect the reviewers' uncertainty: `analyst-two` recorded NEEDS_INVESTIGATION on both new BC/D cases because the facts do not establish legitimacy or fraud. Do not bootstrap from these cases or treat `analyst-one`'s ten LEGITIMATE entries as external verification. No profile or learning decision exists. B/C baseline preservation and D adaptation remain NOT DEMONSTRATED. PR #1 remains open; inspect CI for the latest console change. Remote deployment still requires institutional recovery proof/notification, authenticated admins, real four-role/TLS topology and independent security review. Production behavioral validation remains open.**
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
@@ -62,6 +62,13 @@ do not establish legitimacy, score risk or admit transactions.
   with no profile version advance. These checks inspect retained workflow
   records; they do not independently verify people or external legitimacy.
 - [ ] Phase 16 behavioral walkthrough remains pending external reviewer input.
+  The local console now lets a human admin explicitly run rules-only evaluation
+  on an unevaluated transaction with an absent-profile assertion or a pinned
+  pre-decision revision, then optionally open a separate review case. The
+  backend continues to enforce scope, CSRF, idempotency and opt-in experimental
+  writes; an analyst cannot submit an evaluation. Neither UI action creates a
+  verdict or learning decision, and the ML bundle remains unconfigured locally.
+  This is a usability improvement, not evidence that B/C/D have been demonstrated.
   On 2026-09-28 the user authorized step-by-step local setup. The guarded
   `--apply-stage BASELINE` command inserted 48 synthetic transaction facts and
   four customers into the working `fraudlens_test` database; read-only progress

@@ -77,3 +77,6 @@ textarea { min-height:100px; resize:vertical; }
 .security-key-enrollment .primary { max-width:300px; }
 .security-key-list { list-style:none; padding:0; display:grid; gap:10px; }
 .security-key-list li { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.evaluation-form { margin-top:16px; padding:16px; border:1px solid var(--line); border-radius:10px; background:#0d1d2d; }
+.evaluation-form label { display:grid; gap:8px; color:#aebed0; font-size:13px; font-weight:600; margin:14px 0; }
+.evaluation-form .primary { margin-top:8px; }

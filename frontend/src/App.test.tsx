@@ -17,15 +17,28 @@ const summary = {
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
-function mockApi(items: unknown[] = []) {
+function mockApi(items: unknown[] = [], role: "analyst" | "admin" = "analyst") {
   vi.stubGlobal("fetch", vi.fn(async (request: RequestInfo | URL) => {
     const url = String(request);
     if (url.endsWith("/auth/session")) return new Response("{}", { status: 401 });
-    const body = url.endsWith("/auth/login") ? session : url.includes("summary")
+    const body = url.endsWith("/auth/login") ? { ...session, role } : url.includes("summary")
       ? summary : { items, next_cursor: null };
     return new Response(JSON.stringify(body), { status: 200, headers: { "Content-Type": "application/json" } });
   }));
 }
+
+const unevaluatedItem = {
+  transaction: {
+    transaction_id: "00000000-0000-4000-8000-000000000020",
+    customer_id: "00000000-0000-4000-8000-000000000021",
+    recipient_id: "00000000-0000-4000-8000-000000000022",
+    amount: "25000.00", currency: "KZT", timestamp: "2026-09-22T10:00:00Z",
+    channel: "MOBILE", device_id: "synthetic", status: "RECEIVED",
+  },
+  evaluation_id: null, evaluation_created_at: null, evaluation_status: null,
+  strategy: null, score: null, risk_level: null, suggested_action: null,
+  case_id: null, case_state: null,
+};
 
 async function signIn() {
   fireEvent.change(await screen.findByLabelText("Login"), { target: { value: "analyst-one" } });
@@ -73,5 +86,71 @@ describe("analyst console", () => {
     await signIn();
     expect(await screen.findByText("INSUFFICIENT EVIDENCE")).toBeInTheDocument();
     expect(screen.queryByText("NOT EVALUATED")).not.toBeInTheDocument();
+  });
+
+  it("lets a local admin explicitly capture a rules-only evaluation", async () => {
+    const evaluated = {
+      evaluation_id: "00000000-0000-4000-8000-000000000023",
+      transaction_id: unevaluatedItem.transaction.transaction_id,
+      risk: {
+        status: "INSUFFICIENT_EVIDENCE", score: null, level: null,
+        suggested_action: null, profile_version: null, unavailable_rules: [],
+        policy: { strategy: "rules_only" }, prediction: null, rules: { outcomes: [] },
+      },
+      explanation: { readable: [], model: null },
+    };
+    const opened = {
+      case_id: "00000000-0000-4000-8000-000000000024",
+      evaluation_id: evaluated.evaluation_id,
+      transaction_id: unevaluatedItem.transaction.transaction_id,
+      state: "OPEN", version: 0, feedback: [], history: [],
+    };
+    const fetchMock = vi.fn(async (request: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(request);
+      if (url.endsWith("/auth/session")) return new Response("{}", { status: 401 });
+      const body = url.endsWith("/auth/login") ? { ...session, role: "admin" }
+        : url.endsWith("/api/v1/experimental/evaluations") && init?.method === "POST" ? evaluated
+          : url.endsWith("/api/v1/experimental/cases") && init?.method === "POST" ? opened
+          : url.includes("summary") ? summary : { items: [unevaluatedItem], next_cursor: null };
+      return new Response(JSON.stringify(body), {
+        status: body === evaluated || body === opened ? 201 : 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    render(<App />);
+    await signIn();
+    fireEvent.click(await screen.findByRole("button", { name: "Transactions" }));
+    fireEvent.click(await screen.findByRole("row", { name: /25,000/ }));
+    expect(screen.getByRole("button", { name: "Run rules-only evaluation" })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText("Profile evidence"), { target: { value: "absent" } });
+    fireEvent.click(screen.getByRole("button", { name: "Run rules-only evaluation" }));
+    await waitFor(() => expect(screen.getByText("INSUFFICIENT EVIDENCE")).toBeInTheDocument());
+    const call = fetchMock.mock.calls.find(([url, init]) =>
+      String(url).endsWith("/api/v1/experimental/evaluations") && init?.method === "POST");
+    expect(call).toBeDefined();
+    expect(JSON.parse(String(call?.[1]?.body))).toEqual({
+      transaction_id: unevaluatedItem.transaction.transaction_id,
+      profile_version: null,
+      strategy: "rules_only",
+      manifest_sha256: null,
+    });
+    expect(call?.[1]?.headers).toMatchObject({ "X-CSRF-Token": "csrf-value" });
+    expect(call?.[1]?.headers).toHaveProperty("Idempotency-Key");
+    expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/v1/experimental/cases"))).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Open review case" }));
+    await waitFor(() => expect(screen.getByText(/Version 0 · 0 feedback record/)).toBeInTheDocument());
+    const caseCall = fetchMock.mock.calls.find(([url, init]) =>
+      String(url).endsWith("/api/v1/experimental/cases") && init?.method === "POST");
+    expect(JSON.parse(String(caseCall?.[1]?.body))).toEqual({ evaluation_id: evaluated.evaluation_id });
+  });
+
+  it("does not offer evaluation writes to analysts", async () => {
+    mockApi([unevaluatedItem]);
+    render(<App />);
+    await signIn();
+    fireEvent.click(await screen.findByRole("button", { name: "Transactions" }));
+    fireEvent.click(await screen.findByRole("row", { name: /25,000/ }));
+    expect(screen.queryByRole("button", { name: "Run rules-only evaluation" })).not.toBeInTheDocument();
   });
 });
