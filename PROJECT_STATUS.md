@@ -23,7 +23,7 @@ do not establish legitimacy, score risk or admit transactions.
   skipped, 90% combined backend/ML coverage. Ruff/format, strict mypy (139
   source files) and offline source/wheel build passed. Two existing upstream
   Starlette/AnyIO warnings remain. PR #3 is open against PR #2; remote checks
-  for this new checkpoint require a push.
+  for this checkpoint are tracked on the PR.
 
 - [x] Phase 17 first research experiment: frozen
   `profile-comparison-stream-v1` source SHA-256
