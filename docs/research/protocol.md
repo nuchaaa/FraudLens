@@ -62,6 +62,10 @@ ml/experiments/phase7-synthetic-v1; these do not validate the adaptive-profile h
 ## Current experiment boundary
 
 ADR-012 records the static synthetic experiment and predeclared selection rules.
-No A/B/C/D adaptive comparison has run. ADR-013 now records a separate ULB retrospective
-external benchmark with unknown arrival/label availability and PCA fitting scope. It does
-not validate behavior-v1 or establish a production baseline.
+The first offline A/B/C/D-style **profiling mechanism** comparison is recorded in
+[`phase17-profile-comparison-v1-protocol.md`](phase17-profile-comparison-v1-protocol.md)
+and its frozen synthetic report. It tests four statistic/update combinations
+on one authored chronological stream; it is not an external adaptive-profile
+validation or a causal comparison of statistic and gate separately. ADR-013
+records the separate ULB retrospective benchmark with unknown arrival/label
+availability and PCA fitting scope. Neither establishes a production baseline.

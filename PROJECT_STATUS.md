@@ -1,11 +1,33 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 16 is complete against the original roadmap objective: deterministic synthetic demo data for five scenarios, with all five controlled checks visible in the local Scenario lab.** A separate seven-case falsification exercise documents benign review suggestions and a spaced attack that remains LOW/ALLOW. These are uncalibrated synthetic results, not production validation. The optional 62-transaction live analyst walkthrough is unfinished and tracked separately; it does not block starting Phase 17. Phase 15 remote security remains an external release gate.
-Next work: **Start Phase 17 research experiments:** compare arithmetic-mean static, robust median/MAD static, naive adaptive and gated adaptive profiling on the same frozen, chronological synthetic streams. Predeclare the experiment and label-availability assumptions before measuring anything. Do not reuse the A–E demo as threshold-selection data or resume the live walkthrough without new independent reviewer evidence. PR #2 remains open and unmerged; production validation and remote security remain open.
+Current checkpoint: **Phase 17 first offline profiling comparison complete.** A frozen new synthetic stream (four customers, 80 assumed baseline observations, 21 candidate events) was processed under four profile strategies with separate event, arrival and feedback-availability clocks. The naive adaptive mean admitted an 8M KZT payment before later C and moved the pre-C reference from 29,150 to 408,714.285714… KZT; the gated robust median stayed 29,000 KZT. Twelve delayed, authored legitimate D events were accepted after feedback; six E events without feedback stayed out of the gated profile. These are measured synthetic mechanism results, not verified labels, predictive performance, calibration or production validation. Phase 16's original deterministic-demo objective remains complete; its optional live analyst walkthrough and Phase 15 remote security remain separate open tracks.
+Next work: **Phase 17 second checkpoint:** use the same frozen source to isolate statistic from update policy in a predeclared factorial comparison, then test delayed-feedback sensitivity, compromised-confirmation and event/arrival disorder as explicit limitations. Do not retune thresholds or claim external validation. The parked analyst walkthrough requires new independent reviewer evidence before resumption; production security remains closed.
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
 ## Completed capabilities
+
+- [x] Phase 17 first research experiment: frozen
+  `profile-comparison-stream-v1` source SHA-256
+  `fe669407b3265659ea0024ee0e183d86967d6c6ad69ec19464dc649d0264e36e`
+  drives mean/static, median-MAD/static, naive-adaptive mean and gated-adaptive
+  median profiles on the same chronological events. The protocol was written
+  before results were interpreted; simulated feedback is released only after
+  its availability time and the candidate is excluded from its own snapshot.
+  The pure domain `ProfileUpdateGate` decides gated admissions; no PostgreSQL
+  write, analyst identity, trained ML model or risk threshold selection occurs.
+  The committed report SHA-256 is
+  `940d74a09a591016ab93d3180c03097deb3016c2369fa4d85fb97f1f5dc3bda8`.
+  It records all 84 pre-decision strategy/candidate rows, final profile states,
+  13 ACCEPT, one QUARANTINE and one REJECT_FROM_PROFILE gate outcomes, and six
+  unverified E candidates with no gate admission. Static short-window history
+  becomes unavailable at the final cutoff; the report does not encode this as
+  low risk. Chronology, delayed-feedback boundary, hash tamper rejection and
+  byte-for-byte replay are tested. Validation: 594 Python tests passed, zero
+  skipped, 90% combined backend/ML coverage on disposable PostgreSQL 17.10;
+  Ruff/format, strict mypy (138 source files) and offline source/wheel build
+  passed. Two existing upstream deprecations remain. No migration, dependency
+  or frontend changed.
 
 - [x] Completed controlled Phase 16 simulator: `data/synthetic` contains deterministic
   `customers.csv`, `recipients.csv`, `transactions.csv` and
@@ -707,13 +729,14 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Exact next tasks
 
-1. Begin Phase 17 with the research-protocol comparison of four profile strategies
-   on identical frozen synthetic event streams. Specify chronological processing,
-   independently generated authored outcomes and delayed feedback availability
-   before running the experiment; keep this offline and separate from the A–E demo.
-2. Test point-in-time cutoffs, no future labels, profile-update differences and
-   deterministic replay. Report measured synthetic results with explicit limits;
-   do not calibrate risk-v2 on the seven challenge cases or claim bank performance.
+1. Extend the Phase 17 frozen source into a predeclared statistic × admission-policy
+   factorial comparison so effects of arithmetic mean versus median/MAD and
+   static versus naive versus gated updates are not conflated. Preserve exact
+   event/arrival/feedback clocks and the first report unchanged for replay.
+2. Add explicit sensitivity cases for delayed feedback, a compromised simulated
+   confirmation, and out-of-order arrival. Record where the current gate abstains,
+   quarantines or needs a correction protocol. Keep all results synthetic-only;
+   do not calibrate risk-v2 or report bank detection rates.
 3. Keep the optional live analyst walkthrough parked until independent reviewers
    supply new evidence. Keep Phase 15 remote human auth and deployment closed
    pending institutional recovery, real four-role/TLS topology and security review.
