@@ -1,5 +1,12 @@
 # Local five-story demonstration
 
+For an immediate, database-free **controlled behavior simulation**, see
+[`data/synthetic/README.md`](../../data/synthetic/README.md). It generates 2,000
+prior transactions and runs all five authored scenarios through the real pure
+domain engines. It confirms A/B/C and gradual D behavior, and records that
+sequence-v1 signals for E do **not** affect risk-v1's LOW/ALLOW suggestion.
+Those synthetic oracle labels are separate from the human review workflow below.
+
 This is a **synthetic research demonstration**, not a fraud-performance result.
 Use a disposable PostgreSQL `*_test` database on a local Unix socket. Start the
 backend/frontend with the local settings in `development.md`; never use these

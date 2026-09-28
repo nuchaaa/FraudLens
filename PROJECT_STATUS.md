@@ -1,11 +1,29 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 16 in progress — the versioned fictional review-evidence package and scoped read-only console view are implemented locally for all 62 deterministic transactions. BASELINE and story A remain seeded in the disposable local demo database; 49 fixture facts match and 13 candidates remain absent. Story A has a retained rules-only INSUFFICIENT_EVIDENCE evaluation. Phase 15 remote-human-security gate remains open and production human auth fails closed. Phases 0–14 and supplemental sequence evidence remain complete.**
-Next work: **Restart the local API/console with experimental mode, then let `analyst-one` and `analyst-two` independently review newly opened BC and D baseline cases using the clearly fictional packet. Do not tell them which verdict to choose. Existing NEEDS_INVESTIGATION and LEGITIMATE history stays immutable. Only if enough actual stored reviews support legitimacy may an admin use the separate bootstrap workflow and continue B/C/D stages. B/C baseline preservation and D adaptation remain NOT DEMONSTRATED. PR #2 contains the later console/evidence work and has green backend/frontend checks; it remains open and unmerged. Remote deployment still requires institutional recovery proof/notification, authenticated admins, real four-role/TLS topology and independent security review.**
+Current checkpoint: **Phase 16 in progress — a new separate offline controlled simulator generates 10 synthetic customers, 2,000 varied prior transactions and 39 A–E candidates. It executes the pure production feature/risk/sequence/gate code and exports CSV plus an observed-outcome manifest in `data/synthetic`. A/B/C and D adaptation meet the authored controlled expectations; E exposes a real gap: sequence signals match but risk-v1 still suggests LOW/ALLOW. These labels and assumed baseline admissions are simulation-only and do not alter the analyst database. The earlier 62-transaction human review walkthrough remains at 49 matching facts, 13 absent candidates and no profile revision. Phase 15 remote-human-security gate remains open; production human auth fails closed.**
+Next work: **Decide and version an explicit policy for sequence signals before claiming E detection; test it with controlled and independent data without silently changing risk-v1. The local analyst walkthrough still needs actual independent reviews before B/C/D can be demonstrated through stored workflows. PR #2 remains open and unmerged. Remote deployment requires institutional recovery proof/notification, authenticated admins, real four-role/TLS topology and independent security review.**
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
 ## Completed capabilities
+
+- [x] Separate controlled Phase 16 simulator: `data/synthetic` contains deterministic
+  `customers.csv`, `recipients.csv`, `transactions.csv` and
+  `scenario_manifest.json`. It creates 200 prior transactions for each of 10
+  customers, with three ordinary fictional purposes/known recipients, then
+  39 authored A–E candidates. The simulator assumes the last 100 prior facts
+  are oracle-approved **only in memory** to exercise production pure behavior
+  code. No PostgreSQL row, analyst verdict, genuine legitimacy claim or model
+  training is created. A gives LOW/ALLOW/ACCEPT; B gives
+  MEDIUM/STEP_UP_VERIFICATION/QUARANTINE; C stays HIGH/HOLD_AND_REVIEW against
+  the unchanged 29k KZT median; 30 D admissions raise the short median from
+  29k to 94,310 KZT. E's six small transfers are quarantined when no verdict
+  exists and trigger sequence evidence, but risk-v1 still returns LOW/ALLOW.
+  This is an explicit failing detector expectation, not a passing scenario or
+  production metric. The original 62-row database demo is unchanged. Final
+  PostgreSQL regression: 584 passed, zero skipped, 90% combined coverage;
+  Ruff/format and strict mypy (135 source files) passed. Two existing upstream
+  warnings remain; frontend, migrations and dependencies were untouched.
 
 - [x] Phase 16 first checkpoint: versioned `demo-scenarios-v1` fixture with four
   synthetic customers and 62 deterministic KZT transaction facts spanning the
