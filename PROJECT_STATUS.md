@@ -1,11 +1,20 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 17 fictional row-level acceptance harness complete; real data acquisition blocked.** A new read-only, versioned offline fixture rehearses the frozen prospective protocol's original-versus-corrected knowledge cutoffs, strict candidate/window exclusion, late arrival and feedback, admission revocation, duplicate/invalid row rejection, and customer holdout identity checks. Source SHA-256: `1c0e1ea8e1c5652a938e7cdbeaf766d788d1312e8fca783f818f292968b34b2f`; report SHA-256: `2b67f5fa0ae149bbd3014d0821e1a1d34e1220a8eb5c35154aee401cc06d7358`. The report is intentionally `BLOCKED` because invalid fictional rows are included. It creates no genuine label, trusted admission, model, predictive metric or database write. The prospective protocol remains frozen at SHA-256 `501cce195635aa02f7ca4d368a983730b7d611a7461daccbf53a4a3acd3dd8b2`; no independently permitted behavioral source or signed addendum exists, so predictive validation is OPEN. Phase 16's original objective is complete; the optional analyst walkthrough and Phase 15 remote security are separate open tracks.
-Next work: **Phase 17 data-owner evidence and sign-off packet:** make a concrete, blank source-specific addendum and evidence-request template based on the frozen protocol, with independent roles, required source artifacts, permitted-use scope and hard stop criteria. Do not fill it with invented authority, dates, counts, labels or review capacity; do not solicit or ingest private data without owner permission. The parked analyst walkthrough and production security gates stay separate.
+Current checkpoint: **Phase 17 evidence/sign-off packet prepared; real data acquisition is blocked.** The blank, unsigned [source-owner packet v1](docs/research/phase17-owner-packet-v1/README.md) includes an evidence request, source-specific addendum template and independent disposition form. It contains no source-specific approval, permission or signature and authorizes no contact, transfer, row access or analysis. The fictional row harness remains unchanged: source SHA-256 `1c0e1ea8e1c5652a938e7cdbeaf766d788d1312e8fca783f818f292968b34b2f`; report SHA-256 `2b67f5fa0ae149bbd3014d0821e1a1d34e1220a8eb5c35154aee401cc06d7358`. Its `BLOCKED` status is intentional. The prospective protocol remains frozen at SHA-256 `501cce195635aa02f7ca4d368a983730b7d611a7461daccbf53a4a3acd3dd8b2`; no independently permitted behavioral source or signed addendum exists, so predictive validation is OPEN and no training may begin. Phase 16's original objective is complete; the optional analyst walkthrough and Phase 15 remote security are separate open tracks.
+Next work: **external acquisition gate, not another synthetic checkpoint.** If the user obtains a source-owner response, review its written authority and supporting evidence against packet Gate 0 before any data transfer or row access. If no evidence is supplied, stop with predictive validation OPEN; do not create more synthetic data, train, or contact an owner. The parked analyst walkthrough and production security gates stay separate.
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
 ## Completed capabilities
+
+- [x] Phase 17 data-owner evidence/sign-off packet prepared as blank templates at
+  `docs/research/phase17-owner-packet-v1/`. It names concrete owner artifacts,
+  independent verifier roles, gate order, signature requirements, and hard
+  stops for missing authority, privacy/custody, chronology, identity, labels,
+  admissions, splits, review capacity and final-test controls. All source and
+  reviewer-specific fields are `UNSET`; each form is explicitly unsigned and
+  grants no permission or approval. No source owner was contacted and no data
+  was received. Real behavioral validation remains OPEN/BLOCKED before training.
 
 - [x] Phase 17 fictional row acceptance checkpoint: predeclared
   `docs/research/phase17-fictional-row-acceptance-v1-plan.md` before freezing
