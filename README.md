@@ -80,7 +80,7 @@ The tests require a disposable PostgreSQL `*_test` database; a skipped database 
 
 ## Screenshots
 
-The [screenshot notes](docs/demo/screenshots/README.md) identify real local synthetic-console captures and their limits. A worklist image showing **NOT EVALUATED** means those facts had no retained evaluation; it is not a model result. The Scenario lab displays authored expectations separately from actual experimental policy outcomes.
+The [screenshot notes](docs/demo/screenshots/README.md) identify three real local synthetic-console captures and their limits, including a current authenticated admin Scenario lab view. A worklist image showing **NOT EVALUATED** means those facts had no retained evaluation; it is not a model result. The Scenario lab displays authored expectations separately from actual experimental policy outcomes.
 
 ## Limits and next work
 
