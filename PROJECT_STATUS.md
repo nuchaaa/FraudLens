@@ -1,11 +1,31 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 17 Gate 0 inspected on 2026-09-29; real data acquisition is blocked.** The blank, unsigned [source-owner packet v1](docs/research/phase17-owner-packet-v1/README.md) includes an evidence request, source-specific addendum template and independent disposition form. No data-owner response was supplied. Gate 0 lacks written use authority, verified signatory authority, and independent privacy/custody approval. The packet contains no source-specific approval, permission or signature and authorizes no contact, transfer, row access or analysis. The fictional row harness remains unchanged: source SHA-256 `1c0e1ea8e1c5652a938e7cdbeaf766d788d1312e8fca783f818f292968b34b2f`; report SHA-256 `2b67f5fa0ae149bbd3014d0821e1a1d34e1220a8eb5c35154aee401cc06d7358`. Its `BLOCKED` status is intentional. The prospective protocol remains frozen at SHA-256 `501cce195635aa02f7ca4d368a983730b7d611a7461daccbf53a4a3acd3dd8b2`; no independently permitted behavioral source or signed addendum exists, so predictive validation is OPEN and no training may begin. Phase 16's original objective is complete; the optional analyst walkthrough and Phase 15 remote security are separate open tracks. All four GitHub checks passed on PR #3 head `dad2446`.
-Next work: **external acquisition gate, not another synthetic checkpoint.** If the user obtains a source-owner response, review its written authority and supporting evidence against packet Gate 0 before any data transfer or row access. If no evidence is supplied, stop with predictive validation OPEN; do not create more synthetic data, train, or contact an owner. The parked analyst walkthrough and production security gates stay separate.
+Current checkpoint: **Phase 17 IEEE-CIS retrospective ML benchmark complete; behavior-v1 validation remains OPEN.** The user supplied official IEEE-CIS Kaggle competition files and reported accepting its noncommercial research rules. A hash-pinned, five-field tabular experiment trained three fixed models on the labeled training release, chose XGBoost on validation average precision, and opened the held-out chronological test once. Committed aggregate [report](ml/experiments/ieee-cis-retrospective-v1/README.md) SHA-256: `98a1e6b85c8f4f8b3d181d86e345dc7fb5357f6b7934f5b37b8de2edab49f004`. Final-test AP was `0.133940`, with 1,310 TP, 6,178 FP, 2,754 FN and 107,866 TN at a validation-selected threshold; these are retrospective measurements of a limited feature set, not calibrated or production-eligible. Raw CSVs, individual predictions and model bytes remain local and ignored by Git. The frozen prospective behavior-v1 protocol SHA-256 remains `501cce195635aa02f7ca4d368a983730b7d611a7461daccbf53a4a3acd3dd8b2`. IEEE-CIS does not establish stable customer/recipient/currency identities, original decision and label-availability clocks or trusted admission lineage, so it cannot satisfy that protocol. No signed source-specific behavioral addendum or independently reviewed Gate 0 exists. Phase 16's original objective is complete; the optional analyst walkthrough and Phase 15 remote security are separate open tracks.
+Next work: **read-only audit of the new retrospective benchmark and acquisition of a distinct suitable behavioral source.** Do not tune the IEEE model, features or threshold against its already opened final test or serve it in the API. If a separate data owner supplies governance evidence, review Gate 0 in the unsigned [owner packet](docs/research/phase17-owner-packet-v1/README.md) before any behavioral rows are received. Without that evidence, behavior-v1 validation remains OPEN; no additional synthetic or IEEE test retuning should be presented as a substitute.
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
 ## Completed capabilities
+
+- [x] Phase 17 separate IEEE-CIS retrospective benchmark: official competition
+  train CSV bytes are pinned by SHA-256; the user reported accepting Kaggle
+  rules. A written [protocol](docs/research/ieee-cis-retrospective-v1-protocol.md)
+  fixed five limited raw fields, 60/20/20 relative-time partitions, train-only
+  category encoding, three model candidates, validation-only AP selection and
+  F1-grid threshold before any row-label inspection. Exact-width, ID, time,
+  amount, label, identity-join and source-hash validation fail closed. The
+  experiment used 590,540 labeled transaction rows, with 144,233 matching
+  identity rows, and did not use the unlabeled competition test files. XGBoost
+  won validation AP `0.144761`; on the frozen later test, AP `0.133940`,
+  precision `0.174947`, recall `0.322343`, FPR `0.054172`, 1,310 TP and 6,178
+  FP at the validation-selected `0.70` threshold. These are uncalibrated,
+  retrospective, noncommercial research findings, not behavior-v1 or field
+  performance. Full local artifacts are Git-ignored; only aggregate report,
+  protocol, notice and code are committed. Final disposable PostgreSQL
+  regression: 626 passed, zero skipped, 89% combined backend/ML coverage;
+  Ruff/format and strict mypy across 144 source files passed. Two unchanged
+  upstream Starlette/AnyIO warnings. No frontend, migration, dependency,
+  production policy or database business row changed.
 
 - [x] Phase 17 data-owner evidence/sign-off packet prepared as blank templates at
   `docs/research/phase17-owner-packet-v1/`. It names concrete owner artifacts,

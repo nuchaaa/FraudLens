@@ -1,13 +1,16 @@
 # Phase 7 dataset suitability — 2026-09-20
 
-ULB version 3 is now imported for a separate retrospective anonymized benchmark.
-Its license/version are verified through public API metadata and its bytes are hashed.
-It remains unsuitable for behavior-v1 or production baseline selection. The earlier
+ULB version 3 and the user-supplied IEEE-CIS competition release have separate
+retrospective benchmarks. ULB license/version are verified through public API
+metadata; the IEEE-CIS user reports accepting the official noncommercial
+competition rules. Both sources are hash-pinned locally. Neither establishes
+behavior-v1 provenance or supports production baseline selection. The earlier
 synthetic checkpoint and all its limitations remain intact.
 
 | Candidate | Evidence inspected | Missing evidence / decision |
 | --- | --- | --- |
 | ULB/Worldline credit-card dataset | TensorFlow's official example shows anonymized V columns, Time, Amount and Class | Does not establish customer/recipient/device identities, currency, historical label availability or trusted profile provenance needed by behavior-v1. Kaggle API now verifies the listed ODbL/DbCL license and version 3. Imported as separate ulb-pca-v1; no missing fields are invented. Arrival/label availability and upstream PCA scope remain unknown. |
+| IEEE-CIS Fraud Detection | Official competition data page documents labeled transaction and optional identity files joined by `TransactionID`; user reports accepting the Kaggle rules, which permit noncommercial research and restrict redistribution. Exact local training CSV hashes are pinned in the [separate protocol](ieee-cis-retrospective-v1-protocol.md). | A limited five-field retrospective benchmark is measured separately. `TransactionDT` is a relative offset; stable customer/recipient/currency identities, first arrival, original decision, label availability and trusted admissions are not established. It cannot validate behavior-v1 or justify production use. Raw files, row IDs and model remain local. |
 | PaySim | Original author's repository describes a synthetic mobile-money simulator and links its dataset | Repository GPL-3.0 concerns code, not automatic approval of downloaded dataset terms. Kaggle dataset card was not readable in this session. Currency, arrival times, label availability, device resolution and profile provenance remain unverified. Do not assume simulator fraud labels are real bank ground truth. |
 | FraudLens synthetic-behavior-v1 | Generator source, deterministic seed, source hashes, event/arrival/label clocks, explicit synthetic KZT/customer/recipient/device IDs | Selected only for an engineering demonstration. Entirely authored assumptions; not representative of bank behavior. No externally copied data or dataset license dependency. |
 
