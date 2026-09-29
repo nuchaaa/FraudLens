@@ -1,0 +1,217 @@
+{
+  "correction_attempts": [
+    {
+      "processed_at": "2026-11-01T12:10:00+00:00",
+      "request_id": "d60b6490-8aef-5b4e-889c-4c2ce5b4fb51",
+      "status": "CREATED",
+      "step_id": "aacae95d-b62f-5026-b292-ea0a1e99500d",
+      "view_id": "7858ebf5-8a5d-5060-abe8-036e29eebafd"
+    },
+    {
+      "processed_at": "2026-11-01T14:00:00+00:00",
+      "request_id": "22872c8c-cdfd-5b9a-ad05-f81102202110",
+      "status": "CREATED",
+      "step_id": "f6f255f1-ac52-5d6c-ae95-f4a48b4eed3b",
+      "view_id": "2206ff2d-4c1a-5a0c-a272-96a4ee60e588"
+    },
+    {
+      "processed_at": "2026-11-01T14:01:00+00:00",
+      "request_id": "22872c8c-cdfd-5b9a-ad05-f81102202110",
+      "status": "REPLAYED",
+      "step_id": "32ca52d1-bfa0-5353-b8e2-0c1c329b898c",
+      "view_id": "2206ff2d-4c1a-5a0c-a272-96a4ee60e588"
+    },
+    {
+      "processed_at": "2026-11-01T14:02:00+00:00",
+      "request_id": "d60b6490-8aef-5b4e-889c-4c2ce5b4fb51",
+      "status": "REPLAYED",
+      "step_id": "4367d167-0c98-5ed1-9fd7-00134115abe5",
+      "view_id": "7858ebf5-8a5d-5060-abe8-036e29eebafd"
+    }
+  ],
+  "current_view_ids": {
+    "0209cf09-77cc-56df-a21d-b28d4b847dfd": "7858ebf5-8a5d-5060-abe8-036e29eebafd",
+    "e60e4ac1-bf1d-5882-8505-cfe59f01ddb3": "2206ff2d-4c1a-5a0c-a272-96a4ee60e588"
+  },
+  "labels_verified": false,
+  "limitations": [
+    "Only authored event, arrival, feedback, revocation and processing clocks are known.",
+    "Revoked confirmation means unknown legitimacy, not confirmed fraud.",
+    "Offline corrected projections do not rewrite or repair live profile history.",
+    "No verified identity, external proof, authorization or bank-action reversal exists.",
+    "Unobserved events and actual historical availability cannot be reconstructed."
+  ],
+  "production_eligible": false,
+  "report_version": "profile-retraction-report-v1",
+  "source_sha256": "a47cf3b27e4556da4fa71554f6057570a7135c7ad56be71b01219ee1064a74dc",
+  "source_version": "profile-retraction-stream-v1",
+  "synthetic_only": true,
+  "views": [
+    {
+      "customer_id": "0209cf09-77cc-56df-a21d-b28d4b847dfd",
+      "kind": "ORIGINAL",
+      "knowledge_cutoff": "2026-11-01T10:20:00+00:00",
+      "known_arrival_ids": [
+        "e5846f31-41f4-5a49-89bd-5f56e7524269"
+      ],
+      "known_feedback_ids": [
+        "e5846f31-41f4-5a49-89bd-5f56e7524269"
+      ],
+      "processed_at": "2026-11-01T10:20:00+00:00",
+      "profile": {
+        "admitted_transaction_ids": [
+          "961c451c-749f-507d-97f4-615d62aea5a5",
+          "4dacc65f-bdb3-5291-a33c-68d8d4de6b6f",
+          "041d69db-db9f-5184-b816-82e959872a08",
+          "784b167b-e54a-521f-a41d-063cc14f481d",
+          "5b5e1faa-fd85-5e7d-8c3c-546ba5d9f622",
+          "e5846f31-41f4-5a49-89bd-5f56e7524269"
+        ],
+        "count": 6,
+        "median": "27500",
+        "version": 2
+      },
+      "reason": "CONFIRMED_ORDINARY_ACTIVITY",
+      "source_sha256": "a47cf3b27e4556da4fa71554f6057570a7135c7ad56be71b01219ee1064a74dc",
+      "status": "ACCEPT",
+      "supersedes_view_id": null,
+      "trigger_transaction_id": "e5846f31-41f4-5a49-89bd-5f56e7524269",
+      "view_id": "d5128e8e-7bdf-505c-a887-b4f687fcd528"
+    },
+    {
+      "customer_id": "e60e4ac1-bf1d-5882-8505-cfe59f01ddb3",
+      "kind": "ORIGINAL",
+      "knowledge_cutoff": "2026-11-01T11:20:00+00:00",
+      "known_arrival_ids": [
+        "177f6f09-e250-5b33-ac9a-2456095f4a4c"
+      ],
+      "known_feedback_ids": [
+        "177f6f09-e250-5b33-ac9a-2456095f4a4c"
+      ],
+      "processed_at": "2026-11-01T11:20:00+00:00",
+      "profile": {
+        "admitted_transaction_ids": [
+          "15ad4c39-28eb-5eb2-9eac-3bcb69f6a22f",
+          "29f1e7b4-c23a-5dba-a2b7-185f47476533",
+          "09bad886-1834-521e-866d-0aa03ff955b1",
+          "0ecc7a4b-6200-5493-92ad-912b06118819",
+          "23678e28-1668-521e-8d05-f3776c330f35",
+          "177f6f09-e250-5b33-ac9a-2456095f4a4c"
+        ],
+        "count": 6,
+        "median": "28500",
+        "version": 2
+      },
+      "reason": "CONFIRMED_ORDINARY_ACTIVITY",
+      "source_sha256": "a47cf3b27e4556da4fa71554f6057570a7135c7ad56be71b01219ee1064a74dc",
+      "status": "ACCEPT",
+      "supersedes_view_id": null,
+      "trigger_transaction_id": "177f6f09-e250-5b33-ac9a-2456095f4a4c",
+      "view_id": "49f42fb1-9bd7-5b58-845f-51f2a206f86e"
+    },
+    {
+      "customer_id": "0209cf09-77cc-56df-a21d-b28d4b847dfd",
+      "eligible_event_ids": [],
+      "excluded_events": [
+        {
+          "reason": "CONFIRMATION_REVOKED",
+          "transaction_id": "e5846f31-41f4-5a49-89bd-5f56e7524269"
+        }
+      ],
+      "kind": "CORRECTED_OFFLINE",
+      "knowledge_cutoff": "2026-11-01T12:10:00+00:00",
+      "processed_at": "2026-11-01T12:10:00+00:00",
+      "profile": {
+        "admitted_transaction_ids": [
+          "961c451c-749f-507d-97f4-615d62aea5a5",
+          "4dacc65f-bdb3-5291-a33c-68d8d4de6b6f",
+          "041d69db-db9f-5184-b816-82e959872a08",
+          "784b167b-e54a-521f-a41d-063cc14f481d",
+          "5b5e1faa-fd85-5e7d-8c3c-546ba5d9f622"
+        ],
+        "count": 5,
+        "median": "28000",
+        "version": 1
+      },
+      "replay_actions": [],
+      "request_id": "d60b6490-8aef-5b4e-889c-4c2ce5b4fb51",
+      "source_sha256": "a47cf3b27e4556da4fa71554f6057570a7135c7ad56be71b01219ee1064a74dc",
+      "supersedes_view_id": "d5128e8e-7bdf-505c-a887-b4f687fcd528",
+      "view_id": "7858ebf5-8a5d-5060-abe8-036e29eebafd"
+    },
+    {
+      "customer_id": "e60e4ac1-bf1d-5882-8505-cfe59f01ddb3",
+      "kind": "ORIGINAL",
+      "knowledge_cutoff": "2026-11-01T13:20:00+00:00",
+      "known_arrival_ids": [
+        "177f6f09-e250-5b33-ac9a-2456095f4a4c",
+        "61feeda8-bfcf-56ab-8418-98ab47ddfea7"
+      ],
+      "known_feedback_ids": [
+        "177f6f09-e250-5b33-ac9a-2456095f4a4c",
+        "61feeda8-bfcf-56ab-8418-98ab47ddfea7"
+      ],
+      "processed_at": "2026-11-01T13:20:00+00:00",
+      "profile": {
+        "admitted_transaction_ids": [
+          "15ad4c39-28eb-5eb2-9eac-3bcb69f6a22f",
+          "29f1e7b4-c23a-5dba-a2b7-185f47476533",
+          "09bad886-1834-521e-866d-0aa03ff955b1",
+          "0ecc7a4b-6200-5493-92ad-912b06118819",
+          "23678e28-1668-521e-8d05-f3776c330f35",
+          "177f6f09-e250-5b33-ac9a-2456095f4a4c"
+        ],
+        "count": 6,
+        "median": "28500",
+        "version": 2
+      },
+      "reason": "historical transactions require a profile replay",
+      "source_sha256": "a47cf3b27e4556da4fa71554f6057570a7135c7ad56be71b01219ee1064a74dc",
+      "status": "REQUIRES_HISTORICAL_REPLAY",
+      "supersedes_view_id": "49f42fb1-9bd7-5b58-845f-51f2a206f86e",
+      "trigger_transaction_id": "61feeda8-bfcf-56ab-8418-98ab47ddfea7",
+      "view_id": "ba7763f2-cf43-57c3-bce1-61aaa9cdd8df"
+    },
+    {
+      "customer_id": "e60e4ac1-bf1d-5882-8505-cfe59f01ddb3",
+      "eligible_event_ids": [
+        "61feeda8-bfcf-56ab-8418-98ab47ddfea7",
+        "177f6f09-e250-5b33-ac9a-2456095f4a4c"
+      ],
+      "excluded_events": [],
+      "kind": "CORRECTED_OFFLINE",
+      "knowledge_cutoff": "2026-11-01T14:00:00+00:00",
+      "processed_at": "2026-11-01T14:00:00+00:00",
+      "profile": {
+        "admitted_transaction_ids": [
+          "15ad4c39-28eb-5eb2-9eac-3bcb69f6a22f",
+          "29f1e7b4-c23a-5dba-a2b7-185f47476533",
+          "09bad886-1834-521e-866d-0aa03ff955b1",
+          "0ecc7a4b-6200-5493-92ad-912b06118819",
+          "23678e28-1668-521e-8d05-f3776c330f35",
+          "61feeda8-bfcf-56ab-8418-98ab47ddfea7",
+          "177f6f09-e250-5b33-ac9a-2456095f4a4c"
+        ],
+        "count": 7,
+        "median": "29000",
+        "version": 3
+      },
+      "replay_actions": [
+        {
+          "action": "ACCEPT",
+          "reason": "CONFIRMED_ORDINARY_ACTIVITY",
+          "transaction_id": "61feeda8-bfcf-56ab-8418-98ab47ddfea7"
+        },
+        {
+          "action": "ACCEPT",
+          "reason": "CONFIRMED_ORDINARY_ACTIVITY",
+          "transaction_id": "177f6f09-e250-5b33-ac9a-2456095f4a4c"
+        }
+      ],
+      "request_id": "22872c8c-cdfd-5b9a-ad05-f81102202110",
+      "source_sha256": "a47cf3b27e4556da4fa71554f6057570a7135c7ad56be71b01219ee1064a74dc",
+      "supersedes_view_id": "ba7763f2-cf43-57c3-bce1-61aaa9cdd8df",
+      "view_id": "2206ff2d-4c1a-5a0c-a272-96a4ee60e588"
+    }
+  ]
+}

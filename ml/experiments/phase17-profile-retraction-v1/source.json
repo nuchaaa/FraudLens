@@ -1,0 +1,182 @@
+{
+  "anchor": "2026-11-01T09:00:00+00:00",
+  "baseline": [
+    {
+      "customer_id": "0209cf09-77cc-56df-a21d-b28d4b847dfd",
+      "observations": [
+        {
+          "amount": "25000",
+          "event_at": "2026-10-22T09:00:00+00:00",
+          "recipient_id": "97098592-fc52-556c-87cf-41ea96d04737",
+          "transaction_id": "961c451c-749f-507d-97f4-615d62aea5a5"
+        },
+        {
+          "amount": "28000",
+          "event_at": "2026-10-23T09:00:00+00:00",
+          "recipient_id": "97098592-fc52-556c-87cf-41ea96d04737",
+          "transaction_id": "4dacc65f-bdb3-5291-a33c-68d8d4de6b6f"
+        },
+        {
+          "amount": "30000",
+          "event_at": "2026-10-24T09:00:00+00:00",
+          "recipient_id": "97098592-fc52-556c-87cf-41ea96d04737",
+          "transaction_id": "041d69db-db9f-5184-b816-82e959872a08"
+        },
+        {
+          "amount": "27000",
+          "event_at": "2026-10-25T09:00:00+00:00",
+          "recipient_id": "97098592-fc52-556c-87cf-41ea96d04737",
+          "transaction_id": "784b167b-e54a-521f-a41d-063cc14f481d"
+        },
+        {
+          "amount": "29000",
+          "event_at": "2026-10-26T09:00:00+00:00",
+          "recipient_id": "97098592-fc52-556c-87cf-41ea96d04737",
+          "transaction_id": "5b5e1faa-fd85-5e7d-8c3c-546ba5d9f622"
+        }
+      ]
+    },
+    {
+      "customer_id": "e60e4ac1-bf1d-5882-8505-cfe59f01ddb3",
+      "observations": [
+        {
+          "amount": "25000",
+          "event_at": "2026-10-22T09:00:00+00:00",
+          "recipient_id": "01a195ca-6451-5012-89e3-f6282d5d878a",
+          "transaction_id": "15ad4c39-28eb-5eb2-9eac-3bcb69f6a22f"
+        },
+        {
+          "amount": "28000",
+          "event_at": "2026-10-23T09:00:00+00:00",
+          "recipient_id": "01a195ca-6451-5012-89e3-f6282d5d878a",
+          "transaction_id": "29f1e7b4-c23a-5dba-a2b7-185f47476533"
+        },
+        {
+          "amount": "30000",
+          "event_at": "2026-10-24T09:00:00+00:00",
+          "recipient_id": "01a195ca-6451-5012-89e3-f6282d5d878a",
+          "transaction_id": "09bad886-1834-521e-866d-0aa03ff955b1"
+        },
+        {
+          "amount": "27000",
+          "event_at": "2026-10-25T09:00:00+00:00",
+          "recipient_id": "01a195ca-6451-5012-89e3-f6282d5d878a",
+          "transaction_id": "0ecc7a4b-6200-5493-92ad-912b06118819"
+        },
+        {
+          "amount": "29000",
+          "event_at": "2026-10-26T09:00:00+00:00",
+          "recipient_id": "01a195ca-6451-5012-89e3-f6282d5d878a",
+          "transaction_id": "23678e28-1668-521e-8d05-f3776c330f35"
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "amount": "31000",
+      "arrival_at": "2026-11-01T13:00:00+00:00",
+      "currency": "KZT",
+      "customer_id": "e60e4ac1-bf1d-5882-8505-cfe59f01ddb3",
+      "event_at": "2026-11-01T10:00:00+00:00",
+      "feedback_at": "2026-11-01T13:10:00+00:00",
+      "oracle_verdict": "LEGITIMATE",
+      "recipient_id": "01a195ca-6451-5012-89e3-f6282d5d878a",
+      "revoked_at": null,
+      "scenario": "L1",
+      "transaction_id": "61feeda8-bfcf-56ab-8418-98ab47ddfea7"
+    },
+    {
+      "amount": "32000",
+      "arrival_at": "2026-11-01T11:01:00+00:00",
+      "currency": "KZT",
+      "customer_id": "e60e4ac1-bf1d-5882-8505-cfe59f01ddb3",
+      "event_at": "2026-11-01T11:00:00+00:00",
+      "feedback_at": "2026-11-01T11:10:00+00:00",
+      "oracle_verdict": "LEGITIMATE",
+      "recipient_id": "01a195ca-6451-5012-89e3-f6282d5d878a",
+      "revoked_at": null,
+      "scenario": "L2",
+      "transaction_id": "177f6f09-e250-5b33-ac9a-2456095f4a4c"
+    },
+    {
+      "amount": "26000",
+      "arrival_at": "2026-11-01T10:01:00+00:00",
+      "currency": "KZT",
+      "customer_id": "0209cf09-77cc-56df-a21d-b28d4b847dfd",
+      "event_at": "2026-11-01T10:00:00+00:00",
+      "feedback_at": "2026-11-01T10:10:00+00:00",
+      "oracle_verdict": "LEGITIMATE",
+      "recipient_id": "97098592-fc52-556c-87cf-41ea96d04737",
+      "revoked_at": "2026-11-01T12:00:00+00:00",
+      "scenario": "R1",
+      "transaction_id": "e5846f31-41f4-5a49-89bd-5f56e7524269"
+    }
+  ],
+  "steps": [
+    {
+      "customer_id": "0209cf09-77cc-56df-a21d-b28d4b847dfd",
+      "kind": "APPLY",
+      "knowledge_cutoff": null,
+      "processed_at": "2026-11-01T10:20:00+00:00",
+      "request_id": null,
+      "step_id": "1a3c71d4-45f2-57a4-96ba-8a78a27b1a60",
+      "transaction_id": "e5846f31-41f4-5a49-89bd-5f56e7524269"
+    },
+    {
+      "customer_id": "e60e4ac1-bf1d-5882-8505-cfe59f01ddb3",
+      "kind": "APPLY",
+      "knowledge_cutoff": null,
+      "processed_at": "2026-11-01T11:20:00+00:00",
+      "request_id": null,
+      "step_id": "5d9ff761-e5e2-5ac7-a1e7-62a891b5266f",
+      "transaction_id": "177f6f09-e250-5b33-ac9a-2456095f4a4c"
+    },
+    {
+      "customer_id": "0209cf09-77cc-56df-a21d-b28d4b847dfd",
+      "kind": "CORRECT",
+      "knowledge_cutoff": "2026-11-01T12:10:00+00:00",
+      "processed_at": "2026-11-01T12:10:00+00:00",
+      "request_id": "d60b6490-8aef-5b4e-889c-4c2ce5b4fb51",
+      "step_id": "aacae95d-b62f-5026-b292-ea0a1e99500d",
+      "transaction_id": null
+    },
+    {
+      "customer_id": "e60e4ac1-bf1d-5882-8505-cfe59f01ddb3",
+      "kind": "APPLY",
+      "knowledge_cutoff": null,
+      "processed_at": "2026-11-01T13:20:00+00:00",
+      "request_id": null,
+      "step_id": "03a2b384-de3c-5f79-841a-95eee8982d56",
+      "transaction_id": "61feeda8-bfcf-56ab-8418-98ab47ddfea7"
+    },
+    {
+      "customer_id": "e60e4ac1-bf1d-5882-8505-cfe59f01ddb3",
+      "kind": "CORRECT",
+      "knowledge_cutoff": "2026-11-01T14:00:00+00:00",
+      "processed_at": "2026-11-01T14:00:00+00:00",
+      "request_id": "22872c8c-cdfd-5b9a-ad05-f81102202110",
+      "step_id": "f6f255f1-ac52-5d6c-ae95-f4a48b4eed3b",
+      "transaction_id": null
+    },
+    {
+      "customer_id": "e60e4ac1-bf1d-5882-8505-cfe59f01ddb3",
+      "kind": "CORRECT",
+      "knowledge_cutoff": "2026-11-01T14:00:00+00:00",
+      "processed_at": "2026-11-01T14:01:00+00:00",
+      "request_id": "22872c8c-cdfd-5b9a-ad05-f81102202110",
+      "step_id": "32ca52d1-bfa0-5353-b8e2-0c1c329b898c",
+      "transaction_id": null
+    },
+    {
+      "customer_id": "0209cf09-77cc-56df-a21d-b28d4b847dfd",
+      "kind": "CORRECT",
+      "knowledge_cutoff": "2026-11-01T12:10:00+00:00",
+      "processed_at": "2026-11-01T14:02:00+00:00",
+      "request_id": "d60b6490-8aef-5b4e-889c-4c2ce5b4fb51",
+      "step_id": "4367d167-0c98-5ed1-9fd7-00134115abe5",
+      "transaction_id": null
+    }
+  ],
+  "version": "profile-retraction-stream-v1"
+}

@@ -1,11 +1,148 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 16 is complete against the original roadmap objective: deterministic synthetic demo data for five scenarios, with all five controlled checks visible in the local Scenario lab.** A separate seven-case falsification exercise documents benign review suggestions and a spaced attack that remains LOW/ALLOW. These are uncalibrated synthetic results, not production validation. The optional 62-transaction live analyst walkthrough is unfinished and tracked separately; it does not block starting Phase 17. Phase 15 remote security remains an external release gate.
-Next work: **Start Phase 17 research experiments:** compare arithmetic-mean static, robust median/MAD static, naive adaptive and gated adaptive profiling on the same frozen, chronological synthetic streams. Predeclare the experiment and label-availability assumptions before measuring anything. Do not reuse the A–E demo as threshold-selection data or resume the live walkthrough without new independent reviewer evidence. PR #2 remains open and unmerged; production validation and remote security remain open.
+Current checkpoint: **Phase 17 IEEE-CIS retrospective ML benchmark complete; behavior-v1 validation remains OPEN.** The user supplied official IEEE-CIS Kaggle competition files and reported accepting its noncommercial research rules. A hash-pinned, five-field tabular experiment trained three fixed models on the labeled training release, chose XGBoost on validation average precision, and opened the held-out chronological test once. Committed aggregate [report](ml/experiments/ieee-cis-retrospective-v1/README.md) SHA-256: `98a1e6b85c8f4f8b3d181d86e345dc7fb5357f6b7934f5b37b8de2edab49f004`. Final-test AP was `0.133940`, with 1,310 TP, 6,178 FP, 2,754 FN and 107,866 TN at a validation-selected threshold; these are retrospective measurements of a limited feature set, not calibrated or production-eligible. Raw CSVs, individual predictions and model bytes remain local and ignored by Git. The frozen prospective behavior-v1 protocol SHA-256 remains `501cce195635aa02f7ca4d368a983730b7d611a7461daccbf53a4a3acd3dd8b2`. IEEE-CIS does not establish stable customer/recipient/currency identities, original decision and label-availability clocks or trusted admission lineage, so it cannot satisfy that protocol. No signed source-specific behavioral addendum or independently reviewed Gate 0 exists. Phase 16's original objective is complete; the optional analyst walkthrough and Phase 15 remote security are separate open tracks.
+Next work: **read-only audit of the new retrospective benchmark and acquisition of a distinct suitable behavioral source.** Do not tune the IEEE model, features or threshold against its already opened final test or serve it in the API. If a separate data owner supplies governance evidence, review Gate 0 in the unsigned [owner packet](docs/research/phase17-owner-packet-v1/README.md) before any behavioral rows are received. Without that evidence, behavior-v1 validation remains OPEN; no additional synthetic or IEEE test retuning should be presented as a substitute.
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
 ## Completed capabilities
+
+- [x] Phase 17 separate IEEE-CIS retrospective benchmark: official competition
+  train CSV bytes are pinned by SHA-256; the user reported accepting Kaggle
+  rules. A written [protocol](docs/research/ieee-cis-retrospective-v1-protocol.md)
+  fixed five limited raw fields, 60/20/20 relative-time partitions, train-only
+  category encoding, three model candidates, validation-only AP selection and
+  F1-grid threshold before any row-label inspection. Exact-width, ID, time,
+  amount, label, identity-join and source-hash validation fail closed. The
+  experiment used 590,540 labeled transaction rows, with 144,233 matching
+  identity rows, and did not use the unlabeled competition test files. XGBoost
+  won validation AP `0.144761`; on the frozen later test, AP `0.133940`,
+  precision `0.174947`, recall `0.322343`, FPR `0.054172`, 1,310 TP and 6,178
+  FP at the validation-selected `0.70` threshold. These are uncalibrated,
+  retrospective, noncommercial research findings, not behavior-v1 or field
+  performance. Full local artifacts are Git-ignored; only aggregate report,
+  protocol, notice and code are committed. Final disposable PostgreSQL
+  regression: 626 passed, zero skipped, 89% combined backend/ML coverage;
+  Ruff/format and strict mypy across 144 source files passed. Two unchanged
+  upstream Starlette/AnyIO warnings. No frontend, migration, dependency,
+  production policy or database business row changed.
+
+- [x] Phase 17 data-owner evidence/sign-off packet prepared as blank templates at
+  `docs/research/phase17-owner-packet-v1/`. It names concrete owner artifacts,
+  independent verifier roles, gate order, signature requirements, and hard
+  stops for missing authority, privacy/custody, chronology, identity, labels,
+  admissions, splits, review capacity and final-test controls. All source and
+  reviewer-specific fields are `UNSET`; each form is explicitly unsigned and
+  grants no permission or approval. No source owner was contacted and no data
+  was received. Real behavioral validation remains OPEN/BLOCKED before training.
+
+- [x] Phase 17 fictional row acceptance checkpoint: predeclared
+  `docs/research/phase17-fictional-row-acceptance-v1-plan.md` before freezing
+  the new source/report under `ml/experiments/phase17-fictional-row-acceptance-v1`.
+  `ml/src/datasets/row_acceptance.py` is a bounded synthetic-only, create-only,
+  read-only CLI. It emits reason-coded row/identity/split and point-in-time
+  context outcomes, with a distinct corrected view linked to the original.
+  Original C has raw H1/H3/H4 and trusted H1/H4; later knowledge adds H2/H3
+  to trusted and removes revoked H4 without rewriting the original. Deliberate
+  duplicate, naive-time and arrival-after-decision rows leave overall status
+  BLOCKED. Source/report SHA-256 values are
+  `1c0e1ea8e1c5652a938e7cdbeaf766d788d1312e8fca783f818f292968b34b2f`
+  and `2b67f5fa0ae149bbd3014d0821e1a1d34e1220a8eb5c35154aee401cc06d7358`.
+  Final disposable PostgreSQL 17.10 regression: 617 tests passed, zero
+  skipped, 90% combined backend/ML coverage; Ruff/format and strict mypy
+  (142 source files) passed. Two unchanged upstream Starlette/AnyIO warnings.
+  No backend business logic, real rows, model, frontend, migration or
+  dependency changed. Remote CI status is tracked on draft PR #3.
+
+- [x] Phase 17 prospective validation registration: froze
+  `docs/research/phase17-prospective-behavioral-validation-v1.md` before any
+  independently permitted behavioral data acquisition. SHA-256:
+  `501cce195635aa02f7ca4d368a983730b7d611a7461daccbf53a4a3acd3dd8b2`.
+  The registration README records `PROTOCOL_ONLY / DATA_NOT_ACQUIRED`. The
+  protocol specifies owner and independent privacy/legal authority, stable
+  pseudonyms and separate event/arrival/decision/feedback/revocation/admission clocks, row-level leakage rejection, immutable
+  context/correction provenance, chronological and customer-disjoint testing,
+  label maturation, validation-only selection, workload/uncertainty reporting,
+  independent reviewers and fail-closed stop conditions. No sample, labels,
+  model, threshold or performance estimate was created. PR #3 remains open
+  against the Phase 16 branch; local validation details are in SESSION_LOG.md.
+
+- [x] Phase 17 fourth research checkpoint: predeclared
+  `docs/research/phase17-dataset-readiness-v1-contract.md` and implemented a
+  manifest-only auditor at `ml/src/datasets/readiness.py`. Four frozen small
+  manifests cover fictional declared completeness, missing chronology,
+  unknown label availability and committed ULB v3 metadata. The report SHA-256
+  is `24741c4c30671b0c38e2b2136186f6281e7507b4265460cb18a6eb55ca10182e`.
+  Fictional completeness permits only later row audit; the other three are
+  BLOCKED with stable machine-readable failure/unknown codes. ULB has six
+  explicit absent requirements and ten unestablished ones. Every result has
+  `behavioral_validation_eligible=false` and `production_eligible=false`.
+  No raw/private source rows, model, risk policy, database, frontend,
+  migration or dependency changed; no field metrics were created. Final
+  disposable PostgreSQL 17.10 regression: 609 Python tests passed, zero
+  skipped, 90% combined backend/ML coverage. Ruff/format, strict mypy (141
+  source files) and offline source/wheel build passed. Two existing upstream
+  Starlette/AnyIO warnings remain. Draft stacked PR #3 remains open.
+
+- [x] Phase 17 third research fixture: predeclared
+  `docs/research/phase17-retraction-replay-v1-protocol.md` and frozen
+  `ml/experiments/phase17-profile-retraction-v1/{source,report}.json`.
+  Canonical source SHA-256:
+  `a47cf3b27e4556da4fa71554f6057570a7135c7ad56be71b01219ee1064a74dc`;
+  report SHA-256:
+  `cca72cb96342a02754e26a8f2388faee66445ec76776cc802c6b73c57239683b`.
+  The runner uses the unchanged pure gate for original applies and chronological
+  corrected projections, preserving original profiles and their knowledge
+  cutoffs. It records explicit historical-replay need, revoked-confirmation
+  exclusion, supersession links and duplicate correction attempts. No live
+  profile, database, risk policy, model, frontend, migration or dependency
+  changed. All results remain synthetic-only and production-ineligible. Final
+  disposable PostgreSQL 17.10 regression: 604 Python tests passed, zero
+  skipped, 90% combined backend/ML coverage. Ruff/format, strict mypy (140
+  source files) and offline source/wheel build passed; two existing upstream
+  Starlette/AnyIO deprecations remain. Draft stacked PR #3 remains open.
+
+- [x] Phase 17 second research experiment: predeclared
+  `docs/research/phase17-profile-factorial-v1-protocol.md` before computing a
+  versioned six-cell report, with canonical source SHA-256 unchanged at
+  `fe669407b3265659ea0024ee0e183d86967d6c6ad69ec19464dc649d0264e36e`.
+  Report SHA-256:
+  `4ce0a58640c3850f556de8d6776fa1a7bfb1a2b57e83abb40d9ef1bd25860b58`.
+  Statistic pairs share exact admitted IDs. Naive mean shifts after B but
+  naive median remains 29k even with B admitted. The sensitivity report
+  records exact feedback-boundary withholding, six E admissions under
+  intentionally false confirmations, and an explicit unsupported out-of-order
+  case. No existing policy, database row, frontend, migration or dependency
+  changed. All results remain synthetic-only and production-ineligible. Final
+  disposable PostgreSQL 17.10 regression: 599 Python tests passed, zero
+  skipped, 90% combined backend/ML coverage. Ruff/format, strict mypy (139
+  source files) and offline source/wheel build passed. Two existing upstream
+  Starlette/AnyIO warnings remain. PR #3 is open against PR #2; remote checks
+  for this checkpoint are tracked on the PR.
+
+- [x] Phase 17 first research experiment: frozen
+  `profile-comparison-stream-v1` source SHA-256
+  `fe669407b3265659ea0024ee0e183d86967d6c6ad69ec19464dc649d0264e36e`
+  drives mean/static, median-MAD/static, naive-adaptive mean and gated-adaptive
+  median profiles on the same chronological events. The protocol was written
+  before results were interpreted; simulated feedback is released only after
+  its availability time and the candidate is excluded from its own snapshot.
+  The pure domain `ProfileUpdateGate` decides gated admissions; no PostgreSQL
+  write, analyst identity, trained ML model or risk threshold selection occurs.
+  The committed report SHA-256 is
+  `940d74a09a591016ab93d3180c03097deb3016c2369fa4d85fb97f1f5dc3bda8`.
+  It records all 84 pre-decision strategy/candidate rows, final profile states,
+  13 ACCEPT, one QUARANTINE and one REJECT_FROM_PROFILE gate outcomes, and six
+  unverified E candidates with no gate admission. Static short-window history
+  becomes unavailable at the final cutoff; the report does not encode this as
+  low risk. Chronology, delayed-feedback boundary, hash tamper rejection and
+  byte-for-byte replay are tested. Validation: 594 Python tests passed, zero
+  skipped, 90% combined backend/ML coverage on disposable PostgreSQL 17.10;
+  Ruff/format, strict mypy (138 source files) and offline source/wheel build
+  passed. Two existing upstream deprecations remain. No migration, dependency
+  or frontend changed. Draft stacked PR #3
+  (`codex/phase17-profile-experiment` against the Phase 16 branch) is open;
+  both backend and both frontend GitHub checks passed on code head `6c29c7f`.
 
 - [x] Completed controlled Phase 16 simulator: `data/synthetic` contains deterministic
   `customers.csv`, `recipients.csv`, `transactions.csv` and
@@ -707,13 +844,16 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Exact next tasks
 
-1. Begin Phase 17 with the research-protocol comparison of four profile strategies
-   on identical frozen synthetic event streams. Specify chronological processing,
-   independently generated authored outcomes and delayed feedback availability
-   before running the experiment; keep this offline and separate from the A–E demo.
-2. Test point-in-time cutoffs, no future labels, profile-update differences and
-   deterministic replay. Report measured synthetic results with explicit limits;
-   do not calibrate risk-v2 on the seven challenge cases or claim bank performance.
+1. Prepare a source-specific data-owner evidence request and blank signed
+   addendum template from the frozen prospective protocol. Identify which
+   independent owner/privacy/chronology/method reviewers must supply which
+   documents, source hashes, time semantics, custody terms, cutoffs and stop
+   decisions. Leave all source-specific values explicitly UNSET.
+2. Keep real behavioral validation gated on owner permission, privacy authority,
+   authenticated source/row evidence, a signed addendum and independent
+   reviewers. The fictional harness and complete manifest do not verify real
+   rows. Do not train, tune risk-v2 or calculate predictive metrics until a
+   suitable dataset is obtained and independently checked.
 3. Keep the optional live analyst walkthrough parked until independent reviewers
    supply new evidence. Keep Phase 15 remote human auth and deployment closed
    pending institutional recovery, real four-role/TLS topology and security review.

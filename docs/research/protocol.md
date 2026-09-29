@@ -62,6 +62,30 @@ ml/experiments/phase7-synthetic-v1; these do not validate the adaptive-profile h
 ## Current experiment boundary
 
 ADR-012 records the static synthetic experiment and predeclared selection rules.
-No A/B/C/D adaptive comparison has run. ADR-013 now records a separate ULB retrospective
-external benchmark with unknown arrival/label availability and PCA fitting scope. It does
-not validate behavior-v1 or establish a production baseline.
+The first offline A/B/C/D-style **profiling mechanism** comparison is recorded in
+[`phase17-profile-comparison-v1-protocol.md`](phase17-profile-comparison-v1-protocol.md)
+and its frozen synthetic report. It tests four statistic/update combinations
+on one authored chronological stream. The separate
+[`phase17-profile-factorial-v1-protocol.md`](phase17-profile-factorial-v1-protocol.md)
+crosses the two statistics with three update policies on that unchanged source.
+The [`phase17-retraction-replay-v1-protocol.md`](phase17-retraction-replay-v1-protocol.md)
+predeclares a new append-only offline correction fixture for late arrivals and
+revoked simulated confirmations. None provides external adaptive-profile
+validation, authenticated correction authority or calibrated risk. ADR-013
+records the separate ULB retrospective benchmark with unknown arrival/label
+availability and PCA fitting scope. The read-only
+[`phase17-dataset-readiness-v1-contract.md`](phase17-dataset-readiness-v1-contract.md)
+audits source manifests for these gaps before any new behavioral validation
+can be proposed. A complete manifest still needs row-level and independent
+evidence review. The frozen
+[`phase17-prospective-behavioral-validation-v1.md`](phase17-prospective-behavioral-validation-v1.md)
+now registers the future owner-permission, row-chronology, held-out-customer,
+label-availability, validation-selection and independent sign-off gates. Its
+source-specific cutoffs and capacity parameters remain unassigned until an
+eligible source is independently approved. None establishes a production baseline.
+
+The small [fictional row-acceptance plan](phase17-fictional-row-acceptance-v1-plan.md)
+and its frozen source/report rehearse selected original-versus-corrected clock,
+identity and split rejection rules without reading any real behavioral rows.
+Its intentional `BLOCKED` source is an engineering check, not a dataset audit,
+analyst verdict or performance experiment.

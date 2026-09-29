@@ -1,0 +1,180 @@
+{
+  "behavioral_validation_eligible": false,
+  "production_eligible": false,
+  "protocol_sha256": "501cce195635aa02f7ca4d368a983730b7d611a7461daccbf53a4a3acd3dd8b2",
+  "report_version": "fictional-row-acceptance-v1",
+  "rows": [
+    {
+      "codes": [],
+      "source_index": 0,
+      "status": "ACCEPTED_FOR_CONTEXT_REHEARSAL",
+      "transaction_id": "lower"
+    },
+    {
+      "codes": [],
+      "source_index": 1,
+      "status": "ACCEPTED_FOR_CONTEXT_REHEARSAL",
+      "transaction_id": "H1"
+    },
+    {
+      "codes": [],
+      "source_index": 2,
+      "status": "ACCEPTED_FOR_CONTEXT_REHEARSAL",
+      "transaction_id": "H2"
+    },
+    {
+      "codes": [],
+      "source_index": 3,
+      "status": "ACCEPTED_FOR_CONTEXT_REHEARSAL",
+      "transaction_id": "H3"
+    },
+    {
+      "codes": [],
+      "source_index": 4,
+      "status": "ACCEPTED_FOR_CONTEXT_REHEARSAL",
+      "transaction_id": "H4"
+    },
+    {
+      "codes": [],
+      "source_index": 5,
+      "status": "ACCEPTED_FOR_CONTEXT_REHEARSAL",
+      "transaction_id": "same"
+    },
+    {
+      "codes": [],
+      "source_index": 6,
+      "status": "ACCEPTED_FOR_CONTEXT_REHEARSAL",
+      "transaction_id": "C"
+    },
+    {
+      "codes": [],
+      "source_index": 7,
+      "status": "ACCEPTED_FOR_CONTEXT_REHEARSAL",
+      "transaction_id": "B-test"
+    },
+    {
+      "codes": [
+        "CONFLICTING_TRANSACTION_ID"
+      ],
+      "source_index": 8,
+      "status": "BLOCKED",
+      "transaction_id": "dup"
+    },
+    {
+      "codes": [
+        "CONFLICTING_TRANSACTION_ID"
+      ],
+      "source_index": 9,
+      "status": "BLOCKED",
+      "transaction_id": "dup"
+    },
+    {
+      "codes": [
+        "TIMESTAMP_NOT_UTC"
+      ],
+      "source_index": 10,
+      "status": "BLOCKED",
+      "transaction_id": "naive"
+    },
+    {
+      "codes": [
+        "ARRIVAL_AFTER_DECISION"
+      ],
+      "source_index": 11,
+      "status": "BLOCKED",
+      "transaction_id": "late-decision"
+    }
+  ],
+  "scope": "fictional row mechanics only; legal authority, source truth and reviewer identity unverified",
+  "source_failures": [],
+  "source_sha256": "1c0e1ea8e1c5652a938e7cdbeaf766d788d1312e8fca783f818f292968b34b2f",
+  "status": "BLOCKED",
+  "synthetic_only": true,
+  "views": [
+    {
+      "candidate_id": "C",
+      "excluded": [
+        {
+          "code": "CANDIDATE_SELF",
+          "stage": "raw",
+          "transaction_id": "C"
+        },
+        {
+          "code": "LATE_ARRIVAL",
+          "stage": "raw",
+          "transaction_id": "H2"
+        },
+        {
+          "code": "FEEDBACK_NOT_YET_AVAILABLE",
+          "stage": "trusted",
+          "transaction_id": "H3"
+        },
+        {
+          "code": "LOWER_BOUNDARY_EXCLUDED",
+          "stage": "raw",
+          "transaction_id": "lower"
+        },
+        {
+          "code": "EVENT_NOT_STRICTLY_PRIOR",
+          "stage": "raw",
+          "transaction_id": "same"
+        }
+      ],
+      "knowledge_cutoff": "2026-01-05T12:01:00+00:00",
+      "original_view_id": null,
+      "raw_ids": [
+        "H1",
+        "H3",
+        "H4"
+      ],
+      "status": "RECONSTRUCTED_FICTIONAL_CONTEXT",
+      "trusted_ids": [
+        "H1",
+        "H4"
+      ],
+      "view_id": "939d3cc1291bf7a33987d81c7f3f400ba1a87c679e8f7b1ada0b360e8356fab0",
+      "view_type": "ORIGINAL_DECISION"
+    },
+    {
+      "candidate_id": "C",
+      "excluded": [
+        {
+          "code": "CANDIDATE_SELF",
+          "stage": "raw",
+          "transaction_id": "C"
+        },
+        {
+          "code": "REVOKED_BY_CUTOFF",
+          "stage": "trusted",
+          "transaction_id": "H4"
+        },
+        {
+          "code": "LOWER_BOUNDARY_EXCLUDED",
+          "stage": "raw",
+          "transaction_id": "lower"
+        },
+        {
+          "code": "EVENT_NOT_STRICTLY_PRIOR",
+          "stage": "raw",
+          "transaction_id": "same"
+        }
+      ],
+      "knowledge_cutoff": "2026-01-08T12:00:00+00:00",
+      "original_view_id": "939d3cc1291bf7a33987d81c7f3f400ba1a87c679e8f7b1ada0b360e8356fab0",
+      "raw_ids": [
+        "H1",
+        "H2",
+        "H3",
+        "H4"
+      ],
+      "status": "RECONSTRUCTED_FICTIONAL_CONTEXT",
+      "trusted_ids": [
+        "H1",
+        "H2",
+        "H3"
+      ],
+      "view_id": "e4224dbcf289da6e5d700742df96870576160ebb9c48bdbb4a11f45f2cc21ba8",
+      "view_type": "CORRECTED_LATER_KNOWLEDGE"
+    }
+  ]
+}

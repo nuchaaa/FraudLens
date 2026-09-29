@@ -1,0 +1,803 @@
+{
+  "all_ready_for_row_audit": false,
+  "audits": [
+    {
+      "behavioral_validation_eligible": false,
+      "checks": [
+        {
+          "code": "SUPPORTED_VERSION",
+          "evidence": null,
+          "requirement": "manifest_version",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED",
+          "evidence": null,
+          "requirement": "dataset.id",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED",
+          "evidence": null,
+          "requirement": "dataset.version",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED",
+          "evidence": null,
+          "requirement": "dataset.source_uri",
+          "status": "PASS"
+        },
+        {
+          "code": "HASH_SYNTAX_VALID",
+          "evidence": null,
+          "requirement": "dataset.source_sha256",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED",
+          "evidence": null,
+          "requirement": "dataset.source_type",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-governance/license",
+          "requirement": "governance.license",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-governance/research_permission",
+          "requirement": "governance.research_permission",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-governance/privacy_handling",
+          "requirement": "governance.privacy_handling",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-governance/retention_plan",
+          "requirement": "governance.retention_plan",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/stable_customer_id",
+          "requirement": "capability.stable_customer_id",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/stable_recipient_id",
+          "requirement": "capability.stable_recipient_id",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/currency",
+          "requirement": "capability.currency",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/amount",
+          "requirement": "capability.amount",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/stable_device_id",
+          "requirement": "capability.stable_device_id",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/absolute_event_at",
+          "requirement": "capability.absolute_event_at",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/arrival_at",
+          "requirement": "capability.arrival_at",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/decision_at",
+          "requirement": "capability.decision_at",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/label_value",
+          "requirement": "capability.label_value",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/label_available_at",
+          "requirement": "capability.label_available_at",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/feedback_provenance",
+          "requirement": "capability.feedback_provenance",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/revocation_available_at",
+          "requirement": "capability.revocation_available_at",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/trusted_admission_provenance",
+          "requirement": "capability.trusted_admission_provenance",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/admission_available_at",
+          "requirement": "capability.admission_available_at",
+          "status": "PASS"
+        },
+        {
+          "code": "MINUTE_OR_BETTER",
+          "evidence": null,
+          "requirement": "time_resolution_seconds",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_SPLIT_PLAN",
+          "evidence": "fixture://fictional-split-plan",
+          "requirement": "split_plan",
+          "status": "PASS"
+        }
+      ],
+      "dataset_id": "fictional-behavioral-readiness",
+      "failures": [],
+      "manifest_name": "synthetic-complete.json",
+      "manifest_sha256": "22fab2fe943ac78b23e456e7be5c728a239e17e76e7b68053a0ea9b49600e3cf",
+      "production_eligible": false,
+      "scope": "manifest declarations only; rows, legal authority and evidence are unverified",
+      "status": "READY_FOR_ROW_AUDIT",
+      "unknowns": []
+    },
+    {
+      "behavioral_validation_eligible": false,
+      "checks": [
+        {
+          "code": "SUPPORTED_VERSION",
+          "evidence": null,
+          "requirement": "manifest_version",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED",
+          "evidence": null,
+          "requirement": "dataset.id",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED",
+          "evidence": null,
+          "requirement": "dataset.version",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED",
+          "evidence": null,
+          "requirement": "dataset.source_uri",
+          "status": "PASS"
+        },
+        {
+          "code": "HASH_SYNTAX_VALID",
+          "evidence": null,
+          "requirement": "dataset.source_sha256",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED",
+          "evidence": null,
+          "requirement": "dataset.source_type",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-governance/license",
+          "requirement": "governance.license",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-governance/research_permission",
+          "requirement": "governance.research_permission",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-governance/privacy_handling",
+          "requirement": "governance.privacy_handling",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-governance/retention_plan",
+          "requirement": "governance.retention_plan",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/stable_customer_id",
+          "requirement": "capability.stable_customer_id",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/stable_recipient_id",
+          "requirement": "capability.stable_recipient_id",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/currency",
+          "requirement": "capability.currency",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/amount",
+          "requirement": "capability.amount",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/stable_device_id",
+          "requirement": "capability.stable_device_id",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/absolute_event_at",
+          "requirement": "capability.absolute_event_at",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_ABSENT",
+          "evidence": "fixture://declared-absent/arrival_at",
+          "requirement": "capability.arrival_at",
+          "status": "FAIL"
+        },
+        {
+          "code": "DECLARED_ABSENT",
+          "evidence": "fixture://declared-absent/decision_at",
+          "requirement": "capability.decision_at",
+          "status": "FAIL"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/label_value",
+          "requirement": "capability.label_value",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/label_available_at",
+          "requirement": "capability.label_available_at",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/feedback_provenance",
+          "requirement": "capability.feedback_provenance",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/revocation_available_at",
+          "requirement": "capability.revocation_available_at",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/trusted_admission_provenance",
+          "requirement": "capability.trusted_admission_provenance",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/admission_available_at",
+          "requirement": "capability.admission_available_at",
+          "status": "PASS"
+        },
+        {
+          "code": "MINUTE_OR_BETTER",
+          "evidence": null,
+          "requirement": "time_resolution_seconds",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_SPLIT_PLAN",
+          "evidence": "fixture://fictional-split-plan",
+          "requirement": "split_plan",
+          "status": "PASS"
+        }
+      ],
+      "dataset_id": "fictional-missing-chronology",
+      "failures": [
+        {
+          "code": "DECLARED_ABSENT",
+          "evidence": "fixture://declared-absent/arrival_at",
+          "requirement": "capability.arrival_at",
+          "status": "FAIL"
+        },
+        {
+          "code": "DECLARED_ABSENT",
+          "evidence": "fixture://declared-absent/decision_at",
+          "requirement": "capability.decision_at",
+          "status": "FAIL"
+        }
+      ],
+      "manifest_name": "synthetic-missing-chronology.json",
+      "manifest_sha256": "0c1aed27976ae20434af88a72276c5c59a0fccb177edb98b3a49784ca698374c",
+      "production_eligible": false,
+      "scope": "manifest declarations only; rows, legal authority and evidence are unverified",
+      "status": "BLOCKED",
+      "unknowns": []
+    },
+    {
+      "behavioral_validation_eligible": false,
+      "checks": [
+        {
+          "code": "SUPPORTED_VERSION",
+          "evidence": null,
+          "requirement": "manifest_version",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED",
+          "evidence": null,
+          "requirement": "dataset.id",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED",
+          "evidence": null,
+          "requirement": "dataset.version",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED",
+          "evidence": null,
+          "requirement": "dataset.source_uri",
+          "status": "PASS"
+        },
+        {
+          "code": "HASH_SYNTAX_VALID",
+          "evidence": null,
+          "requirement": "dataset.source_sha256",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED",
+          "evidence": null,
+          "requirement": "dataset.source_type",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-governance/license",
+          "requirement": "governance.license",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-governance/research_permission",
+          "requirement": "governance.research_permission",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-governance/privacy_handling",
+          "requirement": "governance.privacy_handling",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-governance/retention_plan",
+          "requirement": "governance.retention_plan",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/stable_customer_id",
+          "requirement": "capability.stable_customer_id",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/stable_recipient_id",
+          "requirement": "capability.stable_recipient_id",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/currency",
+          "requirement": "capability.currency",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/amount",
+          "requirement": "capability.amount",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/stable_device_id",
+          "requirement": "capability.stable_device_id",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/absolute_event_at",
+          "requirement": "capability.absolute_event_at",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/arrival_at",
+          "requirement": "capability.arrival_at",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/decision_at",
+          "requirement": "capability.decision_at",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/label_value",
+          "requirement": "capability.label_value",
+          "status": "PASS"
+        },
+        {
+          "code": "NOT_ESTABLISHED",
+          "evidence": "fixture://unverified-label-clock",
+          "requirement": "capability.label_available_at",
+          "status": "UNKNOWN"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/feedback_provenance",
+          "requirement": "capability.feedback_provenance",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/revocation_available_at",
+          "requirement": "capability.revocation_available_at",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/trusted_admission_provenance",
+          "requirement": "capability.trusted_admission_provenance",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "fixture://fictional-schema/admission_available_at",
+          "requirement": "capability.admission_available_at",
+          "status": "PASS"
+        },
+        {
+          "code": "MINUTE_OR_BETTER",
+          "evidence": null,
+          "requirement": "time_resolution_seconds",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_SPLIT_PLAN",
+          "evidence": "fixture://fictional-split-plan",
+          "requirement": "split_plan",
+          "status": "PASS"
+        }
+      ],
+      "dataset_id": "fictional-unknown-label-time",
+      "failures": [],
+      "manifest_name": "synthetic-unknown-label-time.json",
+      "manifest_sha256": "3b56aff59860fda4fcb3b7710e8e7a31ecadf96c89032d289f517cb4a5e0d00c",
+      "production_eligible": false,
+      "scope": "manifest declarations only; rows, legal authority and evidence are unverified",
+      "status": "BLOCKED",
+      "unknowns": [
+        {
+          "code": "NOT_ESTABLISHED",
+          "evidence": "fixture://unverified-label-clock",
+          "requirement": "capability.label_available_at",
+          "status": "UNKNOWN"
+        }
+      ]
+    },
+    {
+      "behavioral_validation_eligible": false,
+      "checks": [
+        {
+          "code": "SUPPORTED_VERSION",
+          "evidence": null,
+          "requirement": "manifest_version",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED",
+          "evidence": null,
+          "requirement": "dataset.id",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED",
+          "evidence": null,
+          "requirement": "dataset.version",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED",
+          "evidence": null,
+          "requirement": "dataset.source_uri",
+          "status": "PASS"
+        },
+        {
+          "code": "HASH_SYNTAX_VALID",
+          "evidence": null,
+          "requirement": "dataset.source_sha256",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED",
+          "evidence": null,
+          "requirement": "dataset.source_type",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "docs/research/ulb-NOTICE.md",
+          "requirement": "governance.license",
+          "status": "PASS"
+        },
+        {
+          "code": "NOT_ESTABLISHED",
+          "evidence": "docs/research/ulb-source-metadata.json",
+          "requirement": "governance.research_permission",
+          "status": "UNKNOWN"
+        },
+        {
+          "code": "NOT_ESTABLISHED",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "governance.privacy_handling",
+          "status": "UNKNOWN"
+        },
+        {
+          "code": "NOT_ESTABLISHED",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "governance.retention_plan",
+          "status": "UNKNOWN"
+        },
+        {
+          "code": "DECLARED_ABSENT",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "capability.stable_customer_id",
+          "status": "FAIL"
+        },
+        {
+          "code": "DECLARED_ABSENT",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "capability.stable_recipient_id",
+          "status": "FAIL"
+        },
+        {
+          "code": "DECLARED_ABSENT",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "capability.currency",
+          "status": "FAIL"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "capability.amount",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_ABSENT",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "capability.stable_device_id",
+          "status": "FAIL"
+        },
+        {
+          "code": "DECLARED_ABSENT",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "capability.absolute_event_at",
+          "status": "FAIL"
+        },
+        {
+          "code": "NOT_ESTABLISHED",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "capability.arrival_at",
+          "status": "UNKNOWN"
+        },
+        {
+          "code": "NOT_ESTABLISHED",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "capability.decision_at",
+          "status": "UNKNOWN"
+        },
+        {
+          "code": "DECLARED_WITH_REFERENCE",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "capability.label_value",
+          "status": "PASS"
+        },
+        {
+          "code": "NOT_ESTABLISHED",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "capability.label_available_at",
+          "status": "UNKNOWN"
+        },
+        {
+          "code": "NOT_ESTABLISHED",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "capability.feedback_provenance",
+          "status": "UNKNOWN"
+        },
+        {
+          "code": "NOT_ESTABLISHED",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "capability.revocation_available_at",
+          "status": "UNKNOWN"
+        },
+        {
+          "code": "NOT_ESTABLISHED",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "capability.trusted_admission_provenance",
+          "status": "UNKNOWN"
+        },
+        {
+          "code": "NOT_ESTABLISHED",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "capability.admission_available_at",
+          "status": "UNKNOWN"
+        },
+        {
+          "code": "MINUTE_OR_BETTER",
+          "evidence": null,
+          "requirement": "time_resolution_seconds",
+          "status": "PASS"
+        },
+        {
+          "code": "DECLARED_ABSENT",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "split_plan",
+          "status": "FAIL"
+        }
+      ],
+      "dataset_id": "mlg-ulb/creditcardfraud",
+      "failures": [
+        {
+          "code": "DECLARED_ABSENT",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "capability.stable_customer_id",
+          "status": "FAIL"
+        },
+        {
+          "code": "DECLARED_ABSENT",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "capability.stable_recipient_id",
+          "status": "FAIL"
+        },
+        {
+          "code": "DECLARED_ABSENT",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "capability.currency",
+          "status": "FAIL"
+        },
+        {
+          "code": "DECLARED_ABSENT",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "capability.stable_device_id",
+          "status": "FAIL"
+        },
+        {
+          "code": "DECLARED_ABSENT",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "capability.absolute_event_at",
+          "status": "FAIL"
+        },
+        {
+          "code": "DECLARED_ABSENT",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "split_plan",
+          "status": "FAIL"
+        }
+      ],
+      "manifest_name": "ulb-known.json",
+      "manifest_sha256": "ff44f48f4245a9500b4f131f5ca1a867a164df5bb34e0017ff35f3595f010e5d",
+      "production_eligible": false,
+      "scope": "manifest declarations only; rows, legal authority and evidence are unverified",
+      "status": "BLOCKED",
+      "unknowns": [
+        {
+          "code": "NOT_ESTABLISHED",
+          "evidence": "docs/research/ulb-source-metadata.json",
+          "requirement": "governance.research_permission",
+          "status": "UNKNOWN"
+        },
+        {
+          "code": "NOT_ESTABLISHED",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "governance.privacy_handling",
+          "status": "UNKNOWN"
+        },
+        {
+          "code": "NOT_ESTABLISHED",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "governance.retention_plan",
+          "status": "UNKNOWN"
+        },
+        {
+          "code": "NOT_ESTABLISHED",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "capability.arrival_at",
+          "status": "UNKNOWN"
+        },
+        {
+          "code": "NOT_ESTABLISHED",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "capability.decision_at",
+          "status": "UNKNOWN"
+        },
+        {
+          "code": "NOT_ESTABLISHED",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "capability.label_available_at",
+          "status": "UNKNOWN"
+        },
+        {
+          "code": "NOT_ESTABLISHED",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "capability.feedback_provenance",
+          "status": "UNKNOWN"
+        },
+        {
+          "code": "NOT_ESTABLISHED",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "capability.revocation_available_at",
+          "status": "UNKNOWN"
+        },
+        {
+          "code": "NOT_ESTABLISHED",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "capability.trusted_admission_provenance",
+          "status": "UNKNOWN"
+        },
+        {
+          "code": "NOT_ESTABLISHED",
+          "evidence": "docs/research/ulb-benchmark-protocol.md",
+          "requirement": "capability.admission_available_at",
+          "status": "UNKNOWN"
+        }
+      ]
+    }
+  ],
+  "behavioral_validation_eligible": false,
+  "manifest_version": "behavioral-readiness-manifest-v1",
+  "production_eligible": false,
+  "report_version": "behavioral-readiness-report-v1"
+}

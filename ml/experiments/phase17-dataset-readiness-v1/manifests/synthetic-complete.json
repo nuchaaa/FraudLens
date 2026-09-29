@@ -1,0 +1,110 @@
+{
+  "capabilities": {
+    "absolute_event_at": {
+      "evidence": "fixture://fictional-schema/absolute_event_at",
+      "field": "absolute_event_at",
+      "state": "DOCUMENTED"
+    },
+    "admission_available_at": {
+      "evidence": "fixture://fictional-schema/admission_available_at",
+      "field": "admission_available_at",
+      "state": "DOCUMENTED"
+    },
+    "amount": {
+      "evidence": "fixture://fictional-schema/amount",
+      "field": "amount",
+      "state": "DOCUMENTED"
+    },
+    "arrival_at": {
+      "evidence": "fixture://fictional-schema/arrival_at",
+      "field": "arrival_at",
+      "state": "DOCUMENTED"
+    },
+    "currency": {
+      "evidence": "fixture://fictional-schema/currency",
+      "field": "currency",
+      "state": "DOCUMENTED"
+    },
+    "decision_at": {
+      "evidence": "fixture://fictional-schema/decision_at",
+      "field": "decision_at",
+      "state": "DOCUMENTED"
+    },
+    "feedback_provenance": {
+      "evidence": "fixture://fictional-schema/feedback_provenance",
+      "field": "feedback_provenance",
+      "state": "DOCUMENTED"
+    },
+    "label_available_at": {
+      "evidence": "fixture://fictional-schema/label_available_at",
+      "field": "label_available_at",
+      "state": "DOCUMENTED"
+    },
+    "label_value": {
+      "evidence": "fixture://fictional-schema/label_value",
+      "field": "label_value",
+      "state": "DOCUMENTED"
+    },
+    "revocation_available_at": {
+      "evidence": "fixture://fictional-schema/revocation_available_at",
+      "field": "revocation_available_at",
+      "state": "DOCUMENTED"
+    },
+    "stable_customer_id": {
+      "evidence": "fixture://fictional-schema/stable_customer_id",
+      "field": "stable_customer_id",
+      "state": "DOCUMENTED"
+    },
+    "stable_device_id": {
+      "evidence": "fixture://fictional-schema/stable_device_id",
+      "field": "stable_device_id",
+      "state": "DOCUMENTED"
+    },
+    "stable_recipient_id": {
+      "evidence": "fixture://fictional-schema/stable_recipient_id",
+      "field": "stable_recipient_id",
+      "state": "DOCUMENTED"
+    },
+    "trusted_admission_provenance": {
+      "evidence": "fixture://fictional-schema/trusted_admission_provenance",
+      "field": "trusted_admission_provenance",
+      "state": "DOCUMENTED"
+    }
+  },
+  "dataset": {
+    "id": "fictional-behavioral-readiness",
+    "source_sha256": "5d8218015071581754d0a2c8f7e2cd24311cf15b6353adc07471c32f4130084a",
+    "source_type": "synthetic",
+    "source_uri": "synthetic://manifest-only/readiness-v1",
+    "version": "v1"
+  },
+  "governance": {
+    "license": {
+      "evidence": "fixture://fictional-governance/license",
+      "state": "DOCUMENTED"
+    },
+    "privacy_handling": {
+      "evidence": "fixture://fictional-governance/privacy_handling",
+      "state": "DOCUMENTED"
+    },
+    "research_permission": {
+      "evidence": "fixture://fictional-governance/research_permission",
+      "state": "DOCUMENTED"
+    },
+    "retention_plan": {
+      "evidence": "fixture://fictional-governance/retention_plan",
+      "state": "DOCUMENTED"
+    }
+  },
+  "manifest_version": "behavioral-readiness-manifest-v1",
+  "split_plan": {
+    "customer_disjoint": true,
+    "evidence": "fixture://fictional-split-plan",
+    "held_out_customer_count": 1,
+    "state": "DOCUMENTED",
+    "test_end_utc": "2026-03-31T00:00:00+00:00",
+    "train_end_utc": "2026-01-31T00:00:00+00:00",
+    "validation_end_utc": "2026-02-28T00:00:00+00:00"
+  },
+  "time_resolution_seconds": 1
+}

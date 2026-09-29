@@ -1,0 +1,93 @@
+{
+  "capabilities": {
+    "absolute_event_at": {
+      "evidence": "docs/research/ulb-benchmark-protocol.md",
+      "state": "ABSENT"
+    },
+    "admission_available_at": {
+      "evidence": "docs/research/ulb-benchmark-protocol.md",
+      "state": "UNKNOWN"
+    },
+    "amount": {
+      "evidence": "docs/research/ulb-benchmark-protocol.md",
+      "field": "Amount",
+      "state": "DOCUMENTED"
+    },
+    "arrival_at": {
+      "evidence": "docs/research/ulb-benchmark-protocol.md",
+      "state": "UNKNOWN"
+    },
+    "currency": {
+      "evidence": "docs/research/ulb-benchmark-protocol.md",
+      "state": "ABSENT"
+    },
+    "decision_at": {
+      "evidence": "docs/research/ulb-benchmark-protocol.md",
+      "state": "UNKNOWN"
+    },
+    "feedback_provenance": {
+      "evidence": "docs/research/ulb-benchmark-protocol.md",
+      "state": "UNKNOWN"
+    },
+    "label_available_at": {
+      "evidence": "docs/research/ulb-benchmark-protocol.md",
+      "state": "UNKNOWN"
+    },
+    "label_value": {
+      "evidence": "docs/research/ulb-benchmark-protocol.md",
+      "field": "Class",
+      "state": "DOCUMENTED"
+    },
+    "revocation_available_at": {
+      "evidence": "docs/research/ulb-benchmark-protocol.md",
+      "state": "UNKNOWN"
+    },
+    "stable_customer_id": {
+      "evidence": "docs/research/ulb-benchmark-protocol.md",
+      "state": "ABSENT"
+    },
+    "stable_device_id": {
+      "evidence": "docs/research/ulb-benchmark-protocol.md",
+      "state": "ABSENT"
+    },
+    "stable_recipient_id": {
+      "evidence": "docs/research/ulb-benchmark-protocol.md",
+      "state": "ABSENT"
+    },
+    "trusted_admission_provenance": {
+      "evidence": "docs/research/ulb-benchmark-protocol.md",
+      "state": "UNKNOWN"
+    }
+  },
+  "dataset": {
+    "id": "mlg-ulb/creditcardfraud",
+    "source_sha256": "76274b691b16a6c49d3f159c883398e03ccd6d1ee12d9d8ee38f4b4b98551a89",
+    "source_type": "public",
+    "source_uri": "https://www.kaggle.com/api/v1/datasets/download/mlg-ulb/creditcardfraud?datasetVersionNumber=3",
+    "version": 3
+  },
+  "governance": {
+    "license": {
+      "evidence": "docs/research/ulb-NOTICE.md",
+      "state": "DOCUMENTED"
+    },
+    "privacy_handling": {
+      "evidence": "docs/research/ulb-benchmark-protocol.md",
+      "state": "UNKNOWN"
+    },
+    "research_permission": {
+      "evidence": "docs/research/ulb-source-metadata.json",
+      "state": "UNKNOWN"
+    },
+    "retention_plan": {
+      "evidence": "docs/research/ulb-benchmark-protocol.md",
+      "state": "UNKNOWN"
+    }
+  },
+  "manifest_version": "behavioral-readiness-manifest-v1",
+  "split_plan": {
+    "evidence": "docs/research/ulb-benchmark-protocol.md",
+    "state": "ABSENT"
+  },
+  "time_resolution_seconds": 1
+}
