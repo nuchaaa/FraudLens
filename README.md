@@ -2,7 +2,7 @@
 
 FraudLens is a research-oriented, explainable behavioral fraud-detection system. It explores how a customer profile can adapt to confirmed ordinary behavior without learning an exceptional purchase or an unverified transfer as normal.
 
-**Status:** The original local engineering objectives through Phase 16 and the Phase 17 research preparation are complete. Phase 18 documentation and release polish is in progress. FraudLens is a **local, experimental portfolio project**, not a deployed banking fraud product. Production behavioral validation and the Phase 15 remote human-authentication security gate remain open. [Current evidence and limitations](PROJECT_STATUS.md) are the source of truth.
+**Status:** The original local engineering objectives through Phase 16, Phase 17 research preparation, and Phase 18 polish are complete. FraudLens is a **local, experimental portfolio project**, not a deployed banking fraud product. Production behavioral validation and the Phase 15 remote human-authentication security gate remain open. [Current evidence and limitations](PROJECT_STATUS.md) are the source of truth.
 
 ## What it demonstrates
 
