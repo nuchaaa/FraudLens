@@ -1,11 +1,24 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 17 fourth offline research checkpoint complete.** A predeclared, read-only dataset-readiness auditor now checks versioned manifests for source/legal/privacy provenance, behavioral identities, point-in-time clocks, trusted admission provenance and a declared chronological/held-out-customer split. It distinguishes explicit absence from unknown evidence. A fictional complete manifest is only `READY_FOR_ROW_AUDIT`, never behavioral-validation eligible. The ULB v3 metadata is `BLOCKED` for behavior-v1 by six explicit failures and ten unknowns; no ULB rows or frozen test scores were reused. No suitable real behavioral validation source has been established in this repository. These are source-claim checks, not row-level, legal or production approvals. Phase 16's original deterministic-demo objective remains complete; its optional live analyst walkthrough and Phase 15 remote security remain separate open tracks.
-Next work: **Phase 17 prospective validation protocol:** pre-register the future data-access and evaluation plan before any suitable real behavioral stream is received. Define independent label and availability review, chronological/customer holdouts, operating-point selection and uncertainty reporting without estimating metrics from fictional data. Do not train or calibrate until source permission, row-level chronology and provenance are independently verified. The parked analyst walkthrough requires new independent reviewer evidence; production security remains closed.
+Current checkpoint: **Phase 17 prospective behavioral validation protocol frozen; data acquisition blocked.** The protocol now predeclares independent permission/privacy and source-lineage gates, strict original-decision chronology, trusted-admission provenance, chronological and held-out-customer evaluation, label maturation, validation-only model/threshold selection, untouched final testing, uncertainty and review-burden reporting, and independent sign-off/stop conditions. Exact protocol SHA-256 is `501cce195635aa02f7ca4d368a983730b7d611a7461daccbf53a4a3acd3dd8b2`. Source-specific cutoffs, capacity and support remain deliberately unassigned until an independently approved dataset exists. No suitable real behavioral validation source or signed addendum is established; predictive validation is OPEN. Phase 16's original deterministic-demo objective remains complete; its optional live analyst walkthrough and Phase 15 remote security remain separate open tracks.
+Next work: **Phase 17 row-level verification design:** build a small, read-only chronology/identity/split acceptance harness against fictional records using the frozen protocol, and prove explicit rejection of late availability, overlapping customer cohorts and candidate self-leakage. Do not ingest private data, train, calibrate or invent outcomes. Independently permitted source acquisition and review remain external prerequisites; the parked analyst walkthrough and production security gates stay separate.
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
 ## Completed capabilities
+
+- [x] Phase 17 prospective validation registration: froze
+  `docs/research/phase17-prospective-behavioral-validation-v1.md` before any
+  independently permitted behavioral data acquisition. SHA-256:
+  `501cce195635aa02f7ca4d368a983730b7d611a7461daccbf53a4a3acd3dd8b2`.
+  The registration README records `PROTOCOL_ONLY / DATA_NOT_ACQUIRED`. The
+  protocol specifies owner and independent privacy/legal authority, stable
+  pseudonyms and separate event/arrival/decision/feedback/revocation/admission clocks, row-level leakage rejection, immutable
+  context/correction provenance, chronological and customer-disjoint testing,
+  label maturation, validation-only selection, workload/uncertainty reporting,
+  independent reviewers and fail-closed stop conditions. No sample, labels,
+  model, threshold or performance estimate was created. PR #3 remains open
+  against the Phase 16 branch; local validation details are in SESSION_LOG.md.
 
 - [x] Phase 17 fourth research checkpoint: predeclared
   `docs/research/phase17-dataset-readiness-v1-contract.md` and implemented a
@@ -784,15 +797,16 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Exact next tasks
 
-1. Pre-register a prospective behavioral validation protocol for a future,
-   independently permitted source. Specify data-access authority and privacy
-   review, row-level event/arrival/label/revocation chronology checks, trusted
-   admission provenance, chronological and held-out-customer partitions,
-   validation-only operating-point selection and uncertainty reporting.
-2. Define stop conditions and a reproducible evidence package for independent
-   review. Do not claim that a complete manifest verifies real rows or that
-   ULB/fictional fixtures satisfy behavior-v1. Do not train, tune risk-v2 or
-   calculate new predictive metrics until suitable data is obtained and checked.
+1. Implement a small, read-only row-level acceptance harness on fictional
+   records to exercise the **already frozen** prospective protocol. Test
+   original-decision leakage, clock contradictions, late feedback/revocation,
+   identity continuity and disjoint chronological/customer partitions. It
+   should emit reason-coded rejections and no predictive metrics.
+2. Keep real behavioral validation gated on owner permission, privacy authority,
+   authenticated source/row evidence, signed source-specific addendum and
+   independent reviewers. Do not claim a complete manifest verifies real rows;
+   do not train, tune risk-v2 or calculate new predictive metrics until a
+   suitable dataset is obtained and independently checked.
 3. Keep the optional live analyst walkthrough parked until independent reviewers
    supply new evidence. Keep Phase 15 remote human auth and deployment closed
    pending institutional recovery, real four-role/TLS topology and security review.

@@ -45,3 +45,11 @@ scores are reprocessed. A fictional complete manifest is only
 `READY_FOR_ROW_AUDIT`, never eligible for behavioral validation. The auditor
 cannot authenticate legal permission, inspect row chronology or verify
 point-in-time evidence; those remain separate prerequisites.
+
+The [prospective behavioral validation protocol](phase17-prospective-behavioral-validation-v1.md)
+predeclares how a future independently permitted source would cross those
+gates, including original-decision replay, label maturation, chronological and
+customer holdouts, and an untouched final test. It is registered without a
+source-specific addendum or any real behavioral dataset; predictive validation
+remains open. The ULB PCA benchmark and fictional complete manifest do not
+qualify under that protocol.

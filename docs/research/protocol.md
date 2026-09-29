@@ -77,4 +77,9 @@ availability and PCA fitting scope. The read-only
 [`phase17-dataset-readiness-v1-contract.md`](phase17-dataset-readiness-v1-contract.md)
 audits source manifests for these gaps before any new behavioral validation
 can be proposed. A complete manifest still needs row-level and independent
-evidence review. None establishes a production baseline.
+evidence review. The frozen
+[`phase17-prospective-behavioral-validation-v1.md`](phase17-prospective-behavioral-validation-v1.md)
+now registers the future owner-permission, row-chronology, held-out-customer,
+label-availability, validation-selection and independent sign-off gates. Its
+source-specific cutoffs and capacity parameters remain unassigned until an
+eligible source is independently approved. None establishes a production baseline.
