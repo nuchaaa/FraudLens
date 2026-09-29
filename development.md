@@ -1,5 +1,24 @@
 # Development and PostgreSQL tests
 
+## Phase 17 fictional row acceptance rehearsal
+
+This offline, read-only CLI accepts only a bounded `synthetic_only` JSON source.
+It does not use PostgreSQL, train a model, or validate real owner evidence.
+The frozen fixture and expected rejection semantics are in
+`ml/experiments/phase17-fictional-row-acceptance-v1/README.md` and
+`docs/research/phase17-fictional-row-acceptance-v1-plan.md`. Reproduce to a
+new output path:
+
+```sh
+.venv/bin/python -m ml.src.datasets.row_acceptance \
+  --source ml/experiments/phase17-fictional-row-acceptance-v1/source.json \
+  --output /private/tmp/new-fictional-row-report.json
+```
+
+The CLI refuses to overwrite an existing output. The report's `BLOCKED`
+status reflects intentionally invalid fictional rows, not a live dataset
+decision. Real behavioral validation remains unstarted.
+
 From the repository root, install full development/test dependencies with `uv sync --locked --group ml`.
 Backend-only use can omit the ML group. macOS ML tests require `brew install libomp`.
 The original workspace also has `../../work/bootstrap/bin/uv`; set

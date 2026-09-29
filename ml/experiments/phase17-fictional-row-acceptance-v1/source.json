@@ -1,0 +1,48 @@
+{
+  "source_version": "fictional-row-source-v1",
+  "synthetic_only": true,
+  "protocol_sha256": "501cce195635aa02f7ca4d368a983730b7d611a7461daccbf53a4a3acd3dd8b2",
+  "time_resolution_seconds": 1,
+  "split_plan": {
+    "start_utc": "2025-07-01T00:00:00Z",
+    "train_end_utc": "2026-01-04T00:00:00Z",
+    "validation_end_utc": "2026-01-06T00:00:00Z",
+    "test_end_utc": "2026-01-11T00:00:00Z"
+  },
+  "identities": [
+    {"source_customer_id": "fictional-A", "canonical_customer_id": "fictional-A", "cohort": "development"},
+    {"source_customer_id": "fictional-B", "canonical_customer_id": "fictional-B", "cohort": "held_out"}
+  ],
+  "transactions": [
+    {"transaction_id":"lower","customer_id":"fictional-A","recipient_id":"fake-R1","device_id":"fake-D1","amount":"20000","currency":"KZT","event_at":"2025-07-09T12:00:00Z","arrival_at":"2025-07-09T12:01:00Z","decision_at":"2025-07-09T12:02:00Z"},
+    {"transaction_id":"H1","customer_id":"fictional-A","recipient_id":"fake-R1","device_id":"fake-D1","amount":"25000","currency":"KZT","event_at":"2026-01-01T10:00:00Z","arrival_at":"2026-01-01T10:01:00Z","decision_at":"2026-01-01T10:02:00Z"},
+    {"transaction_id":"H2","customer_id":"fictional-A","recipient_id":"fake-R2","device_id":"fake-D1","amount":"26000","currency":"KZT","event_at":"2026-01-02T11:00:00Z","arrival_at":"2026-01-06T11:00:00Z","decision_at":"2026-01-06T12:00:00Z"},
+    {"transaction_id":"H3","customer_id":"fictional-A","recipient_id":"fake-R1","device_id":"fake-D2","amount":"27000","currency":"KZT","event_at":"2026-01-03T09:00:00Z","arrival_at":"2026-01-03T09:01:00Z","decision_at":"2026-01-03T09:02:00Z"},
+    {"transaction_id":"H4","customer_id":"fictional-A","recipient_id":"fake-R1","device_id":"fake-D1","amount":"28000","currency":"KZT","event_at":"2026-01-04T10:00:00Z","arrival_at":"2026-01-04T10:01:00Z","decision_at":"2026-01-04T10:02:00Z"},
+    {"transaction_id":"same","customer_id":"fictional-A","recipient_id":"fake-R3","device_id":"fake-D1","amount":"29000","currency":"KZT","event_at":"2026-01-05T12:00:00Z","arrival_at":"2026-01-05T12:00:00Z","decision_at":"2026-01-05T12:00:30Z"},
+    {"transaction_id":"C","customer_id":"fictional-A","recipient_id":"fake-R4","device_id":"fake-D1","amount":"30000","currency":"KZT","event_at":"2026-01-05T12:00:00Z","arrival_at":"2026-01-05T12:00:30Z","decision_at":"2026-01-05T12:01:00Z"},
+    {"transaction_id":"B-test","customer_id":"fictional-B","recipient_id":"fake-R5","device_id":"fake-D5","amount":"31000","currency":"KZT","event_at":"2026-01-08T08:00:00Z","arrival_at":"2026-01-08T08:01:00Z","decision_at":"2026-01-08T08:02:00Z"},
+    {"transaction_id":"dup","customer_id":"fictional-A","recipient_id":"fake-R1","device_id":"fake-D1","amount":"10000","currency":"KZT","event_at":"2026-01-02T08:00:00Z","arrival_at":"2026-01-02T08:01:00Z","decision_at":"2026-01-02T08:02:00Z"},
+    {"transaction_id":"dup","customer_id":"fictional-A","recipient_id":"fake-R1","device_id":"fake-D1","amount":"11000","currency":"KZT","event_at":"2026-01-02T08:00:00Z","arrival_at":"2026-01-02T08:01:00Z","decision_at":"2026-01-02T08:02:00Z"},
+    {"transaction_id":"naive","customer_id":"fictional-A","recipient_id":"fake-R1","device_id":"fake-D1","amount":"10000","currency":"KZT","event_at":"2026-01-02T09:00:00","arrival_at":"2026-01-02T09:01:00Z","decision_at":"2026-01-02T09:02:00Z"},
+    {"transaction_id":"late-decision","customer_id":"fictional-A","recipient_id":"fake-R1","device_id":"fake-D1","amount":"10000","currency":"KZT","event_at":"2026-01-02T10:00:00Z","arrival_at":"2026-01-03T10:00:00Z","decision_at":"2026-01-02T10:02:00Z"}
+  ],
+  "feedback": [
+    {"id":"f1","transaction_id":"H1","outcome":"LEGITIMATE","available_at":"2026-01-01T11:00:00Z","oracle_assumed":true},
+    {"id":"f2","transaction_id":"H2","outcome":"LEGITIMATE","available_at":"2026-01-07T09:00:00Z","oracle_assumed":true},
+    {"id":"f3","transaction_id":"H3","outcome":"LEGITIMATE","available_at":"2026-01-06T09:00:00Z","oracle_assumed":true},
+    {"id":"f4","transaction_id":"H4","outcome":"LEGITIMATE","available_at":"2026-01-04T11:00:00Z","oracle_assumed":true}
+  ],
+  "admissions": [
+    {"id":"a1","transaction_id":"H1","feedback_id":"f1","available_at":"2026-01-01T12:00:00Z","oracle_assumed":true},
+    {"id":"a2","transaction_id":"H2","feedback_id":"f2","available_at":"2026-01-07T10:00:00Z","oracle_assumed":true},
+    {"id":"a3","transaction_id":"H3","feedback_id":"f3","available_at":"2026-01-07T10:00:00Z","oracle_assumed":true},
+    {"id":"a4","transaction_id":"H4","feedback_id":"f4","available_at":"2026-01-04T12:00:00Z","oracle_assumed":true}
+  ],
+  "revocations": [
+    {"id":"r4","admission_id":"a4","available_at":"2026-01-06T15:00:00Z","oracle_assumed":true}
+  ],
+  "views": [
+    {"candidate_id":"C","corrected_at":"2026-01-08T12:00:00Z"}
+  ]
+}

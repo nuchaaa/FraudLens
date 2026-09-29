@@ -83,3 +83,9 @@ now registers the future owner-permission, row-chronology, held-out-customer,
 label-availability, validation-selection and independent sign-off gates. Its
 source-specific cutoffs and capacity parameters remain unassigned until an
 eligible source is independently approved. None establishes a production baseline.
+
+The small [fictional row-acceptance plan](phase17-fictional-row-acceptance-v1-plan.md)
+and its frozen source/report rehearse selected original-versus-corrected clock,
+identity and split rejection rules without reading any real behavioral rows.
+Its intentional `BLOCKED` source is an engineering check, not a dataset audit,
+analyst verdict or performance experiment.

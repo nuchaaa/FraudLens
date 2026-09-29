@@ -1,11 +1,29 @@
 # FraudLens project status
 
-Current checkpoint: **Phase 17 prospective behavioral validation protocol frozen; data acquisition blocked.** The protocol now predeclares independent permission/privacy and source-lineage gates, strict original-decision chronology, trusted-admission provenance, chronological and held-out-customer evaluation, label maturation, validation-only model/threshold selection, untouched final testing, uncertainty and review-burden reporting, and independent sign-off/stop conditions. Exact protocol SHA-256 is `501cce195635aa02f7ca4d368a983730b7d611a7461daccbf53a4a3acd3dd8b2`. Source-specific cutoffs, capacity and support remain deliberately unassigned until an independently approved dataset exists. No suitable real behavioral validation source or signed addendum is established; predictive validation is OPEN. Phase 16's original deterministic-demo objective remains complete; its optional live analyst walkthrough and Phase 15 remote security remain separate open tracks.
-Next work: **Phase 17 row-level verification design:** build a small, read-only chronology/identity/split acceptance harness against fictional records using the frozen protocol, and prove explicit rejection of late availability, overlapping customer cohorts and candidate self-leakage. Do not ingest private data, train, calibrate or invent outcomes. Independently permitted source acquisition and review remain external prerequisites; the parked analyst walkthrough and production security gates stay separate.
+Current checkpoint: **Phase 17 fictional row-level acceptance harness complete; real data acquisition blocked.** A new read-only, versioned offline fixture rehearses the frozen prospective protocol's original-versus-corrected knowledge cutoffs, strict candidate/window exclusion, late arrival and feedback, admission revocation, duplicate/invalid row rejection, and customer holdout identity checks. Source SHA-256: `1c0e1ea8e1c5652a938e7cdbeaf766d788d1312e8fca783f818f292968b34b2f`; report SHA-256: `2b67f5fa0ae149bbd3014d0821e1a1d34e1220a8eb5c35154aee401cc06d7358`. The report is intentionally `BLOCKED` because invalid fictional rows are included. It creates no genuine label, trusted admission, model, predictive metric or database write. The prospective protocol remains frozen at SHA-256 `501cce195635aa02f7ca4d368a983730b7d611a7461daccbf53a4a3acd3dd8b2`; no independently permitted behavioral source or signed addendum exists, so predictive validation is OPEN. Phase 16's original objective is complete; the optional analyst walkthrough and Phase 15 remote security are separate open tracks.
+Next work: **Phase 17 data-owner evidence and sign-off packet:** make a concrete, blank source-specific addendum and evidence-request template based on the frozen protocol, with independent roles, required source artifacts, permitted-use scope and hard stop criteria. Do not fill it with invented authority, dates, counts, labels or review capacity; do not solicit or ingest private data without owner permission. The parked analyst walkthrough and production security gates stay separate.
 This is a research/portfolio checkpoint, not a deployed fraud product. Profile reads
 do not establish legitimacy, score risk or admit transactions.
 
 ## Completed capabilities
+
+- [x] Phase 17 fictional row acceptance checkpoint: predeclared
+  `docs/research/phase17-fictional-row-acceptance-v1-plan.md` before freezing
+  the new source/report under `ml/experiments/phase17-fictional-row-acceptance-v1`.
+  `ml/src/datasets/row_acceptance.py` is a bounded synthetic-only, create-only,
+  read-only CLI. It emits reason-coded row/identity/split and point-in-time
+  context outcomes, with a distinct corrected view linked to the original.
+  Original C has raw H1/H3/H4 and trusted H1/H4; later knowledge adds H2/H3
+  to trusted and removes revoked H4 without rewriting the original. Deliberate
+  duplicate, naive-time and arrival-after-decision rows leave overall status
+  BLOCKED. Source/report SHA-256 values are
+  `1c0e1ea8e1c5652a938e7cdbeaf766d788d1312e8fca783f818f292968b34b2f`
+  and `2b67f5fa0ae149bbd3014d0821e1a1d34e1220a8eb5c35154aee401cc06d7358`.
+  Final disposable PostgreSQL 17.10 regression: 617 tests passed, zero
+  skipped, 90% combined backend/ML coverage; Ruff/format and strict mypy
+  (142 source files) passed. Two unchanged upstream Starlette/AnyIO warnings.
+  No backend business logic, real rows, model, frontend, migration or
+  dependency changed. Remote CI status is tracked on draft PR #3.
 
 - [x] Phase 17 prospective validation registration: froze
   `docs/research/phase17-prospective-behavioral-validation-v1.md` before any
@@ -797,15 +815,15 @@ smoke also upgrades its default schema. Never substitute SQLite.
 
 ## Exact next tasks
 
-1. Implement a small, read-only row-level acceptance harness on fictional
-   records to exercise the **already frozen** prospective protocol. Test
-   original-decision leakage, clock contradictions, late feedback/revocation,
-   identity continuity and disjoint chronological/customer partitions. It
-   should emit reason-coded rejections and no predictive metrics.
+1. Prepare a source-specific data-owner evidence request and blank signed
+   addendum template from the frozen prospective protocol. Identify which
+   independent owner/privacy/chronology/method reviewers must supply which
+   documents, source hashes, time semantics, custody terms, cutoffs and stop
+   decisions. Leave all source-specific values explicitly UNSET.
 2. Keep real behavioral validation gated on owner permission, privacy authority,
-   authenticated source/row evidence, signed source-specific addendum and
-   independent reviewers. Do not claim a complete manifest verifies real rows;
-   do not train, tune risk-v2 or calculate new predictive metrics until a
+   authenticated source/row evidence, a signed addendum and independent
+   reviewers. The fictional harness and complete manifest do not verify real
+   rows. Do not train, tune risk-v2 or calculate predictive metrics until a
    suitable dataset is obtained and independently checked.
 3. Keep the optional live analyst walkthrough parked until independent reviewers
    supply new evidence. Keep Phase 15 remote human auth and deployment closed
