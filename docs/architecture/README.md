@@ -7,19 +7,28 @@ flowchart TB
   Analyst[Synthetic bank analyst] --> Web[Local React console]
   Service[Synthetic transaction producer] --> API[FastAPI backend]
   Web --> API
-  API --> DB[(PostgreSQL)]
+  API --> App[Framework-free domain and application services]
+  App --> Ports[Repository, model and event ports]
+  Ports --> DB
+  DB[(PostgreSQL)]
   Train[Offline experiments] --> Artifacts[Controlled model artifacts]
   Artifacts --> Replay[Experimental offline risk replay]
   Context[Captured input artifacts] --> Replay
   Service --> Eval[Opt-in experimental evaluation API]
   Analyst --> Eval
   Eval --> DB
+  DB --> Worker[Leased local outbox worker]
 ```
 
 HTTP exposes liveness, authenticated synthetic customer enrollment, scoped transaction
 submission/retrieval, profile reads, console projections and disabled-by-default experimental
 evaluation/review. PostgreSQL repositories and an atomic unit of work back the workflows.
-The React console is local-only; human login and production risk evaluation remain planned.
+The React console has local, revocable human sessions and optional local analyst
+WebAuthn. Production human authentication remains disabled; no production risk
+endpoint or independently validated behavioral model exists. The admin-only
+Scenario lab runs controlled synthetic A–E stories in memory without PostgreSQL
+writes or model inference. The separate IEEE-CIS retrospective benchmark is
+offline and does not provide customer-profile or graph validation.
 
 ## Responsibility map
 
@@ -77,12 +86,15 @@ No external delivery, fraud action or automatic learning is performed. See ADR-0
 Console queries are read-only through a framework-free `ConsoleRepository` port. The PostgreSQL
 adapter applies customer scope before aggregation/pagination and joins each transaction to the
 latest retained evaluation/case. React consumes those factual projections and existing detail
-routes; it performs no risk calculation. Credentials stay in browser memory only. See ADR-020.
+routes; it performs no risk calculation. Human browser sessions use HttpOnly cookies and a
+tab-memory CSRF value; bearer credentials are reserved for machine clients. See ADR-020/021.
 
 ## Profile semantics
 
 - One currency per profile; never mix KZT/USD nominal amounts.
-- Window semantics: `(as_of - window, as_of]`; observations may not be in the future.
+- Profile-summary windows use `(as_of - window, as_of]`. Pre-decision
+  feature capture applies its stricter candidate exclusion: prior facts must
+  fall strictly between the lower boundary and the candidate instant.
 - 180-day long window and 30-day short window; median/MAD use Decimal; p95 uses
   nearest rank. Windows and minimum trusted history are explicit policies.
 - `ProfileObservation` means already admitted by a trusted process. Enrollment and
@@ -145,8 +157,10 @@ idempotency records. PostgreSQL uses NUMERIC(18,2), TIMESTAMPTZ and UUID columns
 
 Snapshots preserve exact Decimal values as strings in versioned JSON. Deferred
 foreign keys bind each snapshot to its assessment; composite foreign keys enforce
-transaction/customer/currency and model/feature consistency. Phase 5 implements strict feature history cutoffs and local context replay; atomic
-assessment/context persistence remains future evaluation work.
+transaction/customer/currency and model/feature consistency. Phase 5 implements strict
+feature history cutoffs and local context replay. The opt-in Phase 11 workflow
+atomically stores captured context, vector, experimental evaluation, audit,
+outbox event and idempotent response.
 
 `idempotency.acquire(principal_id, key, request_sha256)` must run before business
 writes. A transaction-scoped PostgreSQL advisory lock serializes identical scoped
@@ -176,15 +190,17 @@ No feature operation changes profiles or evaluates fraud risk.
 
 [ADR-011](../adr/ADR-011-deterministic-rules.md) defines rules-v1 on behavior-v1.
 The shared threshold specification implements the existing port; complete reports
-retain policy fingerprints and three-state outcomes. No ORM/HTTP dependencies, risk
-score or profile mutation are introduced. Assessment integration remains future work.
+retain policy fingerprints and three-state outcomes. The pure rules layer has no
+ORM/HTTP dependencies or profile mutation. The opt-in evaluation workflow can
+retain its outcomes without converting an unavailable rule into a benign result.
 
 ## External benchmark boundary
 
 [ADR-013](../adr/ADR-013-external-retrospective-benchmark.md) introduces a separate offline
 ulb-pca-v1 contract for anonymized external features. It reuses model comparison utilities,
 not behavioral history construction. No benchmark rows enter operational PostgreSQL tables;
-no source identities or currency are invented. Serving APIs still load no model.
+no source identities or currency are invented. The opt-in API can use a separately
+reviewed native behavior-v1 bundle; it does not serve the ULB or IEEE-CIS benchmark models.
 
 ## Experimental inference
 
