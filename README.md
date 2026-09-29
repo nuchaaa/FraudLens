@@ -1,263 +1,89 @@
 # FraudLens
 
-**Explainable Adaptive Behavioral Fraud Detection System**
+FraudLens is a research-oriented, explainable behavioral fraud-detection system. It explores how a customer profile can adapt to confirmed ordinary behavior without learning an exceptional purchase or an unverified transfer as normal.
 
-FraudLens is a research-oriented modular monolith investigating how banking fraud
-detection can learn legitimate behavior changes without letting exceptional or
-fraudulent transactions corrupt a customer's normal baseline.
+**Status:** The original local engineering objectives through Phase 16 and the Phase 17 research preparation are complete. Phase 18 documentation and release polish is in progress. FraudLens is a **local, experimental portfolio project**, not a deployed banking fraud product. Production behavioral validation and the Phase 15 remote human-authentication security gate remain open. [Current evidence and limitations](PROJECT_STATUS.md) are the source of truth.
 
-**Status: Phase 15 local human sessions and WebAuthn checkpoint plus supplemental sequence evidence; not a deployable fraud product.**
-Submission/retrieval, scoped service credentials, durable request replay and atomic
-audit/outbox storage are implemented on PostgreSQL. Opt-in experimental HTTP evaluation
-now atomically retains its exact captured facts, vector, policy, result, optional native-model
-explanation and response. Scoped analyst cases and immutable feedback history are durable.
-There is no production risk endpoint. The local analyst console uses opt-in,
-PostgreSQL-backed human sessions and must not be exposed remotely.
-Profile reads now expose robust short/long statistics, cold-start states and immutable
-revision selection. Profile admission requires the separately authorized experimental workflow.
-The pure feature engine provides 29 ordered features with explicit missing-history indicators,
-scoped PostgreSQL capture and offline artifact replay. See [development.md](development.md)
-for capture/replay commands and [ADR-010](docs/adr/ADR-010-feature-context-and-availability.md)
-for temporal and provenance limits.
-Five versioned rules now produce stable reasons and explicit unavailable-input outcomes
-from captured features; local rule replay is documented in the development runbook.
-Experimental offline model replay now verifies native artifacts and exact feature contracts.
-It remains synthetic-only and does not load a model into HTTP routes. See
-[ADR-014](docs/adr/ADR-014-experimental-native-inference.md).
-Rules-only, ML-only and hybrid offline risk replay now retain complete policy/evidence.
-Missing required rule evidence produces no hybrid/rules-only score or action; all suggested
-actions remain experimental and unexecuted. See [ADR-015](docs/adr/ADR-015-experimental-risk-and-decision.md).
-Native TreeSHAP now explains the model margin with checked additivity and readable,
-missing-aware contributions. Rule reasons stay separate; no causal claim is made. Add
-`--explain` to offline risk replay; see [ADR-016](docs/adr/ADR-016-native-model-explanations.md).
-Phase 11 exposes the same experimental composition behind disabled-by-default authenticated
-routes and binds cases to stored evaluations. Feedback never executes an action, changes a
-profile or trains a model. See
-[ADR-017](docs/adr/ADR-017-durable-experimental-evaluations-and-review.md).
-Phase 12 adds separately authorized learning decisions: reviewed cold-start bootstrap and
-ordinary legitimate updates can create verified profile revisions, while exceptional,
-stale or insufficient evidence remains quarantined and fraud is excluded. Low-weight
-updates and corrections remain unavailable. See
-[ADR-018](docs/adr/ADR-018-safe-profile-learning-authorization.md).
-Phase 13 adds leased outbox delivery to a local deduplicating recording consumer, with
-bounded retries, crash recovery and visible dead letters. It performs no external actions
-and promises no exactly-once external delivery. See [ADR-019](docs/adr/ADR-019-outbox-delivery.md).
-Phase 14 adds a scoped React/TypeScript console over factual PostgreSQL summary/worklist
-projections, retained evaluation explanations, case review and profile reads. See
-[ADR-020](docs/adr/ADR-020-analyst-console-and-scoped-read-model.md).
-Phase 15 now provides operator-provisioned human accounts, revocable browser sessions,
-shared PostgreSQL login throttling and an audited local login/refresh/logout flow. See
-[ADR-021](docs/adr/ADR-021-human-identity-and-sessions.md) and [development.md](development.md)
-for setup. A separate HTTPS edge candidate passed a local self-signed nginx smoke;
-see [ADR-024](docs/adr/ADR-024-local-https-edge-checkpoint.md). A local analyst
-can enroll security keys, sign in with password plus WebAuthn assertion, and
-remove a key using another enrolled key; see
-[ADR-026](docs/adr/ADR-026-local-webauthn-ceremonies.md) and
-[ADR-027](docs/adr/ADR-027-local-factor-lifecycle-and-challenge-retention.md).
-Production human authentication still fails closed under
-[ADR-025](docs/adr/ADR-025-remote-human-authentication-gate.md). Admin approval,
-verified recovery and deployment security remain open.
-The supplemental sequence engine now retains four deterministic 24-hour patterns, including
-low-and-slow transfers that can evade a single-amount anomaly. It requires verified admitted
-history, produces explicit unavailable outcomes and does not change the uncalibrated risk-v1
-score. See [ADR-022](docs/adr/ADR-022-supplemental-sequence-evidence.md) and the
-[detector layers](docs/architecture/detector-layers.md).
-See [PROJECT_STATUS.md](PROJECT_STATUS.md) for verified progress.
+## What it demonstrates
 
-## Problem and behavioral fraud detection
+- Immutable synthetic transaction intake with scoped credentials, durable idempotency, audit and PostgreSQL outbox records.
+- Versioned per-customer, per-currency profiles using median, MAD, p95 and short/long windows. Cold or insufficient history is explicit.
+- Ordered behavior-v1 features, deterministic rules, supplemental sequence evidence, and a separately authorized profile-learning gate.
+- Opt-in, uncalibrated experimental evaluation and case review. Suggested actions are not banking actions; a review verdict does not automatically admit a transaction to a profile.
+- A local React analyst console with scoped human sessions. Local analysts can use password plus WebAuthn; production human authentication fails closed.
+- A read-only, admin-only [Scenario lab](data/synthetic/README.md) with five deterministic synthetic stories. All five controlled checks pass, while the first two transfers in story E remain LOW/ALLOW under both risk-v1 and the experimental risk-v2 sequence review floor.
 
-A customer normally spending ₸30,000 may legitimately buy an ₸8,000,000 vehicle.
-Treating every observed transaction as normal can contaminate an adaptive baseline
-and make the next ₸500,000 fraudulent transfer look less unusual. Global amount
-thresholds also miss differences between customers.
-
-## Key idea: safe adaptive profiling
-
-Keep risk evaluation separate from analyst truth and from permission to learn.
-The initial pure domain implementation uses per-customer, per-currency rolling
-median, MAD, nearest-rank p95, and short/long windows. A profile-update gate rejects
-confirmed fraud, quarantines unverified activity, and keeps extreme legitimate
-events outside the normal baseline. Ordinary confirmed transactions can enter it.
-
-The current 10× median gate, five-observation minimum and sequence thresholds are
-**uncalibrated research assumptions**. Low-weight updates and retractions remain future work.
-Compromised analyst confirmations are not solved by this initial gate.
+The native XGBoost behavior-v1 adapter uses reviewed **synthetic-only** artifacts for experimental replay/evaluation. The Scenario lab itself does **not** run ML. A separate five-field [IEEE-CIS retrospective benchmark](ml/experiments/ieee-cis-retrospective-v1/README.md) compared Logistic Regression, Random Forest and XGBoost; its final-test average precision was 0.133940. That benchmark cannot validate FraudLens customer profiles or graph relationships and is not a serving model. The [prospective behavioral validation protocol](docs/research/phase17-prospective-behavioral-validation-v1.md) remains blocked on a suitable, independently permitted source.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    UI[React analyst console] --> HTTP[FastAPI adapters]
-    HTTP --> UC[Transaction and profile application use cases]
-    UC --> D[Pure Python domain modules]
-    UC --> P[Repository / ML / event ports]
-    P --> DB[SQLAlchemy + PostgreSQL repositories]
-    P --> ML[Experimental native model adapter — offline replay + opt-in evaluation]
-    UC --> SQ[Supplemental deterministic sequence evidence]
-    P --> EV[In-process event adapter]
-    DB --> OB[Durable outbox — leased local recording worker]
+    UI[Local React console] --> API[FastAPI HTTP layer]
+    Client[Synthetic transaction producer] --> API
+    API --> App[Framework-free application and domain]
+    App --> Ports[Repository, model and event ports]
+    Ports --> PG[(PostgreSQL: facts, revisions, evaluations, audit, outbox)]
+    Ports --> Native[Optional reviewed native model adapter]
+    PG --> Worker[Leased local outbox worker]
+    Offline[Offline ML research] --> Artifacts[Versioned research artifacts]
+    Artifacts -. reviewed synthetic bundle only .-> Native
 ```
 
-Domain code under `backend/app` imports no web framework, ORM or ML library.
-Financial amounts use `Decimal`; timestamps must be timezone-aware and normalize
-to UTC. Customer-local hours use IANA timezones. See
-[architecture](docs/architecture/README.md) and [ADRs](docs/adr/).
+`backend/app` contains domain and application logic without FastAPI, SQLAlchemy or ML imports. `backend/api` handles HTTP and authorization; `backend/adapters` implements persistence and model/event ports. `ml/src` is offline research code and is excluded from the serving wheel. The [architecture guide](docs/architecture/README.md), [detector layers](docs/architecture/detector-layers.md) and [ADRs](docs/adr/) describe the boundaries in detail.
+
+## Run locally
+
+Use Python 3.13, [uv](https://docs.astral.sh/uv/), Node.js and PostgreSQL 17. The existing disposable test cluster and account-provisioning steps are in [development.md](development.md). Never point migrations, tests or demo commands at production data.
+
+```sh
+uv sync --locked --group ml
+export TEST_DATABASE_URL='postgresql+psycopg:///fraudlens_test?host=/private/tmp&port=55439'
+export FRAUDLENS_DATABASE_URL="$TEST_DATABASE_URL"
+.venv/bin/alembic upgrade head
+```
+
+For a **local-only** analyst console, provision a synthetic human account with the operator CLI documented in [development.md](development.md#phase-15-local-human-sessions-completed-local-checkpoint). Then start the backend in one terminal:
+
+```sh
+export FRAUDLENS_HUMAN_AUTH_ENABLED=true
+export FRAUDLENS_HUMAN_ORIGIN=http://127.0.0.1:5173
+export FRAUDLENS_HUMAN_LOCAL_INSECURE=true
+export FRAUDLENS_EXPERIMENTAL_ENABLED=true
+.venv/bin/uvicorn backend.main:app --host 127.0.0.1 --port 8000
+```
+
+Start the frontend in another terminal:
+
+```sh
+cd frontend
+npm ci
+npm run dev -- --port 5173
+```
+
+Open `http://127.0.0.1:5173`. An admin sees **Scenario lab**. `GET /health/live` checks API process liveness; it does not prove database or model readiness. Business endpoints fail closed without configuration and authorization. The local HTTP cookie setting above is for loopback development only.
+
+For a database-free controlled simulation, follow [data/synthetic/README.md](data/synthetic/README.md). The separate 62-transaction PostgreSQL [analyst walkthrough](docs/demo/README.md) remains optional and incomplete; its authored story text is not a verified analyst verdict.
+
+## Verification
+
+```sh
+.venv/bin/alembic check
+.venv/bin/pytest --cov=backend --cov=ml.src
+.venv/bin/ruff check .
+.venv/bin/ruff format --check .
+.venv/bin/mypy
+cd frontend && npm run lint && npm test && npm run build
+```
+
+The tests require a disposable PostgreSQL `*_test` database; a skipped database test is not PostgreSQL verification. The [CI workflow](.github/workflows/ci.yml) also builds backend/frontend images, but its presence is not evidence of a successful remote run. The current Compose stack is development-only and uses owner credentials. See [deployment gates](docs/security/deployment-gates.md) before any remote exposure.
 
 ## Screenshots
 
-The functioning console is available locally after authenticated setup. Recruiter-facing
-screenshots can use the Phase 16 deterministic synthetic transaction fixture; no mock
-screen is presented as measured production behavior.
+The [screenshot notes](docs/demo/screenshots/README.md) identify real local synthetic-console captures and their limits. A worklist image showing **NOT EVALUATED** means those facts had no retained evaluation; it is not a model result. The Scenario lab displays authored expectations separately from actual experimental policy outcomes.
 
-## Demo scenarios
+## Limits and next work
 
-Domain regression tests cover normal confirmed activity, a quarantined ₸8M
-purchase, preserved baseline for a subsequent ₸500k transfer, gradual confirmed
-spending changes, and an unverified escalating sequence. The first Phase 16
-fixture seeds 62 synthetic transaction facts for stories A–E into a disposable
-PostgreSQL test database. It does not create trusted profiles, verdicts, risk
-evaluations or measured outcomes; the full reviewed demonstration remains open.
-The separate `demo-review-evidence-v1` package supplies clearly fictional names,
-purposes, locations and artifact summaries for analyst role-play without changing
-transaction facts or supplying a verdict. The local console labels this context
-as synthetic and not real-world verified; see
-[ADR-033](docs/adr/ADR-033-fictional-demo-review-evidence.md).
-See the [local five-story guide](docs/demo/README.md).
+Rules, model scores, decision thresholds and the risk-v2 sequence review floor are uncalibrated and production-ineligible. Missing evidence must remain visible. The IEEE-CIS and ULB external datasets do not contain the verified behavioral identities, clocks and admission lineage needed for production profile validation. Phase 15 remote security, real four-role/TLS deployment, independent security assessment and the optional human analyst walkthrough remain separate open gates. Future graph or additional model layers need authoritative point-in-time relationships and independent validation before they can affect decisions.
 
-## Tech stack
-
-Current: Python 3.13, uv, FastAPI/Pydantic, SQLAlchemy 2, Alembic, PostgreSQL,
-React 19, TypeScript, Vite, Vitest, ESLint, Compose, pytest, Ruff, mypy and audits.
-
-Offline ML group: NumPy, scikit-learn and XGBoost.
-Native XGBoost TreeSHAP-equivalent contribution support is implemented without a new SHAP dependency.
-
-## ML methodology and metrics
-
-Three-seed **synthetic-only** comparisons now train Logistic Regression, Random Forest
-and XGBoost with chronological train/validation/test splits and held-out customers.
-[Measured results](ml/experiments/phase7-synthetic-v1/README.md) are engineering evidence,
-not real-world fraud performance. A separate [ULB retrospective benchmark](ml/experiments/ulb-retrospective-v1/README.md)
-now compares anonymized external features under its own contract. Neither result selects
-a production behavioral model. Fit transforms and class-balancing methods on training data only.
-Evaluate precision, recall, F1, ROC-AUC, PR-AUC and false-positive rate. Choose
-thresholds and models on validation data; report the untouched test set once.
-Feature generation must replay only history available before each transaction.
-See [research protocol](docs/research/protocol.md).
-
-## API
-
-- `GET /health/live`: process liveness, version and implementation stage.
-- `GET /docs`: development OpenAPI explorer.
-- `POST /api/v1/auth/login`, `/refresh`, `/logout`; `GET /api/v1/auth/session`:
-  opt-in human browser session lifecycle.
-- `POST /api/v1/customers`: admin-only synthetic customer enrollment; no profile admission.
-- `POST /api/v1/transactions`: scoped service/admin intake with required Idempotency-Key.
-- `GET /api/v1/transactions/{transaction_id}`: scoped service/analyst or admin retrieval.
-- `GET /api/v1/customers/{customer_id}/profiles/{currency}`: scoped behavior summary;
-  explicit historical cutoffs require a pinned profile version.
-
-Business routes require an authorized human session or expiring bearer service credential.
-Machine intake remains bearer-only by role. Intake returns
-201 and RECEIVED status; matching retries return the exact stored response, changed
-bodies or duplicate transaction IDs return 409. Amounts are decimal strings and
-timestamps require a timezone. No risk prediction is fabricated. See the
-[API setup and examples](development.md#authenticated-synthetic-api).
-Liveness does not establish database/model readiness.
-
-## How to run
-
-Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then:
-
-```sh
-uv sync --locked
-uv run uvicorn backend.main:app --reload --host 127.0.0.1
-```
-
-Open http://127.0.0.1:8000/docs or http://127.0.0.1:8000/health/live.
-Liveness runs without a database; business endpoints fail closed without credentials
-and configured PostgreSQL. PostgreSQL and container foundation:
-
-```sh
-cp .env.example .env
-# Edit .env: choose a local alphanumeric POSTGRES_PASSWORD and match DATABASE_URL.
-docker compose up --build -d
-docker compose exec backend alembic upgrade head
-```
-
-Migrations create 21 fraud business tables, two outbox-operational tables and four human
-identity/session/throttle tables plus database history protections.
-The initial foundation marker is preserved in migration history. Compose includes PostgreSQL,
-backend and the same-origin nginx frontend. Use a dedicated local
-database; never point migration/test commands at a real banking database.
-
-## Testing
-
-```sh
-uv run ruff check .
-uv run ruff format --check .
-uv run --group ml mypy
-uv run --group ml pytest --cov=backend --cov-report=term-missing
-uv export --locked --format requirements-txt --no-emit-project --no-hashes > /tmp/fraudlens-requirements.txt
-uv run pip-audit --disable-pip --no-deps -r /tmp/fraudlens-requirements.txt
-uv build
-cd frontend && npm ci && npm run lint && npm test && npm run build
-```
-
-PostgreSQL tests skip explicitly unless `TEST_DATABASE_URL` points to a disposable
-PostgreSQL database named `*_test`. Tests use a randomly named schema and remove
-only that schema after execution. See [local PostgreSQL setup](development.md). CI supplies it and runs Alembic, tests,
-dependency audit, package build and container build. A CI configuration is not a
-claim that a remote workflow has run. Future ML/E2E test folders are documented
-placeholders, not fake passing tests.
-
-## Security
-
-Synthetic UUIDs only; no real cardholder or identity data. No credentials in code;
-database configuration uses environment variables and redacts secrets in settings.
-Docker runs the backend without root and binds host ports to localhost. Production
-mode hides API documentation. PostgreSQL triggers reject edits/deletes to historical
-records, and repository writes participate in one explicit database transaction.
-Business routes use expiring hashed service credentials or current, revocable human
-sessions with role/customer scope checks, bounded request bodies and sanitized errors.
-Browser writes require exact configured Origin and session CSRF. A four-role
-PostgreSQL grant plan is tested on a disposable dedicated database; the current
-localhost Compose stack still uses owner credentials. Verified TLS/proxy settings,
-edge concurrency limits, full MFA lifecycle/recovery and external security
-assessment remain open. Production mode rejects human authentication pending
-those controls. Keep this synthetic demo on localhost.
-A privileged database administrator can disable triggers; these guards are not
-cryptographic tamper evidence.
-
-## Limitations and research direction
-
-This checkpoint verifies authenticated intake, experimental evaluation/review and domain
-invariants; it does not establish fraud-detection accuracy or deployment security. Robust
-profile summaries, bounded device/recipient activity features, deterministic rules and a
-synthetic-only reviewed native model exist. Supplemental sequence evidence identifies several
-24-hour low-and-slow patterns but is not part of risk-v1 scoring. Recipient account age
-and authoritative external history are unavailable. Thresholds and scores are uncalibrated. Outbox storage, leased local
-delivery and receipt deduplication exist; no external destination or continuous daemon exists.
-Feedback is durable but does not authorize profile learning. See the research protocol for
-baseline comparisons and threats to validity.
-
-## Roadmap
-
-1. Foundation and pure domain — implemented.
-2. PostgreSQL tables, repositories, atomic unit of work and migration tests — implemented.
-3. Authenticated transaction API with durable, scoped idempotency — implemented.
-4. Versioned profile reads and behavior summaries — implemented; trusted admission remains deferred.
-5. Versioned behavioral features and deterministic rules — implemented.
-6. Offline model comparison, experimental inference, hybrid risk and SHAP — implemented;
-   production behavioral validation remains open.
-7. Durable experimental evaluation, cases, feedback and conservative profile learning —
-   implemented; weights and corrections remain deferred. Leased local outbox delivery is implemented.
-8. Local analyst console and opt-in human sessions — implemented; deployment security review remains Phase 15.
-9. Deterministic demos and research experiments.
-
-## Continuation
-
-Read [PROJECT_STATUS.md](PROJECT_STATUS.md), then
-[NEXT_SESSION_PROMPT.md](NEXT_SESSION_PROMPT.md). Session facts are appended to
-[SESSION_LOG.md](SESSION_LOG.md). The original specification is preserved in
-[docs/PROJECT_SPECIFICATION.md](docs/PROJECT_SPECIFICATION.md).
+See [PROJECT_STATUS.md](PROJECT_STATUS.md), [NEXT_SESSION_PROMPT.md](NEXT_SESSION_PROMPT.md) and [SESSION_LOG.md](SESSION_LOG.md) for the current checkpoint.
